@@ -7,32 +7,35 @@ function strToObj(data:string) {
 @Table({tableName: "result"})
 export class Submission extends Model<Submission> {
   @Column({ primaryKey: true, autoIncrement: true })
-  idProb: number;
-
-  @Column
-  name: string;
-
-  @Column({ unique: true })
-  sname: string;
-
-  @Column
-  score: number;
+  idResult: number;
 
   @Column
   time: number;
 
   @Column
-  memory: number;
+  idUser: number;
+
+  @Column
+  idProb: number;
+
+  @Column({ defaultValue: 'กำลังตรวจ'})
+  result: string;
 
   @Column({ defaultValue: 0})
-  state: number;
+  score: number;
 
   @Column({ defaultValue: 0})
-  lastOpen: number
+  timeuse: number;
+
+  @Column
+  status: number
 
   @Column({ defaultValue: null})
-  case: string
+  errmsg: string
 
   @Column({ defaultValue: null})
-  rating: number
+  contestmode: number
+
+  @Column({ defaultValue: 'C++'})
+  language: string
 }
