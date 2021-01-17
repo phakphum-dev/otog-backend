@@ -10,7 +10,6 @@ async function bootstrap() {
     .setTitle('OTOG API')
     .setDescription('API service for OTOG')
     .setVersion('1.0')
-    .addTag('otog')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
