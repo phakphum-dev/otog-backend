@@ -8,6 +8,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { ProblemModule } from './problem/problem.module';
 import { SubmissionModule } from './submission/submission.module';
+import { ContestModule } from './contest/contest.module';
 @Module({
   imports: [
     SequelizeModule.forRoot({
@@ -27,6 +28,7 @@ import { SubmissionModule } from './submission/submission.module';
     AuthModule,
     ProblemModule,
     SubmissionModule,
+    ContestModule,
   ],
   controllers: [AppController],
   providers: [
