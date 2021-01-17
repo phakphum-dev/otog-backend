@@ -34,7 +34,7 @@ export class Submission extends Model<Submission> {
   errmsg: string
 
   @Column({ defaultValue: null})
-  contestmode: number
+  idContest: number
 
   @Column({ defaultValue: 'C++'})
   language: string
