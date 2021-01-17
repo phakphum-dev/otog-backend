@@ -9,6 +9,7 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { ProblemModule } from './problem/problem.module';
 import { SubmissionModule } from './submission/submission.module';
 import { ContestModule } from './contest/contest.module';
+import { MulterModule } from '@nestjs/platform-express';
 @Module({
   imports: [
     SequelizeModule.forRoot({
@@ -23,6 +24,9 @@ import { ContestModule } from './contest/contest.module';
       define: {
         timestamps: false
       }
+    }),
+    MulterModule.register({
+      dest: './upload'
     }),
     UserModule,
     AuthModule,
