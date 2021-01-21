@@ -28,14 +28,14 @@ export class SubmissionController {
         return this.submissionService.create(data,time)     
     }
 
-    @Get('/:idResult')
-    getSubmissionById(@Param('idResult') idResult: number) {
-        return this.submissionService.findOneByIdResult(idResult)
+    @Get('/:resultId')
+    getSubmissionById(@Param('resultId') resultId: number) {
+        return this.submissionService.findOneByResultId(resultId)
     }
 
-    @Get('/user/:idUser')
-    getAllSubmissionByIdUser(@Param('idUser') idUser: number) {
-        return this.submissionService.findAllByIdUser(idUser)
+    @Get('/user/:userId')
+    getAllSubmissionByUserId(@Param('userId') userId: number) {
+        return this.submissionService.findAllByUserId(userId)
     }
 
 }

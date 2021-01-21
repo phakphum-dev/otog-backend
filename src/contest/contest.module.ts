@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { ContestController } from './contest.controller';
-import { Contest } from './contest.model';
+import { Contest } from '../models/contest.model';
 import { ContestService } from './contest.service';
 
 @Module({

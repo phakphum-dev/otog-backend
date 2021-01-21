@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { SubmissionController } from './submission.controller';
-import { Submission } from './submission.model';
+import { Submission } from '../models/submission.model';
 import { SubmissionService } from './submission.service';
 
 @Module({

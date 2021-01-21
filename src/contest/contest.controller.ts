@@ -15,18 +15,18 @@ export class ContestController {
     return this.contestService.currentContest()
   }
 
-  @Get('/:idContest')
-  getContestById(@Param('idContest') idContest: number) {
-    return this.contestService.findOne({ idContest })
+  @Get('/:contestId')
+  getContestById(@Param('contestId') contestId: number) {
+    return this.contestService.findOne({ contestId })
   }
 
-  @Get('/:idContest/submission')
-  getContestSubmissionById(@Param('idContest') idContest: number) {
+  @Get('/:contestId/submission')
+  getContestSubmissionById(@Param('contestId') contestId: number) {
     return 'unfinish'
   }
 
-  @Get('/:idContest/scoreboard')
-  getContestScoreBoardById(@Param('idContest') idContest: number) {
+  @Get('/:contestId/scoreboard')
+  getContestScoreBoardById(@Param('contestId') contestId: number) {
     return 'unfinish'
   }
 

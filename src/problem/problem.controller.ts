@@ -5,21 +5,21 @@ import { ProblemService } from './problem.service';
 
 @Controller('problem')
 export class ProblemController {
-    constructor(private problemService: ProblemService) {}
+  constructor(private problemService: ProblemService) {}
 
-    @Get()
-    getAllProblems() {
-        return this.problemService.findAll()
-    }
+  @Get()
+  getAllProblems() {
+    return this.problemService.findAll();
+  }
 
-    @Get('/:idProb')
-    getProblemById(@Param('idProb') idProb: number) {
-        return this.problemService.finOne({idProb})
-    }
+  @Get('/:probId')
+  getProblemById(@Param('probId') probId: number) {
+    return this.problemService.finOne({ probId });
+  }
 
-    @Get('doc/:idProb')
-    async getDocById(@Param('idProb') idProb: number, @Res() res: Response) {
-        const prob = await this.problemService.finOne({idProb})
-        res.sendFile(`${process.cwd()}/docs/${prob.sname}.pdf`)
-    }
+  @Get('doc/:probId')
+  async getDocById(@Param('probId') probId: number, @Res() res: Response) {
+    const prob = await this.problemService.finOne({ probId });
+    res.sendFile(`${process.cwd()}/docs/${prob.sname}.pdf`);
+  }
 }

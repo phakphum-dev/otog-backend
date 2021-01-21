@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from './user.model';
+import { User } from '../models/user.model';
 
 @Injectable()
 export class UserService {
@@ -12,7 +12,7 @@ export class UserService {
   findAll(): Promise<User[]> {
     return this.userModel.findAll({
       attributes: [
-        'idUser',
+        'userId',
         'username',
         'showName',
         'state',
@@ -25,7 +25,7 @@ export class UserService {
   findOne(arg: any): Promise<User> {
     return this.userModel.findOne({
       attributes: [
-        'idUser',
+        'userId',
         'username',
         'showName',
         'state',

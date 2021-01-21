@@ -7,16 +7,16 @@ function strToObj(data:string) {
 @Table({tableName: "result"})
 export class Submission extends Model<Submission> {
   @Column({ primaryKey: true, autoIncrement: true })
-  idResult: number;
+  resultId: number;
 
   @Column
   time: number;
 
   @Column
-  idUser: number;
+  userId: number;
 
   @Column
-  idProb: number;
+  probId: number;
 
   @Column({ defaultValue: 'กำลังตรวจ'})
   result: string;
@@ -34,7 +34,7 @@ export class Submission extends Model<Submission> {
   errmsg: string
 
   @Column({ defaultValue: null})
-  idContest: number
+  contestId: number
 
   @Column({ defaultValue: 'C++'})
   language: string

@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { readFileSync } from 'fs';
-import { Submission } from './submission.model';
+import { Op } from 'sequelize';
+import { Submission } from '../models/submission.model';
 
 const fileExt = {
   C: '.c',
@@ -17,8 +18,23 @@ export class SubmissionService {
 
   findAll(): Promise<Submission[]> {
     return this.submissionModel.findAll({
+      where: {
+        contestId: null
+      },
       limit: 1000,
-      order: [['idResult', 'DESC']],
+      order: [['resultId', 'DESC']],
+    });
+  }
+
+  findAllWithContest(): Promise<Submission[]> {
+    return this.submissionModel.findAll({
+      where: {
+        contestId: {
+          [Op.not]: null,
+        },
+      },
+      limit: 1000,
+      order: [['resultId', 'DESC']],
     });
   }
 
@@ -26,28 +42,28 @@ export class SubmissionService {
     return this.submissionModel.findOne({ where: arg });
   }
 
-  async findOneByIdResult(idResult: number) {
+  async findOneByResultId(resultId: number) {
     let resultData = await this.submissionModel.findOne({
-      where: { idResult },
+      where: { resultId },
     });
-    const filename = `${resultData.idProb}_${resultData.time}${
+    const filename = `${resultData.probId}_${resultData.time}${
       fileExt[resultData.language]
     }`;
-    const dir = `./upload/${resultData.idUser}`;
+    const dir = `./upload/${resultData.userId}`;
     const scode = readFileSync(`${dir}/${filename}`).toString();
     const result = {
-      idResult: resultData.idResult,
+      resultId: resultData.resultId,
       time: resultData.time,
-      idUser: resultData.idUser,
-      idProb: resultData.idProb,
+      userId: resultData.userId,
+      probId: resultData.probId,
       result: resultData.result,
       score: resultData.score,
       timeuse: resultData.timeuse,
       status: resultData.status,
       errmsg: resultData.errmsg,
-      idContest: resultData.idContest,
+      contestId: resultData.contestId,
       language: resultData.language,
-      scode: scode
+      scode: scode,
     };
     return result;
   }
@@ -55,18 +71,19 @@ export class SubmissionService {
   async create(data: any, time: number) {
     const result = new Submission();
     result.time = time;
-    result.idUser = data.idUser;
-    result.idProb = data.idProb;
+    result.userId = Number(data.userId);
+    result.probId = Number(data.probId);
     result.status = 0;
     result.language = data.lang;
+    result.contestId = Number(data?.contestId) || null;
     const resultData = await result.save();
     return { resultData, status: true };
   }
 
-  findAllByIdUser(idUser: number): Promise<Submission[]> {
+  findAllByUserId(userId: number): Promise<Submission[]> {
     return this.submissionModel.findAll({
-      where: { idUser },
-      order: [['idResult', 'DESC']],
+      where: { userId },
+      order: [['resultId', 'DESC']],
     });
   }
 }

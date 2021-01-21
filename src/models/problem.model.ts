@@ -7,7 +7,7 @@ function strToObj(data:string) {
 @Table({tableName: "problem"})
 export class Problem extends Model<Problem> {
   @Column({ primaryKey: true, autoIncrement: true })
-  idProb: number;
+  probId: number;
 
   @Column
   name: string;
