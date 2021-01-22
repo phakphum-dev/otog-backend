@@ -1,13 +1,13 @@
 import { Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
-function strToObj(data:string) {
-  return (data == null) ? [] : JSON.parse(data)
+function strToObj(data: string) {
+  return data == null ? [] : JSON.parse(data);
 }
 
-@Table({tableName: "problem"})
+@Table({ tableName: 'problem' })
 export class Problem extends Model<Problem> {
   @Column({ primaryKey: true, autoIncrement: true })
-  probId: number;
+  id: number;
 
   @Column
   name: string;
@@ -19,20 +19,20 @@ export class Problem extends Model<Problem> {
   score: number;
 
   @Column
-  time: number;
+  timeLimit: number;
 
   @Column
   memory: number;
 
-  @Column({ defaultValue: 0})
+  @Column({ defaultValue: 0 })
   state: number;
 
-  @Column({ defaultValue: 0})
-  lastOpen: number
+  @Column({ defaultValue: 0 })
+  recentShowTime: number;
 
-  @Column({ defaultValue: null})
-  case: string
+  @Column({ defaultValue: null })
+  case: string;
 
-  @Column({ defaultValue: null})
-  rating: number
+  @Column({ defaultValue: null })
+  rating: number;
 }

@@ -1,16 +1,16 @@
 import { Column, Model, PrimaryKey, Table } from 'sequelize-typescript';
 
-function strToObj(data:string) {
-  return (data == null) ? [] : JSON.parse(data)
+function strToObj(data: string) {
+  return data == null ? [] : JSON.parse(data);
 }
 
-@Table({tableName: "result"})
+@Table({ tableName: 'result' })
 export class Submission extends Model<Submission> {
   @Column({ primaryKey: true, autoIncrement: true })
-  resultId: number;
+  id: number;
 
   @Column
-  time: number;
+  timeSent: number;
 
   @Column
   userId: number;
@@ -18,24 +18,28 @@ export class Submission extends Model<Submission> {
   @Column
   probId: number;
 
-  @Column({ defaultValue: 'กำลังตรวจ'})
+  @Column({ defaultValue: 'กำลังตรวจ' })
   result: string;
 
-  @Column({ defaultValue: 0})
+  @Column({ defaultValue: 0 })
   score: number;
 
-  @Column({ defaultValue: 0})
-  timeuse: number;
+  @Column({ defaultValue: 0 })
+  timeUsed: number;
 
-  @Column
-  status: number
+  @Column({
+    get() {
+      return Boolean(this.getDataValue('isGrading'));
+    },
+  })
+  isGrading: boolean;
 
-  @Column({ defaultValue: null})
-  errmsg: string
+  @Column({ defaultValue: null })
+  errmsg: string;
 
-  @Column({ defaultValue: null})
-  contestId: number
+  @Column({ defaultValue: null })
+  contestId: number;
 
-  @Column({ defaultValue: 'C++'})
-  language: string
+  @Column({ defaultValue: 'C++' })
+  language: string;
 }

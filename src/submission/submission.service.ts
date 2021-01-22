@@ -19,10 +19,10 @@ export class SubmissionService {
   findAll(): Promise<Submission[]> {
     return this.submissionModel.findAll({
       where: {
-        contestId: null
+        contestId: null,
       },
-      limit: 1000,
-      order: [['resultId', 'DESC']],
+      limit: 100,
+      order: [['id', 'DESC']],
     });
   }
 
@@ -33,8 +33,8 @@ export class SubmissionService {
           [Op.not]: null,
         },
       },
-      limit: 1000,
-      order: [['resultId', 'DESC']],
+      limit: 100,
+      order: [['id', 'DESC']],
     });
   }
 
@@ -44,22 +44,22 @@ export class SubmissionService {
 
   async findOneByResultId(resultId: number) {
     let resultData = await this.submissionModel.findOne({
-      where: { resultId },
+      where: { id: resultId },
     });
-    const filename = `${resultData.probId}_${resultData.time}${
+    const filename = `${resultData.probId}_${resultData.timeSent}${
       fileExt[resultData.language]
     }`;
     const dir = `./upload/${resultData.userId}`;
     const scode = readFileSync(`${dir}/${filename}`).toString();
     const result = {
-      resultId: resultData.resultId,
-      time: resultData.time,
+      id: resultData.id,
+      timeSent: resultData.timeSent,
       userId: resultData.userId,
       probId: resultData.probId,
       result: resultData.result,
       score: resultData.score,
-      timeuse: resultData.timeuse,
-      status: resultData.status,
+      timeUsed: resultData.timeUsed,
+      isGrading: resultData.isGrading,
       errmsg: resultData.errmsg,
       contestId: resultData.contestId,
       language: resultData.language,
@@ -68,12 +68,12 @@ export class SubmissionService {
     return result;
   }
 
-  async create(data: any, time: number) {
+  async create(data: any, timeSent: number) {
     const result = new Submission();
-    result.time = time;
+    result.timeSent = timeSent;
     result.userId = Number(data.userId);
     result.probId = Number(data.probId);
-    result.status = 0;
+    result.isGrading = false;
     result.language = data.lang;
     result.contestId = Number(data?.contestId) || null;
     const resultData = await result.save();
@@ -83,7 +83,7 @@ export class SubmissionService {
   findAllByUserId(userId: number): Promise<Submission[]> {
     return this.submissionModel.findAll({
       where: { userId },
-      order: [['resultId', 'DESC']],
+      order: [['id', 'DESC']],
     });
   }
 }

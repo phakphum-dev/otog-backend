@@ -14,12 +14,12 @@ export class ProblemController {
 
   @Get('/:probId')
   getProblemById(@Param('probId') probId: number) {
-    return this.problemService.finOne({ probId });
+    return this.problemService.finOne({ id: probId });
   }
 
   @Get('doc/:probId')
   async getDocById(@Param('probId') probId: number, @Res() res: Response) {
-    const prob = await this.problemService.finOne({ probId });
+    const prob = await this.problemService.finOne({ id: probId });
     res.sendFile(`${process.cwd()}/docs/${prob.sname}.pdf`);
   }
 }

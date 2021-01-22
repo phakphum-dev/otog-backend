@@ -1,7 +1,7 @@
 import { existsSync, mkdir, mkdirSync } from 'fs';
 
 const fileExt = {
-  'C': '.c',
+  C: '.c',
   'C++': '.cpp',
 };
 
@@ -14,9 +14,9 @@ export const scodeFileFilter = (req, file, callback) => {
 
 export const editFileName = (req, file, callback) => {
   const data = req.body;
-  const time = Math.floor(Date.now() / 1000);
+  const timeSent = Math.floor(Date.now() / 1000);
   const fileExtName = fileExt[data.lang];
-  callback(null, `${data.idProb}_${time}${fileExtName}`);
+  callback(null, `${data.idProb}_${timeSent}${fileExtName}`);
 };
 
 export const editDestPath = (req, file, callback) => {

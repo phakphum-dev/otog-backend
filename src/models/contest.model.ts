@@ -7,7 +7,7 @@ function strToObj(data: string) {
 @Table({ tableName: 'contest' })
 export class Contest extends Model<Contest> {
   @Column({ primaryKey: true, autoIncrement: true })
-  contestId: number;
+  id: number;
 
   @Column
   name: string;
@@ -24,13 +24,19 @@ export class Contest extends Model<Contest> {
   @Column
   timeEnd: number;
 
-  @Column({ 
+  @Column({
     defaultValue: '[]',
-    get() {return strToObj(this.getDataValue('problems'))} })
+    get() {
+      return strToObj(this.getDataValue('problems'));
+    },
+  })
   problems: string;
 
   @Column({
     defaultValue: null,
-    get() {return strToObj(this.getDataValue('announce'))} })
+    get() {
+      return strToObj(this.getDataValue('announce'));
+    },
+  })
   announce: string;
 }

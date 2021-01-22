@@ -11,29 +11,14 @@ export class UserService {
 
   findAll(): Promise<User[]> {
     return this.userModel.findAll({
-      attributes: [
-        'userId',
-        'username',
-        'showName',
-        'state',
-        'rating',
-        'history',
-      ],
+      attributes: ['id', 'username', 'showName', 'state', 'rating', 'history'],
     });
   }
 
   findOne(arg: any): Promise<User> {
     return this.userModel.findOne({
-      attributes: [
-        'userId',
-        'username',
-        'showName',
-        'state',
-        'rating',
-        'history',
-      ],
+      attributes: ['id', 'username', 'showName', 'state', 'rating', 'history'],
       where: arg,
     });
   }
-  
 }
