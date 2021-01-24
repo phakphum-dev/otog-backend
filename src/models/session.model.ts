@@ -6,7 +6,7 @@ function strToObj(data: string) {
 }
 
 @Table({ tableName: 'session' })
-export class Session extends Model<Session> {
+export class Session extends Model {
   @Column({ primaryKey: true, autoIncrement: true })
   id: number;
 
