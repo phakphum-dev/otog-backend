@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/sequelize';
+import { sha256 } from 'js-sha256';
 import { User } from 'src/models/user.model';
 import { uid } from 'rand-token';
 import { Session } from 'src/models/session.model';
@@ -16,9 +17,11 @@ export class AuthService {
     if (userExists) {
       return { msg: 'User already registered', status: false };
     } else {
+      const hash = sha256.create();
+      hash.update(password);
       const user = new User();
       user.username = username;
-      user.password = password;
+      user.password = hash.hex();
       user.showName = showName;
       const userData = await user.save();
       return { userData, status: true };
@@ -27,7 +30,9 @@ export class AuthService {
 
   async validateUser(username: string, pass: string) {
     const user = await this.userModel.findOne({ where: { username } });
-    if (user?.password === pass) {
+    const hash = sha256.create();
+    hash.update(pass);
+    if (user?.password === hash.hex()) {
       const result = {
         id: user.id,
         username: user.username,
