@@ -1,10 +1,13 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtRefreshTokenAuthGuard } from './jwt-refreshtoken-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 
+@ApiBearerAuth()
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -16,12 +19,12 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('/login')
   login(@Req() req: Request) {
-    return this.authService.login(req.user)
+    return this.authService.login(req.user);
   }
 
   @UseGuards(JwtRefreshTokenAuthGuard)
   @Post('/refreshToken')
   refreshToken(@Req() req: Request) {
-    return this.authService.login(req.user)
+    return this.authService.login(req.user);
   }
 }

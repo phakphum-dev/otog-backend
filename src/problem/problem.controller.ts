@@ -1,8 +1,10 @@
 import { Controller, Get, Header, Param, Res } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { createReadStream } from 'fs';
 import { ProblemService } from './problem.service';
 
+@ApiTags('problem')
 @Controller('problem')
 export class ProblemController {
   constructor(private problemService: ProblemService) {}

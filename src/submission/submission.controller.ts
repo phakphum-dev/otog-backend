@@ -19,7 +19,9 @@ import {
   editFileName,
   scodeFileFilter,
 } from 'src/utils/file-upload.utils';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('submission')
 @Controller('submission')
 export class SubmissionController {
   constructor(private submissionService: SubmissionService) {}
