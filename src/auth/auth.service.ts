@@ -60,6 +60,19 @@ export class AuthService {
     };
   }
 
+  async reAccessToken(user: any) {
+    const payload = {
+      id: user.id,
+      username: user.username,
+      showName: user.showName,
+      state: user.state,
+      rating: user.rating,
+    };
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
+  }
+
   async generateRefreshToken(userId: number): Promise<string> {
     const refreshToken = uid(256);
     const session = new Session();
