@@ -19,10 +19,11 @@ import {
   editFileName,
   scodeFileFilter,
 } from 'src/utils/file-upload.utils';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   ReturnSubmissionDto,
   ReturnSubmissionDtoWithSourceCode,
+  UploadFileDto,
 } from './dto/submission.dto';
 
 @ApiTags('submission')
@@ -41,8 +42,12 @@ export class SubmissionController {
   }
 
   @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: UploadFileDto,
+  })
   @UseInterceptors(
-    FileInterceptor('scode', {
+    FileInterceptor('sourceCode', {
       storage: diskStorage({
         destination: editDestPath,
         filename: editFileName,

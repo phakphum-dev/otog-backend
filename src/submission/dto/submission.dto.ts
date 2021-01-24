@@ -53,3 +53,16 @@ export class ReturnSubmissionDtoWithSourceCode {
 
   readonly user: ReturnUserDto;
 }
+
+export class UploadFileDto {
+  @ApiProperty()
+  readonly probId: number;
+
+  readonly userId: number;
+
+  readonly language: string;
+
+  readonly contestId: number | undefined;
+
+  readonly sourceCode: any;
+}

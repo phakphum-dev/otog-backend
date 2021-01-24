@@ -71,7 +71,7 @@ export class SubmissionService {
     result.userId = Number(data.userId);
     result.probId = Number(data.probId);
     result.isGrading = false;
-    result.language = data.lang;
+    result.language = data.language;
     result.contestId = Number(data?.contestId) || null;
     const resultData = await result.save();
     return { resultData, status: true };
