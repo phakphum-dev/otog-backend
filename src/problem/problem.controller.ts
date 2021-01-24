@@ -1,7 +1,8 @@
 import { Controller, Get, Header, Param, Res } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { createReadStream } from 'fs';
+import { ReturnProblemDto } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
 
 @ApiTags('problem')
@@ -10,11 +11,20 @@ export class ProblemController {
   constructor(private problemService: ProblemService) {}
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    type: ReturnProblemDto,
+    isArray: true,
+  })
   getAllProblems() {
     return this.problemService.findAll();
   }
 
   @Get('/:probId')
+  @ApiResponse({
+    status: 200,
+    type: ReturnProblemDto,
+  })
   getProblemById(@Param('probId') probId: number) {
     return this.problemService.finOne({ id: probId });
   }

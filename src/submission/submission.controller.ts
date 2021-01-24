@@ -19,7 +19,11 @@ import {
   editFileName,
   scodeFileFilter,
 } from 'src/utils/file-upload.utils';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ReturnSubmissionDto,
+  ReturnSubmissionDtoWithSourceCode,
+} from './dto/submission.dto';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -27,6 +31,11 @@ export class SubmissionController {
   constructor(private submissionService: SubmissionService) {}
 
   @Get()
+  @ApiResponse({
+    status: 200,
+    type: ReturnSubmissionDto,
+    isArray: true,
+  })
   getAllSubmission() {
     return this.submissionService.findAll();
   }
@@ -51,11 +60,20 @@ export class SubmissionController {
   }
 
   @Get('/:resultId')
+  @ApiResponse({
+    status: 200,
+    type: ReturnSubmissionDtoWithSourceCode,
+  })
   getSubmissionById(@Param('resultId') resultId: number) {
     return this.submissionService.findOneByResultId(resultId);
   }
 
   @Get('/user/:userId')
+  @ApiResponse({
+    status: 200,
+    type: ReturnSubmissionDto,
+    isArray: true,
+  })
   getAllSubmissionByUserId(@Param('userId') userId: number) {
     return this.submissionService.findAllByUserId(userId);
   }
