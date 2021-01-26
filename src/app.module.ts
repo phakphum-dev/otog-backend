@@ -14,7 +14,7 @@ import { MulterModule } from '@nestjs/platform-express';
   imports: [
     SequelizeModule.forRoot({
       dialect: 'mysql',
-      host: 'localhost',
+      host: 'db',
       port: 8888,
       username: 'root',
       password: '0000',
@@ -22,11 +22,11 @@ import { MulterModule } from '@nestjs/platform-express';
       autoLoadModels: true,
       synchronize: true,
       define: {
-        timestamps: false
-      }
+        timestamps: false,
+      },
     }),
     MulterModule.register({
-      dest: './upload'
+      dest: './upload',
     }),
     UserModule,
     AuthModule,
@@ -40,7 +40,7 @@ import { MulterModule } from '@nestjs/platform-express';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
-    }
+    },
   ],
 })
 export class AppModule {}
