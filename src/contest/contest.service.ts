@@ -22,9 +22,9 @@ export class ContestService {
     return this.contestModel.findOne({
       where: {
         timeEnd: {
-          [Op.gte]: Math.floor(Date.now()/1000) - 3600
-        }
-      }
-    })
+          [Op.gte]: Math.floor(Date.now() / 1000) - 3600,
+        },
+      },
+    });
   }
 }

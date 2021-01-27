@@ -15,14 +15,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
   handleRequest(err, user, info) {
     // You can throw an exception based on either "info" or "err" arguments
-    if (info?.message == "No auth token") {
+    if (info?.message == 'No auth token') {
       return user;
     }
 
     if (err || info) {
       throw err || new UnauthorizedException();
     }
- 
+
     return user;
   }
 }

@@ -7,6 +7,6 @@ import { ContestService } from './contest.service';
 @Module({
   imports: [SequelizeModule.forFeature([Contest])],
   controllers: [ContestController],
-  providers: [ContestService]
+  providers: [ContestService],
 })
 export class ContestModule {}

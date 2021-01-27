@@ -1,7 +1,7 @@
-import { fstat } from "fs";
+import { fstat } from 'fs';
 
-import * as fs from 'fs'
+import * as fs from 'fs';
 export const jwtConstants = {
-    private: fs.readFileSync('./private.key', 'utf8'),
-    public: fs.readFileSync('./public.key', 'utf8')
-}
+  private: fs.readFileSync('./private.key', 'utf8'),
+  public: fs.readFileSync('./public.key', 'utf8'),
+};

@@ -7,6 +7,6 @@ import { SubmissionService } from './submission.service';
 @Module({
   imports: [SequelizeModule.forFeature([Submission])],
   controllers: [SubmissionController],
-  providers: [SubmissionService]
+  providers: [SubmissionService],
 })
 export class SubmissionModule {}
