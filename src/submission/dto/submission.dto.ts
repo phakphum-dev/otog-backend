@@ -39,7 +39,7 @@ export class ReturnSubmissionDtoWithSourceCode {
 
   readonly timeUsed: number;
 
-  readonly errmsg: number | null;
+  readonly errmsg: string | null;
 
   readonly contestId: number | null;
 
