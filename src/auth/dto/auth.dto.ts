@@ -16,7 +16,7 @@ export class UserLogin {
   readonly password: string;
 }
 
-export class ReturnUserLogin {
+export class UserTokens {
   @ApiProperty()
   readonly accessToken: string;
 

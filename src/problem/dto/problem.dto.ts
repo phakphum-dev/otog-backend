@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-export class ReturnProblemDto {
+export class ProblemDto {
   @ApiProperty()
   readonly id: number;
 

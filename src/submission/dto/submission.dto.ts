@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ReturnProblemDto } from 'src/problem/dto/problem.dto';
-import { ReturnUserDto } from 'src/user/dto/user.dto';
+import { ProblemDto } from 'src/problem/dto/problem.dto';
+import { UserDto } from 'src/user/dto/user.dto';
 
-export class ReturnSubmissionDto {
+export class SubmissionDto {
   @ApiProperty()
   readonly id: number;
 
@@ -14,7 +14,7 @@ export class ReturnSubmissionDto {
 
   readonly timeUsed: number;
 
-  readonly errmsg: number | null;
+  readonly errmsg: string | null;
 
   readonly contestId: number | null;
 
@@ -22,12 +22,12 @@ export class ReturnSubmissionDto {
 
   readonly isGrading: boolean;
 
-  readonly problem: ReturnProblemDto;
+  readonly problem: ProblemDto;
 
-  readonly user: ReturnUserDto;
+  readonly user: UserDto;
 }
 
-export class ReturnSubmissionDtoWithSourceCode {
+export class SubmissionWithSourceCodeDto {
   @ApiProperty()
   readonly id: number;
 
@@ -49,9 +49,9 @@ export class ReturnSubmissionDtoWithSourceCode {
 
   readonly sourceCode: string;
 
-  readonly problem: ReturnProblemDto;
+  readonly problem: ProblemDto;
 
-  readonly user: ReturnUserDto;
+  readonly user: UserDto;
 }
 
 export class UploadFileDto {

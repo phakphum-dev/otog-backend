@@ -2,7 +2,7 @@ import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { CreateUser, ReturnUserLogin, UserLogin } from './dto/auth.dto';
+import { CreateUser, UserTokens, UserLogin } from './dto/auth.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtRefreshTokenAuthGuard } from './jwt-refreshtoken-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
@@ -26,7 +26,7 @@ export class AuthController {
     type: UserLogin,
   })
   @ApiResponse({
-    type: ReturnUserLogin,
+    type: UserTokens,
   })
   login(@Req() req: Request) {
     return this.authService.login(req.user);

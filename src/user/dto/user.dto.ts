@@ -12,7 +12,7 @@ class ContestHistory {
   rank: number;
 }
 
-export class ReturnUserDto {
+export class UserDto {
   @ApiProperty()
   readonly id: number;
 

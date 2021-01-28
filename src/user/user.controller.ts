@@ -8,7 +8,7 @@ import {
   Res,
 } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ReturnUserDto } from './dto/user.dto';
+import { UserDto } from './dto/user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('user')
@@ -19,7 +19,7 @@ export class UserController {
   @Get()
   @ApiResponse({
     status: 200,
-    type: ReturnUserDto,
+    type: UserDto,
     isArray: true,
   })
   getAllUsers() {
@@ -29,7 +29,7 @@ export class UserController {
   @Get('/:userId')
   @ApiResponse({
     status: 200,
-    type: ReturnUserDto,
+    type: UserDto,
   })
   getUserById(@Param('userId') userId: number) {
     return this.userService.findOne({ id: userId });
