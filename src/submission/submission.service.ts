@@ -83,4 +83,12 @@ export class SubmissionService {
       order: [['id', 'DESC']],
     });
   }
+
+  latestSubmissionWithUserId(userId: number): Promise<Submission> {
+    return this.submissionModel.findOne({
+      where: { userId },
+      order: [['id', 'DESC']],
+      include: [Problem, User],
+    });
+  }
 }

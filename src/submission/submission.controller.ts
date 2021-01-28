@@ -21,8 +21,8 @@ import {
 } from 'src/utils/file-upload.utils';
 import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  ReturnSubmissionDto,
-  ReturnSubmissionDtoWithSourceCode,
+  SubmissionDto,
+  SubmissionWithSourceCodeDto,
   UploadFileDto,
 } from './dto/submission.dto';
 
@@ -34,7 +34,7 @@ export class SubmissionController {
   @Get()
   @ApiResponse({
     status: 200,
-    type: ReturnSubmissionDto,
+    type: SubmissionDto,
     isArray: true,
   })
   getAllSubmission() {
@@ -67,7 +67,7 @@ export class SubmissionController {
   @Get('/:resultId')
   @ApiResponse({
     status: 200,
-    type: ReturnSubmissionDtoWithSourceCode,
+    type: SubmissionWithSourceCodeDto,
   })
   getSubmissionById(@Param('resultId') resultId: number) {
     return this.submissionService.findOneByResultId(resultId);
@@ -76,10 +76,19 @@ export class SubmissionController {
   @Get('/user/:userId')
   @ApiResponse({
     status: 200,
-    type: ReturnSubmissionDto,
+    type: SubmissionDto,
     isArray: true,
   })
   getAllSubmissionByUserId(@Param('userId') userId: number) {
     return this.submissionService.findAllByUserId(userId);
+  }
+
+  @Get('/user/:userId/latest')
+  @ApiResponse({
+    status: 200,
+    type: SubmissionDto,
+  })
+  getLatestSubmissionWithUserId(@Param('userId') userId: number) {
+    return this.submissionService.latestSubmissionWithUserId(userId);
   }
 }
