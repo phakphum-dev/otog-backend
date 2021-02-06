@@ -7,8 +7,8 @@ import { User } from 'src/models/user.model';
 import { Submission } from '../models/submission.model';
 
 const fileExt = {
-  C: '.c',
-  'C++': '.cpp',
+  c: '.c',
+  cpp: '.cpp',
 };
 
 @Injectable()

@@ -1,8 +1,8 @@
 import { existsSync, mkdir, mkdirSync } from 'fs';
 
 const fileExt = {
-  C: '.c',
-  'C++': '.cpp',
+  c: '.c',
+  cpp: '.cpp',
 };
 
 export const scodeFileFilter = (req, file, callback) => {

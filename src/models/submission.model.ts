@@ -58,6 +58,6 @@ export class Submission extends Model {
   @Column({ defaultValue: null })
   contestId: number;
 
-  @Column({ defaultValue: 'C++' })
+  @Column({ defaultValue: 'cpp' })
   language: string;
 }
