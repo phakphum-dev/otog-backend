@@ -52,8 +52,14 @@ export class SubmissionService {
   }
 
   async findOneByResultId(resultId: number) {
+    console.log('=========================');
+
     let resultData = await this.submissionModel.findOne({
       where: { id: resultId },
+      include: [
+        Problem,
+        { model: User, attributes: { exclude: ['password', 'history'] } },
+      ],
       raw: true,
       nest: true,
     });
@@ -61,8 +67,13 @@ export class SubmissionService {
       fileExt[resultData.language]
     }`;
     const dir = `./upload/${resultData.userId}`;
-    const scode = readFileSync(`${dir}/${filename}`).toString();
-    return { ...resultData, scode };
+    let sourceCode: string;
+    try {
+      sourceCode = readFileSync(`${dir}/${filename}`).toString();
+    } catch {
+      sourceCode = `ENOENT: no such file or directory.`;
+    }
+    return { ...resultData, sourceCode };
   }
 
   async create(data: any, timeSent: number) {
