@@ -1,33 +1,21 @@
 import { Module } from '@nestjs/common';
-import { SequelizeModule } from '@nestjs/sequelize';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { ProblemModule } from './problem/problem.module';
-import { SubmissionModule } from './submission/submission.module';
-import { ContestModule } from './contest/contest.module';
+import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
+import { ProblemModule } from './modules/problem/problem.module';
+import { SubmissionModule } from './modules/submission/submission.module';
+import { ContestModule } from './modules/contest/contest.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { DatabaseModule } from './core/database/database.module';
 @Module({
   imports: [
-    SequelizeModule.forRoot({
-      dialect: 'mysql',
-      host: 'db',
-      port: 8888,
-      username: 'root',
-      password: '0000',
-      database: 'otog',
-      autoLoadModels: true,
-      synchronize: true,
-      define: {
-        timestamps: false,
-      },
-    }),
-    MulterModule.register({
-      dest: './upload',
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
+    MulterModule.register({ dest: './upload' }),
+    DatabaseModule,
     UserModule,
     AuthModule,
     ProblemModule,
