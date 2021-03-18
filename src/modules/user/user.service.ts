@@ -10,20 +10,23 @@ export class UserService {
   constructor(@Inject(USER_REPOSITORY) private userRepository: typeof User) {}
 
   async create(data: CreateUserDTO) {
-    const userExists = await this.findOneByUsername(data.username);
-    if (userExists) {
-      throw new ConflictException();
-    } else {
-      const hash = sha256.create();
-      hash.update(data.password);
-      const user = new User();
-      user.username = data.username;
-      user.password = hash.hex();
-      user.showName = data.showName;
-      user.role = 'user';
-      await user.save();
-      return { message: 'Create user complete.', status: true };
+    const userNameExists = await this.findOneByUsername(data.username);
+    if (userNameExists) {
+      throw new ConflictException('username was taken.');
     }
+    const showNameExists = await this.findOneByShowName(data.showName);
+    if (showNameExists) {
+      throw new ConflictException('showName was taken.');
+    }
+    const hash = sha256.create();
+    hash.update(data.password);
+    const user = new User();
+    user.username = data.username;
+    user.password = hash.hex();
+    user.showName = data.showName;
+    user.role = 'user';
+    await user.save();
+    return { message: 'Create user complete.', status: true };
   }
 
   async findAll(): Promise<UserDTO[]> {
@@ -41,6 +44,12 @@ export class UserService {
   async findOneById(id: number): Promise<User> {
     return await this.userRepository.findOne({
       where: { id },
+    });
+  }
+
+  async findOneByShowName(showName: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: { showName },
     });
   }
 
