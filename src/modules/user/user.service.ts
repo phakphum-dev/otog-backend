@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 import { sha256 } from 'js-sha256';
 import { USER_REPOSITORY } from 'src/core/constants';
 import { User } from '../../entities/user.entity';
@@ -12,7 +12,7 @@ export class UserService {
   async create(data: CreateUserDTO) {
     const userExists = await this.findOneByUsername(data.username);
     if (userExists) {
-      return { msg: 'User already registered', status: false };
+      return ConflictException;
     } else {
       const hash = sha256.create();
       hash.update(data.password);
