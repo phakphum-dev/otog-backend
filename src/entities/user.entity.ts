@@ -6,7 +6,6 @@ import {
   DataType,
   IsEmail,
   Model,
-  NotNull,
   PrimaryKey,
   Scopes,
   Table,
@@ -33,13 +32,15 @@ export class User extends Model {
   id: number;
 
   @Unique
-  @NotNull
-  @Column
+  @Column({
+    allowNull: false,
+  })
   username: string;
 
   @Unique
-  @NotNull
-  @Column
+  @Column({
+    allowNull: false,
+  })
   showName: string;
 
   @Unique
@@ -47,8 +48,9 @@ export class User extends Model {
   @Column
   email: string;
 
-  @NotNull
-  @Column
+  @Column({
+    allowNull: false,
+  })
   password: string;
 
   @Column({
