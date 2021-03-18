@@ -12,7 +12,7 @@ export class UserService {
   async create(data: CreateUserDTO) {
     const userExists = await this.findOneByUsername(data.username);
     if (userExists) {
-      return ConflictException;
+      throw new ConflictException();
     } else {
       const hash = sha256.create();
       hash.update(data.password);
