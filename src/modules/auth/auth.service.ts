@@ -85,16 +85,19 @@ export class AuthService {
 
     //check refresh token is valid and match jwt
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
+      console.log('access token and refresh token missmatch.');
       return false;
     }
 
     //check refresh expire
     if (!this.isRefreshTokenExpired(refreshToken)) {
+      console.log('refresh token expired.');
       return false;
     }
 
     //check refresh token used
     if (!this.isRefreshTokenUsed(refreshToken)) {
+      console.log('refresh token used.');
       return false;
     }
 
