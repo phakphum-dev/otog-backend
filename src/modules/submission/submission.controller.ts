@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,9 +21,11 @@ import {
   SubmissionWithSourceCodeDto,
   UploadFileDto,
 } from './dto/submission.dto';
+import { JwtAuthGuard } from 'src/core/guards/jwt-auth.guard';
 
 @ApiTags('submission')
 @Controller('submission')
+@UseGuards(JwtAuthGuard)
 export class SubmissionController {
   constructor(private submissionService: SubmissionService) {}
 

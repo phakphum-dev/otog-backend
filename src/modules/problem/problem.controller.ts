@@ -1,11 +1,13 @@
-import { Controller, Get, Header, Param, Res } from '@nestjs/common';
+import { Controller, Get, Header, Param, Res, UseGuards } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { JwtAuthGuard } from 'src/core/guards/jwt-auth.guard';
 import { ProblemDto } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
 
 @ApiTags('problem')
 @Controller('problem')
+@UseGuards(JwtAuthGuard)
 export class ProblemController {
   constructor(private problemService: ProblemService) {}
 
