@@ -8,6 +8,7 @@ import {
   Model,
   PrimaryKey,
   Table,
+  UpdatedAt,
 } from 'sequelize-typescript';
 import { Problem } from './problem.entity';
 import { User } from './user.entity';
@@ -19,7 +20,7 @@ import { User } from './user.entity';
   order: [['id', 'DESC']],
   include: [Problem, User],
 }))
-@Table({ tableName: 'result' })
+@Table({ tableName: 'submission' })
 export class Submission extends Model {
   @PrimaryKey
   @AutoIncrement
@@ -70,5 +71,8 @@ export class Submission extends Model {
   language: string;
 
   @CreatedAt
-  createionDate: Date;
+  creationDate: Date;
+
+  @UpdatedAt
+  updateDate: Date;
 }

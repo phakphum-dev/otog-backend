@@ -8,8 +8,8 @@ services:
   db:
     container_name: db
     image: mysql:latest
-    # volumes:
-    #   - ./database:/docker-entrypoint-initdb.d
+    volumes:
+      - ./database:/docker-entrypoint-initdb.d
     ports:
       - 8888:8888
     env_file:

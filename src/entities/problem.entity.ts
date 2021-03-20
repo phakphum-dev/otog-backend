@@ -29,10 +29,12 @@ export class Problem extends Model {
   timeLimit: number;
 
   @Column
-  memory: number;
+  memoryLimit: number;
 
-  @Column({ defaultValue: 0 })
-  state: number;
+  @Column({
+   allowNull: false,
+  })
+  show: boolean;
 
   @Column
   recentShowTime: Date;

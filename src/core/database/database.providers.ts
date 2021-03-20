@@ -39,7 +39,7 @@ export const databaseProviders = [
         User,
         UserContest,
       ]);
-      await sequelize.sync();
+      // await sequelize.sync();
       return sequelize;
     },
   },
