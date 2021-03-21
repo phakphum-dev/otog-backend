@@ -4,8 +4,9 @@ import { sha256 } from 'js-sha256';
 import { REFRESHTOKEN_REPOSITORY } from 'src/core/constants';
 import { RefreshToken } from 'src/entities/refreshToken.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { UserDTO } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
-import { CreateUserDTO, UserAuthDTO } from './dto/auth.dto';
+import { CreateUserDTO } from './dto/auth.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -19,18 +20,13 @@ export class AuthService {
     return await this.userService.create(data);
   }
 
-  async validateUser(username: string, pass: string): Promise<UserAuthDTO> {
+  async validateUser(username: string, pass: string): Promise<UserDTO> {
     const user = await this.userService.findOneByUsername(username);
     const hash = sha256.create();
     hash.update(pass);
     if (user?.password === hash.hex()) {
-      const userAuthDTO = new UserAuthDTO();
-      userAuthDTO.id = user.id;
-      userAuthDTO.username = user.username;
-      userAuthDTO.showName = user.showName;
-      userAuthDTO.role = user.role;
-      userAuthDTO.rating = user.rating;
-      return userAuthDTO;
+      const userDTO = new UserDTO(user);
+      return userDTO;
     }
     return null;
   }
@@ -45,7 +41,7 @@ export class AuthService {
     return { token, user };
   }
 
-  async generateToken(user: UserAuthDTO) {
+  async generateToken(user: UserDTO) {
     const payload = {
       id: user.id,
       username: user.username,
@@ -62,10 +58,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async generateRefreshToken(
-    user: UserAuthDTO,
-    jwtId: string,
-  ): Promise<string> {
+  async generateRefreshToken(user: UserDTO, jwtId: string): Promise<string> {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 1);
     const refreshToken = new RefreshToken();

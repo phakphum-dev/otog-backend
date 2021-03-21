@@ -3,9 +3,9 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
-import { UserAuthDTO } from './dto/auth.dto';
 import { UserService } from 'src/modules/user/user.service';
 import { JWT_PUBLIC } from 'src/core/constants';
+import { UserDTO } from '../user/dto/user.dto';
 
 @Injectable()
 export class JwtRefreshTokenStrategy extends PassportStrategy(
@@ -24,19 +24,14 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request, payload: any): Promise<UserAuthDTO> {
+  async validate(req: Request, payload: any): Promise<UserDTO> {
     const refreshTokenId = req.cookies['RID'];
     const { jti, id } = payload;
     if (!(await this.authService.validateToken(refreshTokenId, jti))) {
       throw new UnauthorizedException();
     }
     const user = await this.userService.findOneById(id);
-    const userAuthDTO = new UserAuthDTO();
-    userAuthDTO.id = user.id;
-    userAuthDTO.username = user.username;
-    userAuthDTO.showName = user.showName;
-    userAuthDTO.role = user.role;
-    userAuthDTO.rating = user.rating;
+    const userAuthDTO = new UserDTO(user);
     return userAuthDTO;
   }
 }

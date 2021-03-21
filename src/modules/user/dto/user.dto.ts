@@ -3,17 +3,15 @@ import { User } from 'src/entities/user.entity';
 
 export class UserDTO {
   @ApiProperty()
-  readonly id: number;
+  id: number;
 
-  readonly username: string;
+  username: string;
 
-  readonly showName: string;
+  showName: string;
 
-  readonly role: string;
+  role: string;
 
-  readonly rating: number;
-
-  readonly attendedContest: any;
+  rating: number;
 
   constructor(user: User) {
     this.id = user.id;
@@ -21,6 +19,5 @@ export class UserDTO {
     this.showName = user.showName;
     this.role = user.role;
     this.rating = user.rating;
-    this.attendedContest = user.attendedContest;
   }
 }

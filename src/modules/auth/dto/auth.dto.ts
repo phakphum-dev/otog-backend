@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { UserDTO } from 'src/modules/user/dto/user.dto';
 
 export class CreateUserDTO {
   @ApiProperty()
@@ -17,23 +18,23 @@ export class LoginReqDTO {
 }
 
 export class AuthResDTO {
-  user: UserAuthDTO;
+  user: UserDTO;
 
   accessToken: string;
 }
 
-export class UserAuthDTO {
-  @ApiProperty()
-  id: number;
+// export class UserAuthDTO {
+//   @ApiProperty()
+//   id: number;
 
-  username: string;
+//   username: string;
 
-  showName: string;
+//   showName: string;
 
-  role: string;
+//   role: string;
 
-  rating: number;
-}
+//   rating: number;
+// }
 
 export class SignupResDTO {
   message: string;
