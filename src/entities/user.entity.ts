@@ -20,7 +20,7 @@ import { UserContest } from './userContest.entity';
 @Scopes(() => ({
   noPass: {
     attributes: {
-      exclude: ['password', 'email'],
+      exclude: ['password', 'email', 'creationDate', 'updateDate'],
     },
   },
 }))
@@ -68,9 +68,6 @@ export class User extends Model {
 
   @UpdatedAt
   updateDate: Date;
-
-  @BelongsToMany(() => Problem, () => Submission)
-  problems: Problem[];
 
   @BelongsToMany(() => Contest, () => UserContest)
   attendedContest: UserContest[];

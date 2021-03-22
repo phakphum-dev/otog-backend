@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -17,11 +18,12 @@ import {
 } from 'src/utils/fileUpload.utils';
 import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  SubmissionDto,
-  SubmissionWithSourceCodeDto,
-  UploadFileDto,
+  SubmissionDTO,
+  SubmissionWithSourceCodeDTO,
+  UploadFileDTO,
 } from './dto/submission.dto';
 import { JwtAuthGuard } from 'src/core/guards/jwt-auth.guard';
+import { Request } from 'express';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -32,17 +34,17 @@ export class SubmissionController {
   @Get()
   @ApiResponse({
     status: 200,
-    type: SubmissionDto,
+    type: SubmissionDTO,
     isArray: true,
   })
   getAllSubmission() {
-    return this.submissionService.findAllWithContest();
+    return this.submissionService.findAllWithOutContest();
   }
 
-  @Post()
+  @Post('/:problemId')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
-    type: UploadFileDto,
+    type: UploadFileDTO,
   })
   @UseInterceptors(
     FileInterceptor('sourceCode', {
@@ -53,14 +55,16 @@ export class SubmissionController {
       fileFilter: scodeFileFilter,
     }),
   )
-  uploadFile(@Body() data: any) {
-    return this.submissionService.create(data);
+  uploadFile(@Req() req: Request, @Body() data: any) {
+    const problemId = Number(req.params?.problemId);
+    const user = req.user;
+    return this.submissionService.create(user, problemId, data);
   }
 
   @Get('/:resultId')
   @ApiResponse({
     status: 200,
-    type: SubmissionWithSourceCodeDto,
+    type: SubmissionWithSourceCodeDTO,
   })
   getSubmissionById(@Param('resultId') resultId: number) {
     return this.submissionService.findOneByResultId(resultId);
@@ -69,7 +73,7 @@ export class SubmissionController {
   @Get('/user/:userId')
   @ApiResponse({
     status: 200,
-    type: SubmissionDto,
+    type: SubmissionDTO,
     isArray: true,
   })
   getAllSubmissionByUserId(@Param('userId') userId: number) {
@@ -79,7 +83,7 @@ export class SubmissionController {
   @Get('/user/:userId/latest')
   @ApiResponse({
     status: 200,
-    type: SubmissionDto,
+    type: SubmissionDTO,
   })
   getLatestSubmissionWithUserId(@Param('userId') userId: number) {
     return this.submissionService.findOneByUserId(userId);

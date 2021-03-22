@@ -39,6 +39,9 @@ export class SubmissionService {
   async findOneByResultId(resultId: number) {
     return await this.submissionRepository.findOne({
       where: { id: resultId },
+      attributes: {
+        include: ['sourceCode'],
+      },
     });
   }
 
@@ -58,19 +61,19 @@ export class SubmissionService {
     return sourceCode;
   }
 
-  async create(data: any) {
+  async create(user: any, problemId: number, data: any) {
     const submission = new Submission();
-    submission.userId = Number(data.userId);
-    submission.problemId = Number(data.problemId);
+    submission.userId = user.id;
+    submission.problemId = problemId;
     submission.language = data.language;
     submission.contestId = Number(data?.contestId) || null;
     submission.sourceCode = await this.readLatestSourceCode(
-      Number(data.problemId),
-      Number(data.userId),
+      problemId,
+      user.id,
       data.language,
     );
-    const result = await submission.save();
-    return { result, status: true };
+    await submission.save();
+    return { msg: 'create submission complete.' };
   }
 
   findAllByUserId(userId: number): Promise<Submission[]> {
@@ -82,6 +85,9 @@ export class SubmissionService {
   findOneByUserId(userId: number): Promise<Submission> {
     return this.submissionRepository.findOne({
       where: { userId },
+      attributes: {
+        include: ['sourceCode'],
+      },
     });
   }
 }

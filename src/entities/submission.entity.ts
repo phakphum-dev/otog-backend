@@ -3,6 +3,7 @@ import {
   BelongsTo,
   Column,
   CreatedAt,
+  DataType,
   DefaultScope,
   ForeignKey,
   Model,
@@ -15,10 +16,10 @@ import { User } from './user.entity';
 
 @DefaultScope(() => ({
   attributes: {
-    exclude: ['userId', 'probId'],
+    exclude: ['userId', 'problemId', 'sourceCode', 'updateDate'],
   },
   order: [['id', 'DESC']],
-  include: [Problem, User],
+  include: [User.scope('noPass'), Problem],
 }))
 @Table({ tableName: 'submission' })
 export class Submission extends Model {
@@ -55,16 +56,20 @@ export class Submission extends Model {
   //     return Boolean(this.getDataValue('isGrading'));
   //   },
   // })
-  @Column({ defaultValue: false })
+  @Column({ defaultValue: true })
   isGrading: boolean;
 
-  @Column
+  @Column({
+    type: DataType.TEXT({ length: 'long' }),
+  })
   errmsg: string;
 
   @Column
   contestId: number;
 
-  @Column
+  @Column({
+    type: DataType.TEXT,
+  })
   sourceCode: string;
 
   @Column

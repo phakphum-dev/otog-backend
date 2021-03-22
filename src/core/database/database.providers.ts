@@ -35,8 +35,8 @@ export const databaseProviders = [
         ContestProblem,
         Problem,
         RefreshToken,
-        Submission,
         User,
+        Submission,
         UserContest,
       ]);
       // await sequelize.sync();

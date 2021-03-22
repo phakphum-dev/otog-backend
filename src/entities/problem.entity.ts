@@ -32,7 +32,7 @@ export class Problem extends Model {
   memoryLimit: number;
 
   @Column({
-   allowNull: false,
+    allowNull: false,
   })
   show: boolean;
 
@@ -44,7 +44,4 @@ export class Problem extends Model {
 
   @Column
   rating: number;
-
-  @BelongsToMany(() => User, () => Submission)
-  users: User[];
 }

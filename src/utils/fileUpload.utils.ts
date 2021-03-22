@@ -14,13 +14,14 @@ export const scodeFileFilter = (req, file, callback) => {
 
 export const editFileName = (req, file, callback) => {
   const data = req.body;
+  const problemId = req.params?.problemId;
   const fileExtName = fileExt[data.language];
-  callback(null, `${data.probId}${fileExtName}`);
+  callback(null, `${problemId}${fileExtName}`);
 };
 
 export const editDestPath = (req, file, callback) => {
-  const data = req.body;
-  const dir = `upload/${data.userId}`;
+  const user = req.user;
+  const dir = `upload/${user.id}`;
   if (!existsSync(dir)) {
     mkdirSync(dir);
   }
