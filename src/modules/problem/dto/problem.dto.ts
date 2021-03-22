@@ -12,11 +12,11 @@ export class ProblemDto {
 
   readonly timeLimit: number;
 
-  readonly memory: number;
+  readonly memoryLimit: number;
 
-  readonly state: number;
+  readonly show: boolean;
 
-  readonly recentShowTime: number;
+  readonly recentShowTime: Date;
 
   readonly case: string;
 
