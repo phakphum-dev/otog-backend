@@ -20,10 +20,18 @@ export const editFileName = (req, file, callback) => {
 };
 
 export const editDestPath = (req, file, callback) => {
+  createUploadFolder();
   const user = req.user;
   const dir = `upload/${user.id}`;
   if (!existsSync(dir)) {
     mkdirSync(dir);
   }
   callback(null, dir);
+};
+
+const createUploadFolder = () => {
+  const dir = `upload`;
+  if (!existsSync(dir)) {
+    mkdirSync(dir);
+  }
 };
