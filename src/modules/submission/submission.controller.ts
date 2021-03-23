@@ -22,12 +22,14 @@ import {
   SubmissionWithSourceCodeDTO,
   UploadFileDTO,
 } from './dto/submission.dto';
-import { JwtAuthGuard } from 'src/core/guards/jwt-auth.guard';
 import { Request } from 'express';
+import { RolesGuard } from 'src/core/guards/roles.guard';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { Role } from 'src/core/constants';
 
 @ApiTags('submission')
 @Controller('submission')
-@UseGuards(JwtAuthGuard)
+@UseGuards(RolesGuard)
 export class SubmissionController {
   constructor(private submissionService: SubmissionService) {}
 
@@ -41,6 +43,7 @@ export class SubmissionController {
     return this.submissionService.findAllWithOutContest();
   }
 
+  @Roles(Role.User, Role.Admin)
   @Post('/:problemId')
   @ApiConsumes('multipart/form-data')
   @ApiBody({

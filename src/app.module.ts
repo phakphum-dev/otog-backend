@@ -11,6 +11,7 @@ import { SubmissionModule } from './modules/submission/submission.module';
 import { ContestModule } from './modules/contest/contest.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { DatabaseModule } from './core/database/database.module';
+import { RolesGuard } from './core/guards/roles.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -23,6 +24,12 @@ import { DatabaseModule } from './core/database/database.module';
     ContestModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    AppService,
+  ],
 })
 export class AppModule {}

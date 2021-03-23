@@ -18,9 +18,11 @@ import {
 } from './dto/auth.dto';
 import { JwtRefreshTokenAuthGuard } from '../../core/guards/jwt-refreshtoken-auth.guard';
 import { LocalAuthGuard } from '../../core/guards/local-auth.guard';
+import { Public } from '../../core/decorators/isPublic.decorator';
 
 @ApiBearerAuth()
 @ApiTags('auth')
+@Public()
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}

@@ -10,3 +10,10 @@ export const CONTEST_REPOSITORY = 'CONTEST_REPOSITORY';
 export const SUBMISSION_REPOSITORY = 'SUBMISSION_REPOSITORY';
 export const JWT_PRIVATE = fs.readFileSync('./private.key', 'utf8');
 export const JWT_PUBLIC = fs.readFileSync('./public.key', 'utf8');
+export const ROLES_KEY = 'roles';
+export const IS_PUBLIC_KEY = 'isPublic';
+
+export enum Role {
+  User = 'user',
+  Admin = 'admin',
+}
