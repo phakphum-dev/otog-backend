@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PROBLEM_REPOSITORY } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
-
+import { existsSync } from 'fs';
 @Injectable()
 export class ProblemService {
   constructor(
@@ -22,6 +22,8 @@ export class ProblemService {
 
   async getDocDirById(id: number): Promise<string> {
     const problem = await this.finOneById(id);
+    const dir = `${process.cwd()}/docs/${problem.sname}.pdf`;
+    if (!existsSync(dir)) throw new NotFoundException();
     return `${process.cwd()}/docs/${problem.sname}.pdf`;
   }
 }
