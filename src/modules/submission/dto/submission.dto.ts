@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ProblemDto } from 'src/modules/problem/dto/problem.dto';
+import { ProblemDTO } from 'src/modules/problem/dto/problem.dto';
 import { UserDTO } from 'src/modules/user/dto/user.dto';
 
 export class SubmissionDTO {
@@ -22,7 +22,7 @@ export class SubmissionDTO {
 
   readonly creationDate: Date;
 
-  readonly problem: ProblemDto;
+  readonly problem: ProblemDTO;
 
   readonly user: UserDTO;
 }
@@ -49,7 +49,7 @@ export class SubmissionWithSourceCodeDTO {
 
   readonly sourceCode: string;
 
-  readonly problem: ProblemDto;
+  readonly problem: ProblemDTO;
 
   readonly user: UserDTO;
 }
