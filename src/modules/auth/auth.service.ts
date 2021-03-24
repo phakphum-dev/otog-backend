@@ -31,12 +31,12 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
+  async login(user: UserDTO) {
     const token = await this.generateToken(user);
     return { token, user };
   }
 
-  async reAccessToken(user: any) {
+  async reAccessToken(user: UserDTO) {
     const token = await this.generateToken(user);
     return { token, user };
   }

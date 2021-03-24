@@ -1,14 +1,6 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  Req,
-  Res,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, Post, Res, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   CreateUserDTO,
@@ -19,6 +11,8 @@ import {
 import { JwtRefreshTokenAuthGuard } from '../../core/guards/jwt-refreshtoken-auth.guard';
 import { LocalAuthGuard } from '../../core/guards/local-auth.guard';
 import { Public } from '../../core/decorators/isPublic.decorator';
+import { User } from 'src/core/decorators/user.decorator';
+import { UserDTO } from '../user/dto/user.dto';
 
 @ApiBearerAuth()
 @ApiTags('auth')
@@ -46,8 +40,8 @@ export class AuthController {
   @ApiResponse({
     type: AuthResDTO,
   })
-  async login(@Req() req: Request, @Res() res: Response) {
-    const { token, user } = await this.authService.login(req.user);
+  async login(@User() userData: UserDTO, @Res() res: Response) {
+    const { token, user } = await this.authService.login(userData);
     const authResDTO = new AuthResDTO();
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;
@@ -61,8 +55,8 @@ export class AuthController {
   @ApiResponse({
     type: AuthResDTO,
   })
-  async refreshToken(@Req() req: Request, @Res() res: Response) {
-    const { token, user } = await this.authService.login(req.user);
+  async refreshToken(@User() userData: UserDTO, @Res() res: Response) {
+    const { token, user } = await this.authService.reAccessToken(userData);
     const authResDTO = new AuthResDTO();
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;

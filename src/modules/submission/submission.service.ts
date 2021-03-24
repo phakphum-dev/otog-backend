@@ -3,6 +3,7 @@ import { readFileSync } from 'fs';
 import { Op } from 'sequelize';
 import { SUBMISSION_REPOSITORY } from 'src/core/constants';
 import { Submission } from '../../entities/submission.entity';
+import { UserDTO } from '../user/dto/user.dto';
 
 const fileExt = {
   c: '.c',
@@ -61,7 +62,7 @@ export class SubmissionService {
     return sourceCode;
   }
 
-  async create(user: any, problemId: number, data: any) {
+  async create(user: UserDTO, problemId: number, data: any) {
     const submission = new Submission();
     submission.userId = user.id;
     submission.problemId = problemId;

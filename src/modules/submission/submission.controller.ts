@@ -4,7 +4,6 @@ import {
   Get,
   Param,
   Post,
-  Req,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
@@ -22,10 +21,11 @@ import {
   SubmissionWithSourceCodeDTO,
   UploadFileDTO,
 } from './dto/submission.dto';
-import { Request } from 'express';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/constants';
+import { User } from 'src/core/decorators/user.decorator';
+import { UserDTO } from '../user/dto/user.dto';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -58,9 +58,11 @@ export class SubmissionController {
       fileFilter: scodeFileFilter,
     }),
   )
-  uploadFile(@Req() req: Request, @Body() data: any) {
-    const problemId = Number(req.params?.problemId);
-    const user = req.user;
+  uploadFile(
+    @Param('problemId') problemId: number,
+    @User() user: UserDTO,
+    @Body() data: any,
+  ) {
     return this.submissionService.create(user, problemId, data);
   }
 
@@ -83,12 +85,13 @@ export class SubmissionController {
     return this.submissionService.findAllByUserId(userId);
   }
 
-  @Get('/user/:userId/latest')
+  @Roles(Role.User, Role.Admin)
+  @Get('/latest')
   @ApiResponse({
     status: 200,
     type: SubmissionDTO,
   })
-  getLatestSubmissionWithUserId(@Param('userId') userId: number) {
-    return this.submissionService.findOneByUserId(userId);
+  getLatestSubmissionWithUserId(@User() user: UserDTO) {
+    return this.submissionService.findOneByUserId(user.id);
   }
 }
