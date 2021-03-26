@@ -61,6 +61,11 @@ export class Submission extends Model {
 
   @Column({
     type: DataType.TEXT({ length: 'long' }),
+    get() {
+      return this.getDataValue('result') === 'Compilation Error'
+        ? this.getDataValue('errmsg')
+        : null;
+    },
   })
   errmsg: string;
 
