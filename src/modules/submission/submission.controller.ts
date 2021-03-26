@@ -66,6 +66,16 @@ export class SubmissionController {
     return this.submissionService.create(user, problemId, data);
   }
 
+  @Roles(Role.User, Role.Admin)
+  @Get('/latest')
+  @ApiResponse({
+    status: 200,
+    type: SubmissionDTO,
+  })
+  getLatestSubmissionWithUserId(@User() user: UserDTO) {
+    return this.submissionService.findOneByUserId(user.id);
+  }
+
   @Get('/:resultId')
   @ApiResponse({
     status: 200,
@@ -83,15 +93,5 @@ export class SubmissionController {
   })
   getAllSubmissionByUserId(@Param('userId') userId: number) {
     return this.submissionService.findAllByUserId(userId);
-  }
-
-  @Roles(Role.User, Role.Admin)
-  @Get('/latest')
-  @ApiResponse({
-    status: 200,
-    type: SubmissionDTO,
-  })
-  getLatestSubmissionWithUserId(@User() user: UserDTO) {
-    return this.submissionService.findOneByUserId(user.id);
   }
 }
