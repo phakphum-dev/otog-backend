@@ -1,7 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { Op } from 'sequelize';
 import { SUBMISSION_REPOSITORY } from 'src/core/constants';
+import {
+  scodeFileFilter,
+  scodeFileSizeFilter,
+} from 'src/utils/fileUpload.utils';
 import { Submission } from '../../entities/submission.entity';
 import { UserDTO } from '../user/dto/user.dto';
 
@@ -55,24 +59,35 @@ export class SubmissionService {
     const dir = `./upload/${userId}`;
     let sourceCode: string;
     try {
-      sourceCode = await readFileSync(`${dir}/${filename}`).toString();
+      sourceCode = readFileSync(`${dir}/${filename}`).toString();
     } catch {
       sourceCode = `ENOENT: no such file or directory.`;
     }
     return sourceCode;
   }
 
-  async create(user: UserDTO, problemId: number, data: any) {
+  fileCheck(file: Express.Multer.File) {
+    // check file extension
+    if (!scodeFileFilter(file))
+      throw new BadRequestException('Only C C++ and Python are allowed!');
+    // check file size
+    if (!scodeFileSizeFilter(file))
+      throw new BadRequestException('File is too large!');
+  }
+
+  async create(
+    user: UserDTO,
+    problemId: number,
+    data: any,
+    file: Express.Multer.File,
+  ) {
+    this.fileCheck(file);
     const submission = new Submission();
-    submission.userId = user.id;
+    submission.userId = user?.id;
     submission.problemId = problemId;
     submission.language = data.language;
-    submission.contestId = Number(data?.contestId) || null;
-    submission.sourceCode = await this.readLatestSourceCode(
-      problemId,
-      user.id,
-      data.language,
-    );
+    submission.contestId = Number(data.contestId) || null;
+    submission.sourceCode = file.buffer.toString();
     await submission.save();
     return { msg: 'create submission complete.' };
   }

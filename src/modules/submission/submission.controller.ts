@@ -4,17 +4,12 @@ import {
   Get,
   Param,
   Post,
+  UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submission.service';
-import { diskStorage } from 'multer';
-import {
-  editDestPath,
-  editFileName,
-  scodeFileFilter,
-} from 'src/utils/fileUpload.utils';
 import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
   SubmissionDTO,
@@ -44,26 +39,28 @@ export class SubmissionController {
   }
 
   @Roles(Role.User, Role.Admin)
-  @Post('/:problemId')
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     type: UploadFileDTO,
   })
-  @UseInterceptors(
-    FileInterceptor('sourceCode', {
-      storage: diskStorage({
-        destination: editDestPath,
-        filename: editFileName,
-      }),
-      fileFilter: scodeFileFilter,
-    }),
-  )
+  @Post('/:problemId')
+  // @UseInterceptors(
+  //   FileInterceptor('sourceCode', {
+  //     storage: diskStorage({
+  //       destination: editDestPath,
+  //       filename: editFileName,
+  //     }),
+  //     fileFilter: scodeFileFilter,
+  //   }),
+  // )
+  @UseInterceptors(FileInterceptor('sourceCode'))
   uploadFile(
+    @UploadedFile() file: Express.Multer.File,
     @Param('problemId') problemId: number,
     @User() user: UserDTO,
-    @Body() data: any,
+    @Body() data: object,
   ) {
-    return this.submissionService.create(user, problemId, data);
+    return this.submissionService.create(user, problemId, data, file);
   }
 
   @Roles(Role.User, Role.Admin)

@@ -5,12 +5,19 @@ const fileExt = {
   cpp: '.cpp',
 };
 
-export const scodeFileFilter = (req, file, callback) => {
+export function scodeFileFilter(file: Express.Multer.File) {
   if (!file.originalname.match(/\.(c|cpp|py)$/)) {
-    return callback(new Error('Only C C++ and Python are allowed!'), false);
+    return false;
   }
-  callback(null, true);
-};
+  return true;
+}
+
+export function scodeFileSizeFilter(file: Express.Multer.File) {
+  if (file.size > 10 * 1024) {
+    return false;
+  }
+  return true;
+}
 
 export const editFileName = (req, file, callback) => {
   const data = req.body;

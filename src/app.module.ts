@@ -15,7 +15,6 @@ import { RolesGuard } from './core/guards/roles.guard';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    MulterModule.register({ dest: './upload' }),
     DatabaseModule,
     UserModule,
     AuthModule,
@@ -24,12 +23,6 @@ import { RolesGuard } from './core/guards/roles.guard';
     ContestModule,
   ],
   controllers: [AppController],
-  providers: [
-    {
-      provide: APP_GUARD,
-      useClass: JwtAuthGuard,
-    },
-    AppService,
-  ],
+  providers: [AppService],
 })
 export class AppModule {}
