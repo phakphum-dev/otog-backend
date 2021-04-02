@@ -70,7 +70,7 @@ export class AuthService {
     return refreshToken.id;
   }
 
-  async validateToken(refreshTokenId: string, jwtId: any) {
+  async validateToken(refreshTokenId: string, jwtId: string) {
     // fetch refreshToken
     const refreshToken = await this.refreshTokenRepository.findOne({
       where: { id: refreshTokenId },

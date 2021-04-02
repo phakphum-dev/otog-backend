@@ -6,6 +6,7 @@ import { Request } from 'express';
 import { UserService } from 'src/modules/user/user.service';
 import { JWT_PUBLIC } from 'src/core/constants';
 import { UserDTO } from '../user/dto/user.dto';
+import { JwtPayloadDTO } from './dto/auth.dto';
 
 @Injectable()
 export class JwtRefreshTokenStrategy extends PassportStrategy(
@@ -24,7 +25,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: Request, payload: any): Promise<UserDTO> {
+  async validate(req: Request, payload: JwtPayloadDTO): Promise<UserDTO> {
     const refreshTokenId = req.cookies['RID'];
     const { jti, id } = payload;
     if (!(await this.authService.validateToken(refreshTokenId, jti))) {

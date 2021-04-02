@@ -58,7 +58,7 @@ export class SubmissionController {
     @UploadedFile() file: Express.Multer.File,
     @Param('problemId') problemId: number,
     @User() user: UserDTO,
-    @Body() data: object,
+    @Body() data: UploadFileDTO,
   ) {
     return this.submissionService.create(user, problemId, data, file);
   }

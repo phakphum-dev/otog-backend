@@ -8,6 +8,7 @@ import {
 } from 'src/utils/fileUpload.utils';
 import { Submission } from '../../entities/submission.entity';
 import { UserDTO } from '../user/dto/user.dto';
+import { UploadFileDTO } from './dto/submission.dto';
 
 const fileExt = {
   c: '.c',
@@ -78,7 +79,7 @@ export class SubmissionService {
   async create(
     user: UserDTO,
     problemId: number,
-    data: any,
+    data: UploadFileDTO,
     file: Express.Multer.File,
   ) {
     this.fileCheck(file);

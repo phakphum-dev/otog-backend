@@ -12,10 +12,6 @@ export class ProblemService {
     return this.problemRepository.findAll();
   }
 
-  finOne(arg: any): Promise<Problem> {
-    return this.problemRepository.findOne({ where: arg });
-  }
-
   async finOneById(id: number): Promise<Problem> {
     return await this.problemRepository.findOne({ where: { id } });
   }
