@@ -17,3 +17,10 @@ export enum Role {
   User = 'user',
   Admin = 'admin',
 }
+
+export enum Status {
+  Waiting = 'waiting',
+  Grading = 'grading',
+  Accept = 'accept',
+  Reject = 'reject',
+}

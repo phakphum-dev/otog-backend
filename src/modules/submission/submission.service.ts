@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { Op } from 'sequelize';
-import { SUBMISSION_REPOSITORY } from 'src/core/constants';
+import { Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
 import {
   scodeFileFilter,
   scodeFileSizeFilter,
@@ -87,6 +87,7 @@ export class SubmissionService {
     submission.userId = user?.id;
     submission.problemId = problemId;
     submission.language = data.language;
+    submission.status = Status.Waiting;
     submission.contestId = Number(data.contestId) || null;
     submission.sourceCode = file.buffer.toString();
     await submission.save();

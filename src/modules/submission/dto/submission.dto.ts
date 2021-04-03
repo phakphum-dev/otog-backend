@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Status } from 'src/core/constants';
 import { ProblemDTO } from 'src/modules/problem/dto/problem.dto';
 import { UserDTO } from 'src/modules/user/dto/user.dto';
 
@@ -12,7 +13,7 @@ export class SubmissionDTO {
 
   readonly timeUsed: number;
 
-  readonly isGrading: boolean;
+  readonly status: Status;
 
   readonly errmsg: string | null;
 
@@ -37,7 +38,7 @@ export class SubmissionWithSourceCodeDTO {
 
   readonly timeUsed: number;
 
-  readonly isGrading: boolean;
+  readonly status: Status;
 
   readonly errmsg: string | null;
 

@@ -11,6 +11,7 @@ import {
   Table,
   UpdatedAt,
 } from 'sequelize-typescript';
+import { Status } from 'src/core/constants';
 import { Problem } from './problem.entity';
 import { User } from './user.entity';
 
@@ -51,13 +52,12 @@ export class Submission extends Model {
   @Column
   timeUsed: number;
 
-  // @Column({
-  //   get() {
-  //     return Boolean(this.getDataValue('isGrading'));
-  //   },
-  // })
-  @Column({ defaultValue: true })
-  isGrading: boolean;
+  @Column({
+    type: DataType.ENUM,
+    values: ['waiting', 'grading', 'accept', 'reject'],
+    allowNull: false,
+  })
+  status: Status;
 
   @Column({
     type: DataType.TEXT({ length: 'long' }),
