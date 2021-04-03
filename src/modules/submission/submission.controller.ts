@@ -43,7 +43,7 @@ export class SubmissionController {
   @ApiBody({
     type: UploadFileDTO,
   })
-  @Post('/:problemId')
+  @Post('/problem/:problemId')
   // @UseInterceptors(
   //   FileInterceptor('sourceCode', {
   //     storage: diskStorage({
