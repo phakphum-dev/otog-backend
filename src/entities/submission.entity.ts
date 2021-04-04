@@ -8,6 +8,7 @@ import {
   ForeignKey,
   Model,
   PrimaryKey,
+  Scopes,
   Table,
   UpdatedAt,
 } from 'sequelize-typescript';
@@ -20,7 +21,15 @@ import { User } from './user.entity';
     exclude: ['userId', 'problemId', 'sourceCode', 'updateDate'],
   },
   order: [['id', 'DESC']],
-  include: [User.scope('noPass'), Problem],
+}))
+@Scopes(() => ({
+  full: {
+    attributes: {
+      exclude: ['userId', 'problemId', 'sourceCode', 'updateDate'],
+    },
+    order: [['id', 'DESC']],
+    include: [User.scope('noPass'), Problem],
+  },
 }))
 @Table({ tableName: 'submission' })
 export class Submission extends Model {

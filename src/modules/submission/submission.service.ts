@@ -23,7 +23,7 @@ export class SubmissionService {
   ) {}
 
   findAllWithOutContest(): Promise<Submission[]> {
-    return this.submissionRepository.findAll({
+    return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: null,
       },
@@ -32,7 +32,7 @@ export class SubmissionService {
   }
 
   findAllWithContest(): Promise<Submission[]> {
-    return this.submissionRepository.findAll({
+    return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: {
           [Op.not]: null,
@@ -43,7 +43,7 @@ export class SubmissionService {
   }
 
   async findOneByResultId(resultId: number) {
-    return await this.submissionRepository.findOne({
+    return await this.submissionRepository.scope('full').findOne({
       where: { id: resultId },
       attributes: {
         include: ['sourceCode'],
@@ -95,13 +95,13 @@ export class SubmissionService {
   }
 
   findAllByUserId(userId: number): Promise<Submission[]> {
-    return this.submissionRepository.findAll({
+    return this.submissionRepository.scope('full').findAll({
       where: { userId },
     });
   }
 
   findOneByUserId(userId: number): Promise<Submission> {
-    return this.submissionRepository.findOne({
+    return this.submissionRepository.scope('full').findOne({
       where: { userId },
       attributes: {
         include: ['sourceCode'],
