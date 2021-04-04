@@ -2,6 +2,8 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PROBLEM_REPOSITORY } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
 import { existsSync } from 'fs';
+import { Submission } from 'src/entities/submission.entity';
+import { Op, literal } from 'sequelize';
 @Injectable()
 export class ProblemService {
   constructor(
@@ -10,6 +12,27 @@ export class ProblemService {
 
   findAll(): Promise<Problem[]> {
     return this.problemRepository.findAll();
+  }
+
+  findAllWithSubmissionByUserId(userId: number): Promise<Problem[]> {
+    return this.problemRepository.findAll({
+      include: [
+        {
+          model: Submission,
+          where: {
+            id: {
+              [Op.in]: [
+                literal(
+                  'SELECT MAX(id) FROM submission GROUP BY problemId,userId',
+                ),
+              ],
+            },
+            userId,
+          },
+          required: false,
+        },
+      ],
+    });
   }
 
   async finOneById(id: number): Promise<Problem> {

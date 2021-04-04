@@ -1,6 +1,8 @@
 import { Controller, Get, Param, Res } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
+import { User } from 'src/core/decorators/user.decorator';
+import { UserDTO } from '../user/dto/user.dto';
 import { ProblemDTO } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
 
@@ -15,8 +17,12 @@ export class ProblemController {
     type: ProblemDTO,
     isArray: true,
   })
-  getAllProblems() {
-    return this.problemService.findAll();
+  getAllProblems(@User() user: UserDTO) {
+    if (user) {
+      return this.problemService.findAllWithSubmissionByUserId(user.id);
+    } else {
+      return this.problemService.findAll();
+    }
   }
 
   @Get('/:probId')

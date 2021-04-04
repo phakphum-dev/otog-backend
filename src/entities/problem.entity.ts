@@ -1,7 +1,8 @@
 import {
   AutoIncrement,
-  BelongsToMany,
   Column,
+  DefaultScope,
+  HasOne,
   Model,
   PrimaryKey,
   Table,
@@ -9,6 +10,9 @@ import {
 import { Submission } from './submission.entity';
 import { User } from './user.entity';
 
+@DefaultScope(() => ({
+  order: [['id', 'DESC']],
+}))
 @Table({ tableName: 'problem' })
 export class Problem extends Model {
   @PrimaryKey
@@ -44,4 +48,7 @@ export class Problem extends Model {
 
   @Column
   rating: number;
+
+  @HasOne(() => Submission)
+  submission: Submission;
 }
