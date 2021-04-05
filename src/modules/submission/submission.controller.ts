@@ -35,8 +35,11 @@ export class SubmissionController {
     type: SubmissionDTO,
     isArray: true,
   })
-  getAllSubmission(@Query('offset') offset: number) {
-    return this.submissionService.findAllWithOutContest(offset);
+  getAllSubmission(
+    @Query('offset') offset: number,
+    @Query('limit') limit: number,
+  ) {
+    return this.submissionService.findAllWithOutContest(offset, limit);
   }
 
   @Roles(Role.User, Role.Admin)

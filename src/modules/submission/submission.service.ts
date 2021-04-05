@@ -22,7 +22,7 @@ export class SubmissionService {
     private submissionRepository: typeof Submission,
   ) {}
 
-  findAllWithOutContest(offset: number): Promise<Submission[]> {
+  findAllWithOutContest(offset: number, limit: number): Promise<Submission[]> {
     return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: null,
@@ -30,7 +30,7 @@ export class SubmissionService {
           [Op.lt]: offset || 1e9,
         },
       },
-      limit: 89,
+      limit: limit || 89,
     });
   }
 
