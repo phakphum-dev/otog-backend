@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -34,8 +35,8 @@ export class SubmissionController {
     type: SubmissionDTO,
     isArray: true,
   })
-  getAllSubmission() {
-    return this.submissionService.findAllWithOutContest();
+  getAllSubmission(@Query('offset') offset: number) {
+    return this.submissionService.findAllWithOutContest(offset);
   }
 
   @Roles(Role.User, Role.Admin)

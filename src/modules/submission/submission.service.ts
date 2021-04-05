@@ -22,12 +22,15 @@ export class SubmissionService {
     private submissionRepository: typeof Submission,
   ) {}
 
-  findAllWithOutContest(): Promise<Submission[]> {
+  findAllWithOutContest(offset: number): Promise<Submission[]> {
     return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: null,
+        id: {
+          [Op.lt]: offset || 1e9,
+        },
       },
-      limit: 100,
+      limit: 89,
     });
   }
 
