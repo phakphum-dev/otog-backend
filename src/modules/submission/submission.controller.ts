@@ -83,15 +83,6 @@ export class SubmissionController {
     return this.submissionService.findOneByUserId(user.id);
   }
 
-  @Get('/:resultId')
-  @ApiResponse({
-    status: 200,
-    type: SubmissionWithSourceCodeDTO,
-  })
-  getSubmissionById(@Param('resultId') resultId: number) {
-    return this.submissionService.findOneByResultId(resultId);
-  }
-
   @Get('/user/:userId')
   @ApiResponse({
     status: 200,
@@ -100,5 +91,14 @@ export class SubmissionController {
   })
   getAllSubmissionByUserId(@Param('userId') userId: number) {
     return this.submissionService.findAllByUserId(userId);
+  }
+
+  @Get('/:resultId')
+  @ApiResponse({
+    status: 200,
+    type: SubmissionWithSourceCodeDTO,
+  })
+  getSubmissionById(@Param('resultId') resultId: number) {
+    return this.submissionService.findOneByResultId(resultId);
   }
 }
