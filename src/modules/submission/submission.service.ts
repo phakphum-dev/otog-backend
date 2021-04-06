@@ -34,14 +34,17 @@ export class SubmissionService {
     });
   }
 
-  findAllWithContest(): Promise<Submission[]> {
+  findAllWithContest(offset: number, limit: number): Promise<Submission[]> {
     return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: {
           [Op.not]: null,
         },
+        id: {
+          [Op.lt]: offset || 1e9,
+        },
       },
-      limit: 100,
+      limit: limit || 89,
     });
   }
 

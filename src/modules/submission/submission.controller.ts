@@ -48,6 +48,26 @@ export class SubmissionController {
     return this.submissionService.findAllWithOutContest(offset, limit);
   }
 
+  @Get('/contest')
+  @ApiResponse({
+    status: 200,
+    type: SubmissionDTO,
+    isArray: true,
+  })
+  getContestSubmission(
+    @Query('offset') os: string,
+    @Query('limit') lm: string,
+  ) {
+    const offset: number = parseInt(os);
+    const limit: number = parseInt(lm);
+    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
+      throw new BadRequestException(
+        'Validation failed (numeric string is expected)',
+      );
+
+    return this.submissionService.findAllWithContest(offset, limit);
+  }
+
   @Roles(Role.User, Role.Admin)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
