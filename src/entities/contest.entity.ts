@@ -2,9 +2,11 @@ import {
   AutoIncrement,
   BelongsToMany,
   Column,
+  DataType,
   DefaultScope,
   Model,
   PrimaryKey,
+  Scopes,
   Table,
 } from 'sequelize-typescript';
 import { strToObj } from '../utils/convert.utils';
@@ -12,9 +14,19 @@ import { ContestProblem } from './contestProblem.entity';
 import { Problem } from './problem.entity';
 import { User } from './user.entity';
 import { UserContest } from './userContest.entity';
+import { ContestMode, GradingMode } from '../core/constants';
 
-@DefaultScope(() => ({
-  include: [Problem],
+@Scopes(() => ({
+  full: {
+    include: [
+      {
+        model: Problem,
+        through: {
+          attributes: [],
+        },
+      },
+    ],
+  },
 }))
 @Table({ tableName: 'contest' })
 export class Contest extends Model {
@@ -26,11 +38,19 @@ export class Contest extends Model {
   @Column
   name: string;
 
-  @Column
-  contestMode: string;
+  @Column({
+    type: DataType.ENUM,
+    values: ['rated', 'unrated'],
+    allowNull: false,
+  })
+  mode: ContestMode;
 
-  @Column
-  gradingMode: string;
+  @Column({
+    type: DataType.ENUM,
+    values: ['acm', 'classic'],
+    allowNull: false,
+  })
+  gradingMode: GradingMode;
 
   @Column
   timeStart: Date;

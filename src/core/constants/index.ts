@@ -24,3 +24,13 @@ export enum Status {
   Accept = 'accept',
   Reject = 'reject',
 }
+
+export enum GradingMode {
+  ACM = 'acm',
+  Classic = 'classic',
+}
+
+export enum ContestMode {
+  Rated = 'rated',
+  Unrated = 'unrated',
+}
