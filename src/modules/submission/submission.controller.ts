@@ -68,6 +68,17 @@ export class SubmissionController {
     return this.submissionService.findAllWithContest(offset, limit);
   }
 
+  // @Get('/problem/:problemId/latest')
+  // @ApiResponse({
+  //   status: 200,
+  //   type: SubmissionWithSourceCodeDTO,
+  // })
+  // getLatestSubmissionByProblemId(
+  //   @Param('problemId', ParseIntPipe) problemId: number,
+  // ) {
+  //   return this.submissionService.findOneByResultId(problemId);
+  // }
+
   @Roles(Role.User, Role.Admin)
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -86,7 +97,7 @@ export class SubmissionController {
   @UseInterceptors(FileInterceptor('sourceCode'))
   uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Param('problemId') problemId: number,
+    @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
     @Body() data: UploadFileDTO,
   ) {
@@ -110,7 +121,7 @@ export class SubmissionController {
     isArray: true,
   })
   getAllSubmissionByUserId(
-    @Param('userId') userId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Query('offset') os: string,
     @Query('limit') lm: string,
   ) {
@@ -129,7 +140,7 @@ export class SubmissionController {
     status: 200,
     type: SubmissionWithSourceCodeDTO,
   })
-  getSubmissionById(@Param('resultId') resultId: number) {
+  getSubmissionById(@Param('resultId', ParseIntPipe) resultId: number) {
     return this.submissionService.findOneByResultId(resultId);
   }
 }
