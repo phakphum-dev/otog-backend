@@ -124,4 +124,16 @@ export class SubmissionService {
       },
     });
   }
+
+  findOneByProblemIdAndUserId(
+    problemId: number,
+    userId: number,
+  ): Promise<Submission> {
+    return this.submissionRepository.scope('full').findOne({
+      where: { userId, problemId },
+      attributes: {
+        include: ['sourceCode'],
+      },
+    });
+  }
 }

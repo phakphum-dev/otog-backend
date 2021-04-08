@@ -68,16 +68,21 @@ export class SubmissionController {
     return this.submissionService.findAllWithContest(offset, limit);
   }
 
-  // @Get('/problem/:problemId/latest')
-  // @ApiResponse({
-  //   status: 200,
-  //   type: SubmissionWithSourceCodeDTO,
-  // })
-  // getLatestSubmissionByProblemId(
-  //   @Param('problemId', ParseIntPipe) problemId: number,
-  // ) {
-  //   return this.submissionService.findOneByResultId(problemId);
-  // }
+  @Roles(Role.Admin, Role.User)
+  @Get('/problem/:problemId/latest')
+  @ApiResponse({
+    status: 200,
+    type: SubmissionWithSourceCodeDTO,
+  })
+  getLatestSubmissionByProblemId(
+    @Param('problemId', ParseIntPipe) problemId: number,
+    @User() user: UserDTO,
+  ) {
+    return this.submissionService.findOneByProblemIdAndUserId(
+      problemId,
+      user.id,
+    );
+  }
 
   @Roles(Role.User, Role.Admin)
   @ApiConsumes('multipart/form-data')
