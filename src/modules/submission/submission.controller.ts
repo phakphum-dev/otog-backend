@@ -109,8 +109,19 @@ export class SubmissionController {
     type: SubmissionDTO,
     isArray: true,
   })
-  getAllSubmissionByUserId(@Param('userId') userId: number) {
-    return this.submissionService.findAllByUserId(userId);
+  getAllSubmissionByUserId(
+    @Param('userId') userId: number,
+    @Query('offset') os: string,
+    @Query('limit') lm: string,
+  ) {
+    const offset: number = parseInt(os);
+    const limit: number = parseInt(lm);
+    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
+      throw new BadRequestException(
+        'Validation failed (numeric string is expected)',
+      );
+
+    return this.submissionService.findAllByUserId(userId, offset, limit);
   }
 
   @Get('/:resultId')
