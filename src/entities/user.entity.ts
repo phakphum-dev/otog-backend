@@ -4,6 +4,7 @@ import {
   Column,
   CreatedAt,
   DataType,
+  HasMany,
   IsEmail,
   Model,
   PrimaryKey,
@@ -71,4 +72,7 @@ export class User extends Model {
 
   @BelongsToMany(() => Contest, () => UserContest)
   attendedContest: UserContest[];
+
+  @HasMany(() => Submission)
+  submissions: Submission[];
 }

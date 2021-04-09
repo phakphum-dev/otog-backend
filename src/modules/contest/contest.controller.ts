@@ -53,7 +53,7 @@ export class ContestController {
   getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
-    return 'unfinish';
+    return this.contestService.scoreboardByContestId(contestId);
   }
 
   //Admin Only
@@ -71,5 +71,13 @@ export class ContestController {
     @Body('problemId', ParseIntPipe) problemId: number,
   ) {
     return this.contestService.addProblemToContest(contestId, problemId);
+  }
+
+  @Post('/:contestId/signup')
+  addUserToContest(
+    @Param('contestId', ParseIntPipe) contestId: number,
+    @Body('userId', ParseIntPipe) userId: number,
+  ) {
+    return this.contestService.addUserToContest(contestId, userId);
   }
 }

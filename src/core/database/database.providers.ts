@@ -31,11 +31,11 @@ export const databaseProviders = [
         define: { timestamps: false },
       });
       sequelize.addModels([
+        User,
         Contest,
         ContestProblem,
         Problem,
         RefreshToken,
-        User,
         Submission,
         UserContest,
       ]);
