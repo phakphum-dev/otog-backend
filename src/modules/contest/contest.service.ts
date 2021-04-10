@@ -80,7 +80,7 @@ export class ContestService {
     return this.contestRepository.scope('full').findOne({
       where: {
         timeEnd: {
-          [Op.gte]: Date.now() - 3600,
+          [Op.gte]: Date.now() - 60 * 60 * 1000, // delay 1 hour
         },
       },
     });
