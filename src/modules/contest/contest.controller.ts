@@ -58,7 +58,7 @@ export class ContestController {
 
   //Admin Only
 
-  // @Roles(Role.Admin)
+  @Roles(Role.Admin)
   @Post()
   @ApiBody({
     type: CreateContestDTO,
@@ -67,7 +67,7 @@ export class ContestController {
     return this.contestService.create(createContest);
   }
 
-  // @Roles(Role.Admin)
+  @Roles(Role.Admin)
   @Patch('/:contestId')
   addProblemToContest(
     @Param('contestId', ParseIntPipe) contestId: number,
@@ -76,6 +76,7 @@ export class ContestController {
     return this.contestService.addProblemToContest(contestId, problemId);
   }
 
+  @Roles(Role.Admin)
   @Post('/:contestId/signup')
   addUserToContest(
     @Param('contestId', ParseIntPipe) contestId: number,
