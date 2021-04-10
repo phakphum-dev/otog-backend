@@ -1,6 +1,11 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { sha256 } from 'js-sha256';
-import { USER_REPOSITORY } from 'src/core/constants';
+import { Role, USER_REPOSITORY } from 'src/core/constants';
 import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
 import { UserDTO } from './dto/user.dto';
@@ -20,12 +25,16 @@ export class UserService {
     }
     const hash = sha256.create();
     hash.update(data.password);
-    const user = new User();
-    user.username = data.username;
-    user.password = hash.hex();
-    user.showName = data.showName;
-    user.role = 'user';
-    await user.save();
+    try {
+      const user = new User();
+      user.username = data.username;
+      user.password = hash.hex();
+      user.showName = data.showName;
+      user.role = Role.User;
+      await user.save();
+    } catch {
+      throw new BadRequestException();
+    }
     return { message: 'Create user complete.', status: true };
   }
 

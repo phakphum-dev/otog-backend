@@ -22,15 +22,17 @@ export class ContestService {
   ) {}
 
   async create(createContest: CreateContestDTO): Promise<object> {
-    const expiryDate = new Date();
-    expiryDate.setTime(expiryDate.getTime() + 1000 * 60 * 30);
-    const contest = new Contest();
-    contest.name = 'Contest01';
-    contest.mode = ContestMode.Rated;
-    contest.gradingMode = GradingMode.Classic;
-    contest.timeStart = new Date();
-    contest.timeEnd = expiryDate;
-    await contest.save();
+    try {
+      const contest = new Contest();
+      contest.name = createContest.name;
+      contest.mode = createContest.mode;
+      contest.gradingMode = createContest.gradingMode;
+      contest.timeStart = createContest.timeStart;
+      contest.timeEnd = createContest.timeEnd;
+      await contest.save();
+    } catch {
+      throw new BadRequestException();
+    }
     return { msg: 'create contest complete.' };
   }
 

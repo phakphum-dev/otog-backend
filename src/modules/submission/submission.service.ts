@@ -57,22 +57,6 @@ export class SubmissionService {
     });
   }
 
-  async readLatestSourceCode(
-    problemId: number,
-    userId: number,
-    language: string,
-  ) {
-    const filename = `${problemId}${fileExt[language]}`;
-    const dir = `./upload/${userId}`;
-    let sourceCode: string;
-    try {
-      sourceCode = readFileSync(`${dir}/${filename}`).toString();
-    } catch {
-      sourceCode = `ENOENT: no such file or directory.`;
-    }
-    return sourceCode;
-  }
-
   fileCheck(file: Express.Multer.File) {
     // check file extension
     if (!scodeFileFilter(file))
@@ -89,14 +73,18 @@ export class SubmissionService {
     file: Express.Multer.File,
   ) {
     this.fileCheck(file);
-    const submission = new Submission();
-    submission.userId = user?.id;
-    submission.problemId = problemId;
-    submission.language = data.language;
-    submission.status = Status.Waiting;
-    submission.contestId = Number(data.contestId) || null;
-    submission.sourceCode = file.buffer.toString();
-    await submission.save();
+    try {
+      const submission = new Submission();
+      submission.userId = user?.id;
+      submission.problemId = problemId;
+      submission.language = data.language;
+      submission.status = Status.Waiting;
+      submission.contestId = Number(data.contestId) || null;
+      submission.sourceCode = file.buffer.toString();
+      await submission.save();
+    } catch {
+      throw new BadRequestException();
+    }
     return { msg: 'create submission complete.' };
   }
 
