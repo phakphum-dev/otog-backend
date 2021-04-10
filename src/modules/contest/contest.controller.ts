@@ -8,7 +8,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
@@ -60,6 +60,9 @@ export class ContestController {
 
   // @Roles(Role.Admin)
   @Post()
+  @ApiBody({
+    type: CreateContestDTO,
+  })
   create(@Body() createContest: CreateContestDTO) {
     return this.contestService.create(createContest);
   }
