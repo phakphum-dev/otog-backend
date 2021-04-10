@@ -80,9 +80,10 @@ export class ContestService {
     return this.contestRepository.scope('full').findOne({
       where: {
         timeEnd: {
-          [Op.gte]: Date.now(),
+          [Op.gte]: Date.now() - 60 * 60 * 1000,
         },
       },
+      order: [['id', 'DESC']],
     });
   }
 
