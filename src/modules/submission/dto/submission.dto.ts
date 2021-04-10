@@ -28,6 +28,14 @@ export class SubmissionDTO {
   readonly user: UserDTO;
 }
 
+export class SubmissionForScoreboardDTO {
+  readonly id: number;
+  readonly problemId: number;
+  readonly score: number;
+  readonly timeUsed: number;
+  readonly status: Status;
+}
+
 export class SubmissionWithSourceCodeDTO {
   @ApiProperty()
   readonly id: number;

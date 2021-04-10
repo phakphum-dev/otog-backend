@@ -13,7 +13,7 @@ import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { ContestService } from './contest.service';
-import { ContestDTO, CreateContestDTO } from './dto/contest.dto';
+import { ContestDTO, CreateContestDTO, ScoreboardDTO } from './dto/contest.dto';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -50,6 +50,10 @@ export class ContestController {
   }
 
   @Get('/:contestId/scoreboard')
+  @ApiResponse({
+    status: 200,
+    type: ScoreboardDTO,
+  })
   getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
