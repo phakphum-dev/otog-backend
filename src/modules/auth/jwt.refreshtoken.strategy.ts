@@ -1,6 +1,6 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { UserService } from 'src/modules/user/user.service';
@@ -29,7 +29,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
     const refreshTokenId = req.cookies['RID'];
     const { jti, id } = payload;
     if (!(await this.authService.validateToken(refreshTokenId, jti))) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException();
     }
     const user = await this.userService.findOneById(id);
     const userAuthDTO = new UserDTO(user);
