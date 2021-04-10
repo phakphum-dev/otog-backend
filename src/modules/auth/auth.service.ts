@@ -78,7 +78,7 @@ export class AuthService {
 
     //check refresh token is valid and match jwt
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
-      console.log('access token and refresh token missmatch.');
+      console.log('access token and refresh token mismatch.');
       return false;
     }
 
