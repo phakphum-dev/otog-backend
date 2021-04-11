@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from 'src/entities/user.entity';
+import { ContestDTO } from 'src/modules/contest/dto/contest.dto';
 import { SubmissionForScoreboardDTO } from 'src/modules/submission/dto/submission.dto';
 
 export class UserDTO {
@@ -23,17 +24,20 @@ export class UserDTO {
   }
 }
 
-export class UserForScoreboardDTO {
-  @ApiProperty()
-  id: number;
-
-  username: string;
-
-  showName: string;
-
-  role: string;
-
-  rating: number;
-
+export class UserForScoreboardDTO extends UserDTO {
   submissions: SubmissionForScoreboardDTO[];
+}
+
+export class UserProfileDTO extends UserDTO {
+  attendedContest: AttendedContestDTO[];
+}
+
+export class AttendedContestDTO {
+  id: number;
+  name: string;
+  timeEnd: Date;
+  detail: {
+    rank: number;
+    ratingAfterUpdate: number;
+  };
 }

@@ -1,6 +1,7 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { UserDTO } from './dto/user.dto';
+import { User } from 'src/entities/user.entity';
+import { UserDTO, UserProfileDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('user')
@@ -18,12 +19,23 @@ export class UserController {
     return this.userService.findAll();
   }
 
-  @Get('/:userId')
+  // @Get('/:userId')
+  // @ApiResponse({
+  //   status: 200,
+  //   type: UserDTO,
+  // })
+  // getUserById(@Param('userId') userId: number): Promise<UserDTO> {
+  //   return this.userService.getUserProfileById(userId);
+  // }
+
+  @Get('/:userId/profile')
   @ApiResponse({
     status: 200,
-    type: UserDTO,
+    type: UserProfileDTO,
   })
-  getUserById(@Param('userId') userId: number): Promise<UserDTO> {
+  getUserProfileById(
+    @Param('userId', ParseIntPipe) userId: number,
+  ): Promise<User> {
     return this.userService.getUserProfileById(userId);
   }
 }

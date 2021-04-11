@@ -5,7 +5,9 @@ import {
   Injectable,
 } from '@nestjs/common';
 import { sha256 } from 'js-sha256';
-import { Role, USER_REPOSITORY } from 'src/core/constants';
+import { Op } from 'sequelize';
+import { ContestMode, Role, USER_REPOSITORY } from 'src/core/constants';
+import { Contest } from 'src/entities/contest.entity';
 import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
 import { UserDTO } from './dto/user.dto';
@@ -62,9 +64,30 @@ export class UserService {
     });
   }
 
-  async getUserProfileById(id: number): Promise<UserDTO> {
-    const user = await this.findOneById(id);
-    const userDTO = new UserDTO(user);
-    return userDTO;
+  async getUserProfileById(id: number): Promise<User> {
+    return await this.userRepository.scope('noPass').findOne({
+      where: {
+        id,
+      },
+      include: [
+        {
+          model: Contest,
+          where: {
+            mode: ContestMode.Rated,
+          },
+          through: {
+            attributes: ['rank', 'ratingAfterUpdate'],
+            as: 'detail',
+            where: {
+              rank: {
+                [Op.not]: null,
+              },
+            },
+          },
+          attributes: ['id', 'name', 'timeEnd'],
+          required: false,
+        },
+      ],
+    });
   }
 }
