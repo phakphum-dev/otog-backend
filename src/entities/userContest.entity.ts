@@ -1,5 +1,7 @@
 import {
+  BelongsTo,
   Column,
+  DefaultScope,
   ForeignKey,
   Model,
   PrimaryKey,
@@ -23,5 +25,5 @@ export class UserContest extends Model {
   rank: number;
 
   @Column
-  ratingAterUpdate: number;
+  ratingAfterUpdate: number;
 }
