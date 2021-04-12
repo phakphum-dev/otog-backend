@@ -15,7 +15,7 @@ export class ProblemService {
     @Inject(PROBLEM_REPOSITORY) private problemRepository: typeof Problem,
   ) {}
 
-  findAll(): Promise<Problem[]> {
+  findAllNotShow(): Promise<Problem[]> {
     return this.problemRepository.findAll({
       where: {
         show: true,
@@ -28,6 +28,27 @@ export class ProblemService {
       where: {
         show: true,
       },
+      include: [
+        {
+          model: Submission,
+          where: {
+            id: {
+              [Op.in]: [
+                literal(
+                  'SELECT MAX(id) FROM submission GROUP BY problemId,userId',
+                ),
+              ],
+            },
+            userId,
+          },
+          required: false,
+        },
+      ],
+    });
+  }
+
+  findAllWithSubmissionByUserId_ADMIN(userId: number): Promise<Problem[]> {
+    return this.problemRepository.findAll({
       include: [
         {
           model: Submission,

@@ -28,12 +28,12 @@ export class ProblemController {
     type: ProblemDTO,
     isArray: true,
   })
-  getAllProblems(@User() user: UserDTO) {
-    if (user) {
-      return this.problemService.findAllWithSubmissionByUserId(user.id);
-    } else {
-      return this.problemService.findAll();
-    }
+  async getAllProblems(@User() user: UserDTO) {
+    return user
+      ? user.role == Role.Admin
+        ? await this.problemService.findAllWithSubmissionByUserId_ADMIN(user.id)
+        : await this.problemService.findAllWithSubmissionByUserId(user.id)
+      : await this.problemService.findAllNotShow();
   }
 
   @Get('/:problemId')
