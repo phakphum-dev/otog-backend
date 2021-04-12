@@ -66,6 +66,7 @@ export class ProblemService {
     });
     if (problem.show == show) throw new BadRequestException();
     problem.show = show;
+    problem.recentShowTime = new Date();
     return problem.save();
   }
 }
