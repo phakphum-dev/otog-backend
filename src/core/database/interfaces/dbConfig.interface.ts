@@ -5,6 +5,7 @@ export interface IDatabaseConfigAttributes {
   username?: string;
   password?: string;
   database?: string;
+  logging?: boolean;
 }
 
 export interface IDatabaseConfig {

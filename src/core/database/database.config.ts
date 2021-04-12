@@ -11,10 +11,11 @@ export const databaseConfig: IDatabaseConfig = {
   },
   production: {
     dialect: 'mysql',
-    host: 'db',
+    host: 'localhost',
     port: 8888,
     username: 'root',
     password: '0000',
     database: 'otog',
+    logging: false,
   },
 };
