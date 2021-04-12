@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
   Param,
   ParseBoolPipe,
   ParseIntPipe,
@@ -61,10 +62,14 @@ export class ContestController {
     status: 200,
     type: ScoreboardDTO,
   })
-  getContestScoreBoardById(
+  async getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
-    return this.contestService.scoreboardByContestId(contestId);
+    const scoreboard = await this.contestService.scoreboardByContestId(
+      contestId,
+    );
+    if (!scoreboard) throw new NotFoundException();
+    return scoreboard;
   }
 
   //Admin Only

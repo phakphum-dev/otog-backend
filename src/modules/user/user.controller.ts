@@ -1,4 +1,10 @@
-import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/entities/user.entity';
 import { UserDTO, UserProfileDTO } from './dto/user.dto';
@@ -33,9 +39,11 @@ export class UserController {
     status: 200,
     type: UserProfileDTO,
   })
-  getUserProfileById(
+  async getUserProfileById(
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<User> {
-    return this.userService.getUserProfileById(userId);
+    const userProfile = await this.userService.getUserProfileById(userId);
+    if (!userProfile) throw new NotFoundException();
+    return userProfile;
   }
 }
