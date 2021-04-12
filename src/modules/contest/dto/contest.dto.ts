@@ -51,3 +51,8 @@ export class ScoreboardDTO {
 
   readonly users: UserForScoreboardDTO[];
 }
+
+export class PatchContestDTO {
+  problemId: number;
+  show: boolean;
+}

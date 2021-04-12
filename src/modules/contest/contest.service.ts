@@ -5,6 +5,7 @@ import { fn } from 'sequelize';
 import { Op, literal } from 'sequelize';
 import {
   ContestMode,
+  CONTESTPROBLEM_REPOSITORY,
   CONTEST_REPOSITORY,
   GradingMode,
 } from 'src/core/constants';
@@ -19,6 +20,8 @@ import { CreateContestDTO } from './dto/contest.dto';
 export class ContestService {
   constructor(
     @Inject(CONTEST_REPOSITORY) private contestRepository: typeof Contest,
+    @Inject(CONTESTPROBLEM_REPOSITORY)
+    private contestProblemRepository: typeof Contest,
   ) {}
 
   async create(createContest: CreateContestDTO): Promise<object> {
@@ -87,16 +90,31 @@ export class ContestService {
     });
   }
 
-  async addProblemToContest(contestId: number, problemId: number) {
+  async addProblemToContest(
+    contestId: number,
+    problemId: number,
+    show: boolean,
+  ) {
     try {
-      const contestProblem = new ContestProblem();
-      contestProblem.problemId = problemId;
-      contestProblem.contestId = contestId;
-      await contestProblem.save();
+      if (show) {
+        const contestProblem = new ContestProblem();
+        contestProblem.problemId = problemId;
+        contestProblem.contestId = contestId;
+        await contestProblem.save();
+        return { problemId, contestId, show };
+      } else {
+        const contestProblem = await this.contestProblemRepository.findOne({
+          where: {
+            contestId,
+            problemId,
+          },
+        });
+        await contestProblem.destroy();
+        return { problemId, contestId, show };
+      }
     } catch {
       throw new BadRequestException();
     }
-    return { msg: `add problem id: ${problemId} to contest id: ${contestId}` };
   }
 
   async addUserToContest(contestId: number, userId: number) {

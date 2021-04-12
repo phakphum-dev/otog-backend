@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -13,7 +14,12 @@ import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { ContestService } from './contest.service';
-import { ContestDTO, CreateContestDTO, ScoreboardDTO } from './dto/contest.dto';
+import {
+  ContestDTO,
+  CreateContestDTO,
+  PatchContestDTO,
+  ScoreboardDTO,
+} from './dto/contest.dto';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -73,11 +79,15 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Patch('/:contestId')
+  @ApiBody({
+    type: PatchContestDTO,
+  })
   addProblemToContest(
     @Param('contestId', ParseIntPipe) contestId: number,
     @Body('problemId', ParseIntPipe) problemId: number,
+    @Body('show', ParseBoolPipe) show: boolean,
   ) {
-    return this.contestService.addProblemToContest(contestId, problemId);
+    return this.contestService.addProblemToContest(contestId, problemId, show);
   }
 
   @Roles(Role.Admin)
