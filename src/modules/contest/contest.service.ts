@@ -32,15 +32,16 @@ export class ContestService {
       contest.gradingMode = createContest.gradingMode;
       contest.timeStart = createContest.timeStart;
       contest.timeEnd = createContest.timeEnd;
-      await contest.save();
+      return await contest.save();
     } catch {
       throw new BadRequestException();
     }
-    return { msg: 'create contest complete.' };
   }
 
   findAll(): Promise<Contest[]> {
-    return this.contestRepository.findAll();
+    return this.contestRepository.findAll({
+      order: [['id', 'DESC']],
+    });
   }
 
   findOneById(contestId: number): Promise<Contest> {
