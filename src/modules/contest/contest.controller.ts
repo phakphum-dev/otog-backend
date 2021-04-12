@@ -18,6 +18,7 @@ import {
   ContestDTO,
   CreateContestDTO,
   PatchContestDTO,
+  ResPatchContestDTO,
   ScoreboardDTO,
 } from './dto/contest.dto';
 
@@ -81,6 +82,10 @@ export class ContestController {
   @Patch('/:contestId')
   @ApiBody({
     type: PatchContestDTO,
+  })
+  @ApiResponse({
+    status: 200,
+    type: ResPatchContestDTO,
   })
   addProblemToContest(
     @Param('contestId', ParseIntPipe) contestId: number,

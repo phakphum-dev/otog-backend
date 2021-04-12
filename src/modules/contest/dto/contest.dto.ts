@@ -56,3 +56,9 @@ export class PatchContestDTO {
   problemId: number;
   show: boolean;
 }
+
+export class ResPatchContestDTO {
+  contestId: number;
+  problemId: number;
+  show: boolean;
+}
