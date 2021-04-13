@@ -8,7 +8,6 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Submission } from './submission.entity';
-import { User } from './user.entity';
 
 @DefaultScope(() => ({
   order: [['id', 'DESC']],

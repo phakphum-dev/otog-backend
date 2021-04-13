@@ -1,7 +1,5 @@
 import {
-  BelongsTo,
   Column,
-  DefaultScope,
   ForeignKey,
   Model,
   PrimaryKey,

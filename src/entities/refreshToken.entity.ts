@@ -7,7 +7,6 @@ import {
   Table,
   UpdatedAt,
 } from 'sequelize-typescript';
-import { User } from './user.entity';
 
 @Table({ tableName: 'refreshToken' })
 export class RefreshToken extends Model {

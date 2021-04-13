@@ -3,7 +3,6 @@ import {
   BelongsToMany,
   Column,
   DataType,
-  DefaultScope,
   Model,
   PrimaryKey,
   Scopes,

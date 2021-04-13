@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { readFileSync } from 'fs';
 import { Op } from 'sequelize';
 import { Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
 import {
@@ -9,11 +8,6 @@ import {
 import { Submission } from '../../entities/submission.entity';
 import { UserDTO } from '../user/dto/user.dto';
 import { UploadFileDTO } from './dto/submission.dto';
-
-const fileExt = {
-  c: '.c',
-  cpp: '.cpp',
-};
 
 @Injectable()
 export class SubmissionService {

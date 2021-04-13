@@ -14,7 +14,6 @@ import {
   UpdatedAt,
 } from 'sequelize-typescript';
 import { Contest } from './contest.entity';
-import { Problem } from './problem.entity';
 import { Submission } from './submission.entity';
 import { UserContest } from './userContest.entity';
 
