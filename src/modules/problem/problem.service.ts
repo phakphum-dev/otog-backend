@@ -74,9 +74,9 @@ export class ProblemService {
 
   async getDocDirById(id: number): Promise<string> {
     const problem = await this.finOneById(id);
-    const dir = `${process.cwd()}/docs/${problem.sname}.pdf`;
+    const dir = `${process.cwd()}/docs/${problem.id}.pdf`;
     if (!existsSync(dir)) throw new NotFoundException();
-    return `${process.cwd()}/docs/${problem.sname}.pdf`;
+    return `${process.cwd()}/docs/${problem.id}.pdf`;
   }
 
   async changeProblemShowById(problemId: number, show: boolean) {
