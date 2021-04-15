@@ -22,3 +22,20 @@ export class ProblemDTO {
 
   readonly rating: number;
 }
+
+export class CreateProblemDTO {
+  @ApiProperty()
+  readonly name: string;
+
+  readonly score: number;
+
+  readonly timeLimit: number;
+
+  readonly memoryLimit: number;
+
+  readonly case: string;
+
+  readonly pdf: File;
+
+  readonly zip: File;
+}

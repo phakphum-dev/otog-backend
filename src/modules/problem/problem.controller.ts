@@ -6,15 +6,19 @@ import {
   ParseBoolPipe,
   ParseIntPipe,
   Patch,
+  Post,
   Res,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
-import { ProblemDTO } from './dto/problem.dto';
+import { CreateProblemDTO, ProblemDTO } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
 
 @ApiTags('problem')
@@ -65,5 +69,33 @@ export class ProblemController {
     @Body('show', ParseBoolPipe) show: boolean,
   ) {
     return this.problemService.changeProblemShowById(problemId, show);
+  }
+
+  @Roles(Role.Admin)
+  @Post()
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateProblemDTO,
+  })
+  @ApiResponse({
+    status: 200,
+    type: ProblemDTO,
+  })
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'pdf', maxCount: 1 },
+        { name: 'zip', maxCount: 1 },
+      ],
+      {
+        dest: './tmp/upload',
+      },
+    ),
+  )
+  createProblem(
+    @Body() createProblem: CreateProblemDTO,
+    @UploadedFiles() files,
+  ) {
+    return this.problemService.create(createProblem, files);
   }
 }
