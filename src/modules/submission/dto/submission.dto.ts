@@ -67,7 +67,7 @@ export class UploadFileDTO {
   @ApiProperty()
   readonly language: string;
 
-  readonly contestId: number | undefined;
+  readonly contestId?: number;
 
   readonly sourceCode: Object;
 }
