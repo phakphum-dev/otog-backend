@@ -42,6 +42,7 @@
     "sequelize": "^6.3.5",
     "sequelize-typescript": "2.0.0-beta.1",
     "swagger-ui-express": "^4.1.6",
+    "unzipper": "^0.10.11",
     "uuid": "^8.3.2"
   },
   "devDependencies": {
@@ -56,6 +57,7 @@
     "@types/passport-local": "^1.0.33",
     "@types/sequelize": "^4.28.9",
     "@types/supertest": "^2.0.10",
+    "@types/unzipper": "^0.10.3",
     "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "^4.6.1",
     "@typescript-eslint/parser": "^4.6.1",
