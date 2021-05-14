@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Op } from 'sequelize';
-import { Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
+import { Role, Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
 import {
   scodeFileFilter,
   scodeFileSizeFilter,
@@ -22,6 +22,26 @@ export class SubmissionService {
         contestId: null,
         id: {
           [Op.lt]: offset || 1e9,
+        },
+      },
+      limit: limit || 89,
+    });
+  }
+
+  findAllWithOutContestAndAdmin(
+    offset: number,
+    limit: number,
+  ): Promise<Submission[]> {
+    console.log('test');
+
+    return this.submissionRepository.scope('full').findAll({
+      where: {
+        contestId: null,
+        id: {
+          [Op.lt]: offset || 1e9,
+        },
+        '$user.role$': {
+          [Op.not]: Role.Admin,
         },
       },
       limit: limit || 89,

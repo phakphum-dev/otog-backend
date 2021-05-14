@@ -37,15 +37,20 @@ export class SubmissionController {
     type: SubmissionDTO,
     isArray: true,
   })
-  getAllSubmission(@Query('offset') os: string, @Query('limit') lm: string) {
+  getAllSubmission(
+    @Query('offset') os: string,
+    @Query('limit') lm: string,
+    @User() user: UserDTO,
+  ) {
     const offset: number = parseInt(os);
     const limit: number = parseInt(lm);
     if ((os && isNaN(offset)) || (lm && isNaN(limit)))
       throw new BadRequestException(
         'Validation failed (numeric string is expected)',
       );
-
-    return this.submissionService.findAllWithOutContest(offset, limit);
+    return user.role == Role.Admin
+      ? this.submissionService.findAllWithOutContest(offset, limit)
+      : this.submissionService.findAllWithOutContestAndAdmin(offset, limit);
   }
 
   @Get('/contest')
@@ -90,15 +95,6 @@ export class SubmissionController {
     type: UploadFileDTO,
   })
   @Post('/problem/:problemId')
-  // @UseInterceptors(
-  //   FileInterceptor('sourceCode', {
-  //     storage: diskStorage({
-  //       destination: editDestPath,
-  //       filename: editFileName,
-  //     }),
-  //     fileFilter: scodeFileFilter,
-  //   }),
-  // )
   @UseInterceptors(FileInterceptor('sourceCode'))
   uploadFile(
     @UploadedFile() file: Express.Multer.File,
