@@ -18,6 +18,7 @@ import { Response } from 'express';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
+import { ContestService } from '../contest/contest.service';
 import { UserDTO } from '../user/dto/user.dto';
 import {
   CreateProblemDTO,
@@ -29,7 +30,10 @@ import { ProblemService } from './problem.service';
 @ApiTags('problem')
 @Controller('problem')
 export class ProblemController {
-  constructor(private problemService: ProblemService) {}
+  constructor(
+    private problemService: ProblemService,
+    private contestService: ContestService,
+  ) {}
 
   @Get()
   @ApiResponse({
@@ -55,8 +59,9 @@ export class ProblemController {
     @User() user: UserDTO,
   ) {
     const problem = await this.problemService.findOneById(problemId);
-    if (problem?.show == false && user.role != Role.Admin)
+    if (problem?.show == false && user.role != Role.Admin) {
       throw new ForbiddenException();
+    }
     return problem;
   }
 
@@ -67,8 +72,11 @@ export class ProblemController {
     @User() user: UserDTO,
   ) {
     const problem = await this.problemService.findOneById(problemId);
-    if (problem?.show == false && user.role != Role.Admin)
-      throw new ForbiddenException();
+    if (problem?.show == false && user.role != Role.Admin) {
+      const contest = await this.contestService.getStartedAndUnFinishedContest();
+      if (!contest || !contest.problems.some((e) => e.id === problem.id))
+        throw new ForbiddenException();
+    }
     return res.sendFile(await this.problemService.getProblemDocDir(problem));
   }
 

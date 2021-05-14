@@ -91,6 +91,20 @@ export class ContestService {
     });
   }
 
+  getStartedAndUnFinishedContest(): Promise<Contest> {
+    return this.contestRepository.scope('full').findOne({
+      where: {
+        timeStart: {
+          [Op.lte]: Date.now(),
+        },
+        timeEnd: {
+          [Op.gte]: Date.now(),
+        },
+      },
+      order: [['id', 'DESC']],
+    });
+  }
+
   async addProblemToContest(
     contestId: number,
     problemId: number,

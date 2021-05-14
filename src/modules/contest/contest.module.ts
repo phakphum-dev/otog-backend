@@ -6,5 +6,6 @@ import { contestProvider } from './contest.provider';
 @Module({
   controllers: [ContestController],
   providers: [ContestService, ...contestProvider],
+  exports: [ContestService],
 })
 export class ContestModule {}
