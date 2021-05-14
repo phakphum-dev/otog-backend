@@ -64,8 +64,12 @@ export class ProblemController {
   async getDocById(
     @Param('problemId', ParseIntPipe) problemId: number,
     @Res() res: Response,
+    @User() user: UserDTO,
   ) {
-    return res.sendFile(await this.problemService.getDocDirById(problemId));
+    const problem = await this.problemService.findOneById(problemId);
+    if (problem?.show == false && user.role != Role.Admin)
+      throw new ForbiddenException();
+    return res.sendFile(await this.problemService.getProblemDocDir(problem));
   }
 
   //Admin route

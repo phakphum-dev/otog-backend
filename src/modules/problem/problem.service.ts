@@ -176,8 +176,7 @@ export class ProblemService {
     return await this.problemRepository.findOne({ where: { id } });
   }
 
-  async getDocDirById(id: number): Promise<string> {
-    const problem = await this.findOneById(id);
+  async getProblemDocDir(problem: Problem): Promise<string> {
     const dir = `${process.cwd()}/docs/${problem.id}.pdf`;
     if (!existsSync(dir)) throw new NotFoundException();
     return `${process.cwd()}/docs/${problem.id}.pdf`;
