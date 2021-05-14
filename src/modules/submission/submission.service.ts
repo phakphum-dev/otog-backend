@@ -32,8 +32,6 @@ export class SubmissionService {
     offset: number,
     limit: number,
   ): Promise<Submission[]> {
-    console.log('test');
-
     return this.submissionRepository.scope('full').findAll({
       where: {
         contestId: null,
