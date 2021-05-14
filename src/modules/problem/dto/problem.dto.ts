@@ -35,7 +35,32 @@ export class CreateProblemDTO {
 
   readonly case: string;
 
-  readonly pdf: File;
+  readonly pdf?: File;
 
-  readonly zip: File;
+  readonly zip?: File;
+}
+
+export class ReplaceProblemDTO {
+  @ApiProperty()
+  readonly id: number;
+
+  readonly name: string;
+
+  readonly score: number;
+
+  readonly timeLimit: number;
+
+  readonly memoryLimit: number;
+
+  readonly case: string;
+
+  readonly pdf?: File;
+
+  readonly zip?: File;
+}
+
+export class UploadedFilesObject {
+  readonly pdf?: Express.Multer.File;
+
+  readonly zip?: Express.Multer.File;
 }

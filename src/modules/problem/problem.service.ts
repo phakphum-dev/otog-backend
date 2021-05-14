@@ -9,7 +9,11 @@ import { Problem } from '../../entities/problem.entity';
 import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
 import { Submission } from 'src/entities/submission.entity';
 import { Op, literal } from 'sequelize';
-import { CreateProblemDTO } from './dto/problem.dto';
+import {
+  CreateProblemDTO,
+  PatchProblemDTO,
+  UploadedFilesObject,
+} from './dto/problem.dto';
 import { createReadStream } from 'fs';
 import { Extract } from 'unzipper';
 @Injectable()
@@ -18,7 +22,10 @@ export class ProblemService {
     @Inject(PROBLEM_REPOSITORY) private problemRepository: typeof Problem,
   ) {}
 
-  async create(createProblem: CreateProblemDTO, files) {
+  async create(
+    createProblem: CreateProblemDTO,
+    files: UploadedFilesObject,
+  ): Promise<Problem> {
     try {
       const problem = new Problem();
       problem.name = createProblem.name;
@@ -43,6 +50,55 @@ export class ProblemService {
 
       if (files.zip) {
         const newDir = `./source/${problem.id}`;
+        // check source dir is exist
+        if (!existsSync(newDir)) {
+          mkdirSync(newDir, { recursive: true });
+        }
+        const newPath = `${newDir}/tmp.zip`;
+        // move zip file to source folder
+        renameSync(files.zip[0].path, newPath);
+        // unzip source file
+        const fileContents = createReadStream(newPath);
+        fileContents.pipe(Extract({ path: newDir }));
+        unlinkSync(newPath);
+      }
+      return problem;
+    } catch (err) {
+      throw new BadRequestException();
+    }
+  }
+
+  async ReplaceByProblemId(
+    patchProblem: PatchProblemDTO,
+    files: UploadedFilesObject,
+  ): Promise<Problem> {
+    try {
+      const problem = await this.finOneById(patchProblem.id);
+      problem.name = patchProblem.name;
+      problem.score = patchProblem.score;
+      problem.timeLimit = patchProblem.timeLimit;
+      problem.memoryLimit = patchProblem.memoryLimit;
+      problem.case = patchProblem.case;
+      await problem.save();
+
+      //save pdf file
+      if (files.pdf) {
+        const newDir = `./docs`;
+        // check source dir is exist
+        if (!existsSync(newDir)) {
+          mkdirSync(newDir);
+        }
+        const newPath = `${newDir}/${problem.id}.pdf`;
+        //remove old file
+        unlinkSync(newPath);
+        // move pdf file to source folder
+        renameSync(files.pdf[0].path, newPath);
+      }
+
+      if (files.zip) {
+        const newDir = `./source/${problem.id}`;
+        //remove old dir
+        unlinkSync(newDir);
         // check source dir is exist
         if (!existsSync(newDir)) {
           mkdirSync(newDir, { recursive: true });

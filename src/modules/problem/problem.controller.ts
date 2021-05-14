@@ -18,7 +18,11 @@ import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
-import { CreateProblemDTO, ProblemDTO } from './dto/problem.dto';
+import {
+  CreateProblemDTO,
+  ProblemDTO,
+  UploadedFilesObject,
+} from './dto/problem.dto';
 import { ProblemService } from './problem.service';
 
 @ApiTags('problem')
@@ -94,7 +98,7 @@ export class ProblemController {
   )
   createProblem(
     @Body() createProblem: CreateProblemDTO,
-    @UploadedFiles() files,
+    @UploadedFiles() files: UploadedFilesObject,
   ) {
     return this.problemService.create(createProblem, files);
   }
