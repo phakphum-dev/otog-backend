@@ -49,7 +49,7 @@ export class SubmissionController {
         'Validation failed (numeric string is expected)',
       );
     return user.role == Role.Admin
-      ? this.submissionService.findAllWithOutContest(offset, limit)
+      ? this.submissionService.findAll(offset, limit)
       : this.submissionService.findAllWithOutContestAndAdmin(offset, limit);
   }
 
