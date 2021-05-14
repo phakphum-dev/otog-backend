@@ -100,13 +100,14 @@ export class SubmissionService {
     return { msg: 'create submission complete.' };
   }
 
-  findAllByUserId(
+  findAllByUserIdWithOutContest(
     userId: number,
     offset: number,
     limit: number,
   ): Promise<Submission[]> {
     return this.submissionRepository.scope('full').findAll({
       where: {
+        contestId: null,
         userId,
         id: {
           [Op.lt]: offset || 1e9,

@@ -133,7 +133,11 @@ export class SubmissionController {
         'Validation failed (numeric string is expected)',
       );
 
-    return this.submissionService.findAllByUserId(userId, offset, limit);
+    return this.submissionService.findAllByUserIdWithOutContest(
+      userId,
+      offset,
+      limit,
+    );
   }
 
   @Get('/:resultId')
