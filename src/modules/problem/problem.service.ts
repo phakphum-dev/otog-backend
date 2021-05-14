@@ -73,7 +73,7 @@ export class ProblemService {
     files: UploadedFilesObject,
   ): Promise<Problem> {
     try {
-      const problem = await this.finOneById(patchProblem.id);
+      const problem = await this.findOneById(patchProblem.id);
       problem.name = patchProblem.name;
       problem.score = patchProblem.score;
       problem.timeLimit = patchProblem.timeLimit;
@@ -170,12 +170,14 @@ export class ProblemService {
     });
   }
 
-  async finOneById(id: number): Promise<Problem> {
+  async findOneById(id: number): Promise<Problem> {
     return await this.problemRepository.findOne({ where: { id } });
   }
 
+  async;
+
   async getDocDirById(id: number): Promise<string> {
-    const problem = await this.finOneById(id);
+    const problem = await this.findOneById(id);
     const dir = `${process.cwd()}/docs/${problem.id}.pdf`;
     if (!existsSync(dir)) throw new NotFoundException();
     return `${process.cwd()}/docs/${problem.id}.pdf`;
