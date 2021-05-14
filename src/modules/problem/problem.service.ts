@@ -1,10 +1,11 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PROBLEM_REPOSITORY } from 'src/core/constants';
+import { PROBLEM_REPOSITORY, Role } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
 import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
 import { Submission } from 'src/entities/submission.entity';
@@ -16,6 +17,7 @@ import {
 } from './dto/problem.dto';
 import { createReadStream } from 'fs';
 import { Extract } from 'unzipper';
+import { UserDTO } from '../user/dto/user.dto';
 @Injectable()
 export class ProblemService {
   constructor(
@@ -173,8 +175,6 @@ export class ProblemService {
   async findOneById(id: number): Promise<Problem> {
     return await this.problemRepository.findOne({ where: { id } });
   }
-
-  async;
 
   async getDocDirById(id: number): Promise<string> {
     const problem = await this.findOneById(id);

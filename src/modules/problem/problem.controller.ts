@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Param,
   ParseBoolPipe,
@@ -49,8 +50,14 @@ export class ProblemController {
     status: 200,
     type: ProblemDTO,
   })
-  getProblemById(@Param('problemId', ParseIntPipe) problemId: number) {
-    return this.problemService.finOneById(problemId);
+  async getProblemById(
+    @Param('problemId', ParseIntPipe) problemId: number,
+    @User() user: UserDTO,
+  ) {
+    const problem = await this.problemService.findOneById(problemId);
+    if (problem?.show == false && user.role != Role.Admin)
+      throw new ForbiddenException();
+    return problem;
   }
 
   @Get('doc/:problemId')
