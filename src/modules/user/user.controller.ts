@@ -1,13 +1,18 @@
 import {
+  Body,
   Controller,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
-import { User } from 'src/entities/user.entity';
-import { UserDTO, UserProfileDTO } from './dto/user.dto';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Role } from 'src/core/constants';
+import { Roles } from 'src/core/decorators/roles.decorator';
+import { User } from 'src/core/decorators/user.decorator';
+import { PatchShowNameDTO, UserDTO, UserProfileDTO } from './dto/user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('user')
@@ -34,14 +39,32 @@ export class UserController {
   //   return this.userService.getUserProfileById(userId);
   // }
 
+  @Roles(Role.Admin, Role.User)
+  @Patch('/:userId/name')
+  @ApiBody({
+    type: PatchShowNameDTO,
+  })
+  @ApiResponse({
+    status: 200,
+    type: UserDTO,
+  })
+  updateShowName(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body('showName') showName: string,
+    @User() user: UserDTO,
+  ) {
+    if (user.role !== Role.Admin && user.id !== userId) {
+      throw new ForbiddenException();
+    }
+    return this.userService.updateShowNameById(showName, userId);
+  }
+
   @Get('/:userId/profile')
   @ApiResponse({
     status: 200,
     type: UserProfileDTO,
   })
-  async getUserProfileById(
-    @Param('userId', ParseIntPipe) userId: number,
-  ): Promise<User> {
+  async getUserProfileById(@Param('userId', ParseIntPipe) userId: number) {
     const userProfile = await this.userService.getUserProfileById(userId);
     if (!userProfile) throw new NotFoundException();
     return userProfile;

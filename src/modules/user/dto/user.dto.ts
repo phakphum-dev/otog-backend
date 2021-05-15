@@ -41,3 +41,7 @@ export class AttendedContestDTO {
     ratingAfterUpdate: number;
   };
 }
+
+export class PatchShowNameDTO {
+  showName: string;
+}

@@ -64,6 +64,13 @@ export class UserService {
     });
   }
 
+  async updateShowNameById(showName: string, id: number) {
+    const user = await this.findOneById(id);
+    user.showName = showName;
+    await user.save();
+    return new UserDTO(user);
+  }
+
   async getUserProfileById(id: number): Promise<User> {
     return await this.userRepository.scope('noPass').findOne({
       where: {
