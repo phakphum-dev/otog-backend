@@ -8,6 +8,7 @@ import {
   CONTESTPROBLEM_REPOSITORY,
   CONTEST_REPOSITORY,
   GradingMode,
+  Role,
 } from 'src/core/constants';
 import { ContestProblem } from 'src/entities/contestProblem.entity';
 import { Submission } from 'src/entities/submission.entity';
@@ -58,6 +59,7 @@ export class ContestService {
           through: {
             attributes: [],
           },
+          where: { role: Role.User },
           include: [
             {
               model: Submission,
