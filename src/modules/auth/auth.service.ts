@@ -36,6 +36,12 @@ export class AuthService {
     return { token, user };
   }
 
+  async findOneByRID(rid: string) {
+    return await this.refreshTokenRepository.findOne({
+      where: { id: rid },
+    });
+  }
+
   async reAccessToken(user: UserDTO) {
     const token = await this.generateToken(user);
     return { token, user };
@@ -72,9 +78,7 @@ export class AuthService {
 
   async validateToken(refreshTokenId: string, jwtId: string) {
     // fetch refreshToken
-    const refreshToken = await this.refreshTokenRepository.findOne({
-      where: { id: refreshTokenId },
-    });
+    const refreshToken = await this.findOneByRID(refreshTokenId);
 
     //check refresh token is valid and match jwt
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
