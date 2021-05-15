@@ -24,12 +24,16 @@ import { Roles } from 'src/core/decorators/roles.decorator';
 import { Role } from 'src/core/constants';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
+import { ContestService } from '../contest/contest.service';
 
 @ApiTags('submission')
 @Controller('submission')
 @UseGuards(RolesGuard)
 export class SubmissionController {
-  constructor(private submissionService: SubmissionService) {}
+  constructor(
+    private submissionService: SubmissionService,
+    private contestService: ContestService,
+  ) {}
 
   @Get()
   @ApiResponse({
@@ -96,12 +100,15 @@ export class SubmissionController {
   })
   @Post('/problem/:problemId')
   @UseInterceptors(FileInterceptor('sourceCode'))
-  uploadFile(
+  async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
     @Body() data: UploadFileDTO,
   ) {
+    if (data.contestId) {
+      await this.contestService.addUserToContest(data.contestId, user.id);
+    }
     return this.submissionService.create(user, problemId, data, file);
   }
 

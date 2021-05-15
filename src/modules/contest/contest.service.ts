@@ -9,6 +9,7 @@ import {
   CONTEST_REPOSITORY,
   GradingMode,
   Role,
+  USERCONTEST_REPOSITORY,
 } from 'src/core/constants';
 import { ContestProblem } from 'src/entities/contestProblem.entity';
 import { Submission } from 'src/entities/submission.entity';
@@ -22,7 +23,9 @@ export class ContestService {
   constructor(
     @Inject(CONTEST_REPOSITORY) private contestRepository: typeof Contest,
     @Inject(CONTESTPROBLEM_REPOSITORY)
-    private contestProblemRepository: typeof Contest,
+    private contestProblemRepository: typeof ContestProblem,
+    @Inject(USERCONTEST_REPOSITORY)
+    private userContestRepository: typeof UserContest,
   ) {}
 
   async create(createContest: CreateContestDTO): Promise<object> {
@@ -135,14 +138,12 @@ export class ContestService {
   }
 
   async addUserToContest(contestId: number, userId: number) {
-    try {
-      const userContest = new UserContest();
-      userContest.userId = userId;
-      userContest.contestId = contestId;
-      await userContest.save();
-    } catch {
-      throw new BadRequestException();
-    }
-    return { msg: `add user id: ${userId} to contest id: ${contestId}` };
+    return await this.userContestRepository.findOrCreate({
+      where: { userId, contestId },
+      defaults: {
+        userId,
+        contestId,
+      },
+    });
   }
 }
