@@ -8,18 +8,21 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Req,
   Res,
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
+import { AuthService } from '../auth/auth.service';
 import { ContestService } from '../contest/contest.service';
 import { UserDTO } from '../user/dto/user.dto';
+import { UserService } from '../user/user.service';
 import {
   CreateProblemDTO,
   ProblemDTO,
@@ -33,6 +36,8 @@ export class ProblemController {
   constructor(
     private problemService: ProblemService,
     private contestService: ContestService,
+    private authService: AuthService,
+    private userService: UserService,
   ) {}
 
   @Get()
@@ -68,11 +73,18 @@ export class ProblemController {
   @Get('doc/:problemId')
   async getDocById(
     @Param('problemId', ParseIntPipe) problemId: number,
+    @Req() req: Request,
     @Res() res: Response,
-    @User() user: UserDTO,
   ) {
+    let user = null;
+    const rid = await req.cookies['RID'];
+    if (rid) {
+      const refreshToken = await this.authService.findOneByRID(rid);
+      user = await this.userService.findOneById(refreshToken?.userId);
+    }
+
     const problem = await this.problemService.findOneById(problemId);
-    if (problem?.show == false && user.role != Role.Admin) {
+    if (problem?.show == false && user?.role != Role.Admin) {
       const contest = await this.contestService.getStartedAndUnFinishedContest();
       if (!contest || !contest.problems.some((e) => e.id === problem.id))
         throw new ForbiddenException();
