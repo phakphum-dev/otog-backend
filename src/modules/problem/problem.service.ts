@@ -177,7 +177,7 @@ export class ProblemService {
   }
 
   async getProblemDocDir(problem: Problem): Promise<string> {
-    const dir = `${process.cwd()}/docs/${problem.id}.pdf`;
+    const dir = `${process.cwd()}/docs/${problem?.id}.pdf`;
     if (!existsSync(dir)) throw new NotFoundException();
     return `${process.cwd()}/docs/${problem.id}.pdf`;
   }
