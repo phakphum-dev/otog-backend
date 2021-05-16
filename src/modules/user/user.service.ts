@@ -65,6 +65,10 @@ export class UserService {
   }
 
   async updateShowNameById(showName: string, id: number) {
+    const showNameExists = await this.findOneByShowName(showName);
+    if (showNameExists) {
+      throw new ConflictException('showName was taken.');
+    }
     const user = await this.findOneById(id);
     user.showName = showName;
     await user.save();
