@@ -2,7 +2,9 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
+  NotFoundException,
   Param,
   ParseIntPipe,
   Post,
@@ -147,12 +149,22 @@ export class SubmissionController {
     );
   }
 
+  @Roles(Role.User, Role.Admin)
   @Get('/:resultId')
   @ApiResponse({
     status: 200,
     type: SubmissionWithSourceCodeDTO,
   })
-  getSubmissionById(@Param('resultId', ParseIntPipe) resultId: number) {
-    return this.submissionService.findOneByResultId(resultId);
+  async getSubmissionById(
+    @Param('resultId', ParseIntPipe) resultId: number,
+    @User() user: UserDTO,
+  ) {
+    const submission = await this.submissionService.findOneByResultId(resultId);
+    if (!submission) throw new NotFoundException();
+
+    if (submission.user.id !== user.id && user.role !== Role.Admin)
+      throw new ForbiddenException();
+
+    return submission;
   }
 }
