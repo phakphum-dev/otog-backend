@@ -68,11 +68,10 @@ export class ContestService {
               model: Submission,
               attributes: ['id', 'problemId', 'score', 'timeUsed', 'status'],
               where: {
-                contestId,
                 id: {
                   [Op.in]: [
                     literal(
-                      'SELECT MAX(id) FROM submission GROUP BY problemId,userId',
+                      `SELECT MAX(id) FROM submission WHERE contestId = ${contestId} GROUP BY problemId,userId`,
                     ),
                   ],
                 },
