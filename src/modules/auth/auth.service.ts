@@ -98,12 +98,8 @@ export class AuthService {
       return false;
     }
 
-    await this.refreshTokenRepository.update(
-      {
-        used: true,
-      },
-      { where: { id: refreshTokenId } },
-    );
+    refreshToken.used = true;
+    await refreshToken.save();
 
     return true;
   }
