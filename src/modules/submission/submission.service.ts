@@ -1,10 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { Role, Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
-import {
-  scodeFileFilter,
-  scodeFileSizeFilter,
-} from 'src/utils/fileUpload.utils';
+import { scodeFileFilter, scodeFileSizeLimit } from 'src/utils';
 import { Submission } from '../../entities/submission.entity';
 import { UserDTO } from '../user/dto/user.dto';
 import { UploadFileDTO } from './dto/submission.dto';
@@ -73,7 +70,7 @@ export class SubmissionService {
     if (!scodeFileFilter(file))
       throw new BadRequestException('Only C C++ and Python are allowed!');
     // check file size
-    if (!scodeFileSizeFilter(file))
+    if (!scodeFileSizeLimit(file, 10 * 1024))
       throw new BadRequestException('File is too large!');
   }
 

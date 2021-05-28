@@ -8,7 +8,7 @@ import {
   Scopes,
   Table,
 } from 'sequelize-typescript';
-import { strToObj } from '../utils/convert.utils';
+import { strToObj } from '../utils';
 import { ContestProblem } from './contestProblem.entity';
 import { Problem } from './problem.entity';
 import { User } from './user.entity';
