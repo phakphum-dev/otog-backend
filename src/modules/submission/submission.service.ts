@@ -1,8 +1,9 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Op } from 'sequelize';
+import { Op, literal } from 'sequelize';
 import { Role, Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
 import { scodeFileFilter, scodeFileSizeLimit } from 'src/utils';
 import { Submission } from '../../entities/submission.entity';
+import { User } from '../../entities/user.entity';
 import { UserDTO } from '../user/dto/user.dto';
 import { UploadFileDTO } from './dto/submission.dto';
 
@@ -131,6 +132,35 @@ export class SubmissionService {
       attributes: {
         include: ['sourceCode'],
       },
+    });
+  }
+
+  findAllLatestAccept() {
+    return this.submissionRepository.findAll({
+      attributes: {
+        include: ['userId', 'problemId'],
+      },
+      include: [
+        {
+          model: User,
+          attributes: ['role'],
+        },
+      ],
+      where: {
+        id: {
+          [Op.in]: [
+            literal(
+              `SELECT MAX(id) FROM submission WHERE status = 'accept' GROUP BY problemId,userId`,
+            ),
+          ],
+        },
+        '$user.role$': {
+          [Op.not]: Role.Admin,
+        },
+      },
+      order: ['problemId'],
+      raw: true,
+      nest: true,
     });
   }
 }

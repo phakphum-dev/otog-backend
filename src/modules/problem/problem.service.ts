@@ -18,10 +18,13 @@ import {
 import { createReadStream } from 'fs';
 import { Extract } from 'unzipper';
 import { UserDTO } from '../user/dto/user.dto';
+import { SubmissionService } from '../submission/submission.service';
+import { lowerBound, upperBound } from 'src/utils';
 @Injectable()
 export class ProblemService {
   constructor(
     @Inject(PROBLEM_REPOSITORY) private problemRepository: typeof Problem,
+    private submissionService: SubmissionService,
   ) {}
 
   async create(
@@ -71,16 +74,16 @@ export class ProblemService {
   }
 
   async ReplaceByProblemId(
-    patchProblem: ReplaceProblemDTO,
+    newProblem: ReplaceProblemDTO,
     files: UploadedFilesObject,
   ): Promise<Problem> {
     try {
-      const problem = await this.findOneById(patchProblem.id);
-      problem.name = patchProblem.name;
-      problem.score = patchProblem.score;
-      problem.timeLimit = patchProblem.timeLimit;
-      problem.memoryLimit = patchProblem.memoryLimit;
-      problem.case = patchProblem.case;
+      const problem = await this.findOneById(newProblem.id);
+      problem.name = newProblem.name;
+      problem.score = newProblem.score;
+      problem.timeLimit = newProblem.timeLimit;
+      problem.memoryLimit = newProblem.memoryLimit;
+      problem.case = newProblem.case;
       await problem.save();
 
       //save pdf file
@@ -119,16 +122,21 @@ export class ProblemService {
     }
   }
 
-  findAllNotShow(): Promise<Problem[]> {
-    return this.problemRepository.findAll({
+  async findAllNotShow() {
+    const problem = await this.problemRepository.findAll({
       where: {
         show: true,
       },
+      group: ['id'],
+      raw: true,
+      nest: true,
     });
+    const latestAccept = await this.submissionService.findAllLatestAccept();
+    return this.addPassedCountToProblem(problem, latestAccept);
   }
 
-  findAllWithSubmissionByUserId(userId: number): Promise<Problem[]> {
-    return this.problemRepository.findAll({
+  async findAllWithSubmissionByUserId(userId: number) {
+    const problem = await this.problemRepository.findAll({
       where: {
         show: true,
       },
@@ -148,11 +156,16 @@ export class ProblemService {
           required: false,
         },
       ],
+      raw: true,
+      nest: true,
     });
+
+    const latestAccept = await this.submissionService.findAllLatestAccept();
+    return this.addPassedCountToProblem(problem, latestAccept);
   }
 
-  findAllWithSubmissionByUserId_ADMIN(userId: number): Promise<Problem[]> {
-    return this.problemRepository.findAll({
+  async findAllWithSubmissionByUserId_ADMIN(userId: number) {
+    const problem = await this.problemRepository.findAll({
       include: [
         {
           model: Submission,
@@ -169,7 +182,12 @@ export class ProblemService {
           required: false,
         },
       ],
+      raw: true,
+      nest: true,
     });
+
+    const latestAccept = await this.submissionService.findAllLatestAccept();
+    return this.addPassedCountToProblem(problem, latestAccept);
   }
 
   async findOneById(id: number): Promise<Problem> {
@@ -192,5 +210,17 @@ export class ProblemService {
     problem.show = show;
     problem.recentShowTime = new Date();
     return problem.save();
+  }
+
+  addPassedCountToProblem(problem: Problem[], latestAccept: Submission[]) {
+    var result: any[] = new Array();
+    for (var i in problem) {
+      let passedCount = 0;
+      let lIdx = lowerBound(latestAccept, problem[i].id, (x) => x.problemId);
+      let rIdx = upperBound(latestAccept, problem[i].id, (x) => x.problemId);
+      if (lIdx != -1) passedCount = rIdx - lIdx;
+      result.push({ ...problem[i], passedCount });
+    }
+    return result;
   }
 }

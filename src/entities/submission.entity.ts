@@ -20,7 +20,6 @@ import { User } from './user.entity';
   attributes: {
     exclude: ['userId', 'problemId', 'sourceCode', 'updateDate'],
   },
-  order: [['id', 'DESC']],
 }))
 @Scopes(() => ({
   full: {

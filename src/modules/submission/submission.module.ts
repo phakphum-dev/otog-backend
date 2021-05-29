@@ -8,5 +8,6 @@ import { SubmissionService } from './submission.service';
   imports: [ContestModule],
   controllers: [SubmissionController],
   providers: [SubmissionService, ...submissionProvider],
+  exports: [SubmissionService],
 })
 export class SubmissionModule {}
