@@ -15,12 +15,12 @@ export class UserDTO {
 
   rating: number;
 
-  constructor(user: User) {
-    this.id = user.id;
-    this.username = user.username;
-    this.showName = user.showName;
-    this.role = user.role;
-    this.rating = user.rating;
+  constructor(user: any) {
+    this.id = user?.id;
+    this.username = user?.username;
+    this.showName = user?.showName;
+    this.role = user?.role;
+    this.rating = user?.rating;
   }
 }
 
