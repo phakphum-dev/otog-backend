@@ -17,6 +17,7 @@ import { User } from './user.entity';
     attributes: {
       exclude: ['userId', 'updateDate'],
     },
+    order: [['id', 'DESC']],
     include: [User.scope('noPass')],
   },
 }))
