@@ -70,6 +70,16 @@ export class ProblemController {
     return problem;
   }
 
+  @Get('/:problemId/user')
+  @ApiResponse({
+    status: 200,
+    type: UserDTO,
+    isArray: true,
+  })
+  async getUserAccept(@Param('problemId', ParseIntPipe) problemId: number) {
+    return this.problemService.findAllUserAcceptByProblemId(problemId);
+  }
+
   @Get('doc/:problemId')
   async getDocById(
     @Param('problemId', ParseIntPipe) problemId: number,

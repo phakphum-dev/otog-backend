@@ -223,4 +223,12 @@ export class ProblemService {
     }
     return result;
   }
+
+  async findAllUserAcceptByProblemId(problemId: number) {
+    const latestAccept = await this.submissionService.findAllLatestAccept();
+    let lIdx = lowerBound(latestAccept, problemId, (x) => x.problemId);
+    let rIdx = upperBound(latestAccept, problemId, (x) => x.problemId);
+    const temp = latestAccept.slice(lIdx, rIdx);
+    return temp.map((submission) => submission.user);
+  }
 }
