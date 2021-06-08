@@ -140,12 +140,7 @@ export class SubmissionService {
       attributes: {
         include: ['userId', 'problemId'],
       },
-      include: [
-        {
-          model: User,
-          attributes: ['role'],
-        },
-      ],
+      include: [User.scope('noPass')],
       where: {
         id: {
           [Op.in]: [
