@@ -8,6 +8,7 @@ import { sha256 } from 'js-sha256';
 import { Op } from 'sequelize';
 import { ContestMode, Role, USER_REPOSITORY } from 'src/core/constants';
 import { Contest } from 'src/entities/contest.entity';
+import { userList } from 'src/utils';
 import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
 import { UserDTO } from './dto/user.dto';
@@ -99,6 +100,16 @@ export class UserService {
           required: false,
         },
       ],
+    });
+  }
+
+  async onlineUser() {
+    const checkList = new Map();
+    const onlineUser = Array.from(userList.values());
+    return onlineUser.filter((user) => {
+      if (checkList.get(user.id)) return false;
+      checkList.set(user.id, true);
+      return true;
     });
   }
 }

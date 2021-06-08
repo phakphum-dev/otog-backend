@@ -30,6 +30,16 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('/online')
+  @ApiResponse({
+    status: 200,
+    type: UserDTO,
+    isArray: true,
+  })
+  getOnlineUser() {
+    return this.userService.onlineUser();
+  }
+
   // @Get('/:userId')
   // @ApiResponse({
   //   status: 200,

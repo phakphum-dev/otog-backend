@@ -50,3 +50,5 @@ export function upperBound(arr: any[], target: any, key = (a: any) => a) {
   }
   return r;
 }
+
+export const userList = new Map();
