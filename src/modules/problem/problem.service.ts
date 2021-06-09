@@ -12,7 +12,7 @@ import { Submission } from 'src/entities/submission.entity';
 import { Op, literal } from 'sequelize';
 import {
   CreateProblemDTO,
-  ReplaceProblemDTO,
+  EditProblemDTO,
   UploadedFilesObject,
 } from './dto/problem.dto';
 import { createReadStream } from 'fs';
@@ -74,7 +74,7 @@ export class ProblemService {
   }
 
   async ReplaceByProblemId(
-    newProblem: ReplaceProblemDTO,
+    newProblem: EditProblemDTO,
     files: UploadedFilesObject,
   ): Promise<Problem> {
     try {

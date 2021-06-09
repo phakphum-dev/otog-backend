@@ -8,7 +8,14 @@ import {
   ParseIntPipe,
   Patch,
 } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConflictResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
@@ -21,20 +28,20 @@ export class UserController {
   constructor(private userService: UserService) {}
 
   @Get()
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: UserDTO,
     isArray: true,
+    description: 'Get all registered users',
   })
   getAllUsers(): Promise<UserDTO[]> {
     return this.userService.findAll();
   }
 
   @Get('/online')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: UserDTO,
     isArray: true,
+    description: 'Get online users',
   })
   getOnlineUser() {
     return this.userService.onlineUser();
@@ -51,13 +58,14 @@ export class UserController {
 
   @Roles(Role.Admin, Role.User)
   @Patch('/:userId/name')
-  @ApiBody({
-    type: PatchShowNameDTO,
-  })
-  @ApiResponse({
-    status: 200,
+  @ApiBody({ type: PatchShowNameDTO })
+  @ApiOkResponse({
     type: UserDTO,
+    description: 'showName changed successfully',
   })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiConflictResponse({ description: 'showName already exists' })
+  @ApiNotFoundResponse({ description: 'User not found' })
   updateShowName(
     @Param('userId', ParseIntPipe) userId: number,
     @Body('showName') showName: string,
@@ -70,10 +78,8 @@ export class UserController {
   }
 
   @Get('/:userId/profile')
-  @ApiResponse({
-    status: 200,
-    type: UserProfileDTO,
-  })
+  @ApiOkResponse({ type: UserProfileDTO })
+  @ApiNotFoundResponse({ description: 'User not found' })
   async getUserProfileById(@Param('userId', ParseIntPipe) userId: number) {
     const userProfile = await this.userService.getUserProfileById(userId);
     if (!userProfile) throw new NotFoundException();

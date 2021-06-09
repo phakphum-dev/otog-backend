@@ -28,7 +28,7 @@ export class ContestService {
     private userContestRepository: typeof UserContest,
   ) {}
 
-  async create(createContest: CreateContestDTO): Promise<object> {
+  async create(createContest: CreateContestDTO) {
     try {
       const contest = new Contest();
       contest.name = createContest.name;
