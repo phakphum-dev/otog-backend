@@ -14,7 +14,15 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -26,6 +34,7 @@ import { UserService } from '../user/user.service';
 import {
   CreateProblemDTO,
   ProblemDTO,
+  ToggleProblemDTO,
   UploadedFilesObject,
 } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
@@ -41,10 +50,10 @@ export class ProblemController {
   ) {}
 
   @Get()
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ProblemDTO,
     isArray: true,
+    description: 'Get problems depends on user permission',
   })
   async getAllProblems(@User() user: UserDTO) {
     return user
@@ -55,10 +64,12 @@ export class ProblemController {
   }
 
   @Get('/:problemId')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ProblemDTO,
+    description: 'Get problem by id',
   })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   async getProblemById(
     @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
@@ -71,16 +82,19 @@ export class ProblemController {
   }
 
   @Get('/:problemId/user')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: UserDTO,
     isArray: true,
+    description: 'Get passed users',
   })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   async getUserAccept(@Param('problemId', ParseIntPipe) problemId: number) {
     return this.problemService.findAllUserAcceptByProblemId(problemId);
   }
 
   @Get('doc/:problemId')
+  @ApiOkResponse({ description: 'Get problem document (pdf)' })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   async getDocById(
     @Param('problemId', ParseIntPipe) problemId: number,
     @Req() req: Request,
@@ -105,10 +119,9 @@ export class ProblemController {
   //Admin route
   @Roles(Role.Admin)
   @Patch('/:problemId')
-  @ApiResponse({
-    status: 200,
-    type: ProblemDTO,
-  })
+  @ApiBody({ type: ToggleProblemDTO })
+  @ApiOkResponse({ type: ProblemDTO, description: 'Toggle problem show state' })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   changeProblemShowById(
     @Param('problemId', ParseIntPipe) problemId: number,
     @Body('show', ParseBoolPipe) show: boolean,
@@ -119,12 +132,10 @@ export class ProblemController {
   @Roles(Role.Admin)
   @Post()
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    type: CreateProblemDTO,
-  })
-  @ApiResponse({
-    status: 200,
+  @ApiBody({ type: CreateProblemDTO })
+  @ApiCreatedResponse({
     type: ProblemDTO,
+    description: 'Create new problem',
   })
   @UseInterceptors(
     FileFieldsInterceptor(

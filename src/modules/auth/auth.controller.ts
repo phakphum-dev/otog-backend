@@ -27,6 +27,11 @@ export class AuthController {
   @ApiResponse({
     status: 201,
     type: SignupResDTO,
+    description: 'User created successfully',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'username or showName already exists',
   })
   newUser(@Body() data: CreateUserDTO) {
     return this.authService.signup(data);
@@ -38,7 +43,13 @@ export class AuthController {
     type: LoginReqDTO,
   })
   @ApiResponse({
+    status: 201,
     type: AuthResDTO,
+    description: 'Login successfully, tokens are in the response header',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Login faild, username or password is wrong',
   })
   async login(@User() userData: UserDTO, @Res() res: Response) {
     const { token, user } = await this.authService.login(userData);
@@ -53,7 +64,14 @@ export class AuthController {
   @UseGuards(JwtRefreshTokenAuthGuard)
   @Get('/refresh/token')
   @ApiResponse({
+    status: 200,
     type: AuthResDTO,
+    description: 'Refresh token successfully',
+  })
+  @ApiResponse({
+    status: 403,
+    description:
+      'refresh token and access token mismatch or refresh token expired or refresh token used',
   })
   async refreshToken(@User() userData: UserDTO, @Res() res: Response) {
     const { token, user } = await this.authService.reAccessToken(userData);

@@ -10,7 +10,14 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
@@ -30,38 +37,40 @@ export class ContestController {
   constructor(private contestService: ContestService) {}
 
   @Get()
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ContestDTO,
     isArray: true,
+    description: 'Get all contests',
   })
   getAllContest() {
     return this.contestService.findAll();
   }
 
   @Get('/now')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ContestDTO,
+    description: 'Get current contest',
   })
   getCurrentContest() {
     return this.contestService.currentContest();
   }
 
   @Get('/:contestId')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ContestDTO,
+    description: 'Get contest by id',
   })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
   getContestById(@Param('contestId', ParseIntPipe) contestId: number) {
     return this.contestService.findOneById(contestId);
   }
 
   @Get('/:contestId/scoreboard')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: ScoreboardDTO,
+    description: 'Get scoreboard contest by id',
   })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
   async getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
@@ -76,22 +85,20 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Post()
-  @ApiBody({
-    type: CreateContestDTO,
-  })
+  @ApiBody({ type: CreateContestDTO })
+  @ApiCreatedResponse({ description: 'Contest created succussfully' })
   create(@Body() createContest: CreateContestDTO) {
     return this.contestService.create(createContest);
   }
 
   @Roles(Role.Admin)
   @Patch('/:contestId')
-  @ApiBody({
-    type: PatchContestDTO,
-  })
+  @ApiBody({ type: PatchContestDTO })
   @ApiResponse({
     status: 200,
     type: ResPatchContestDTO,
   })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
   addProblemToContest(
     @Param('contestId', ParseIntPipe) contestId: number,
     @Body('problemId', ParseIntPipe) problemId: number,

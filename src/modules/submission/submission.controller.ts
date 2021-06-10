@@ -15,7 +15,17 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submission.service';
-import { ApiBody, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiConsumes,
+  ApiCreatedResponse,
+  ApiForbiddenResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   SubmissionDTO,
   SubmissionWithSourceCodeDTO,
@@ -38,10 +48,14 @@ export class SubmissionController {
   ) {}
 
   @Get()
-  @ApiResponse({
-    status: 200,
+  @ApiQuery({ name: 'offset', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiOkResponse({
     type: SubmissionDTO,
     isArray: true,
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation failed (numeric string is expected)',
   })
   getAllSubmission(
     @Query('offset') os: string,
@@ -60,10 +74,14 @@ export class SubmissionController {
   }
 
   @Get('/contest')
-  @ApiResponse({
-    status: 200,
+  @ApiQuery({ name: 'offset', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiOkResponse({
     type: SubmissionDTO,
     isArray: true,
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation failed (numeric string is expected)',
   })
   getContestSubmission(
     @Query('offset') os: string,
@@ -81,10 +99,9 @@ export class SubmissionController {
 
   @Roles(Role.Admin, Role.User)
   @Get('/problem/:problemId/latest')
-  @ApiResponse({
-    status: 200,
-    type: SubmissionWithSourceCodeDTO,
-  })
+  @ApiOkResponse({ type: SubmissionWithSourceCodeDTO })
+  @ApiNotFoundResponse({ description: 'Submission for the problem not found' })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   getLatestSubmissionByProblemId(
     @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
@@ -97,10 +114,10 @@ export class SubmissionController {
 
   @Roles(Role.User, Role.Admin)
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    type: UploadFileDTO,
-  })
+  @ApiBody({ type: UploadFileDTO })
   @Post('/problem/:problemId')
+  @ApiCreatedResponse({ description: 'Submit successfully' })
+  @ApiNotFoundResponse({ description: 'Problem not found' })
   @UseInterceptors(FileInterceptor('sourceCode'))
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
@@ -116,19 +133,27 @@ export class SubmissionController {
 
   @Roles(Role.User, Role.Admin)
   @Get('/latest')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: SubmissionDTO,
+    description: 'Get the latest submission',
   })
   getLatestSubmissionWithUserId(@User() user: UserDTO) {
     return this.submissionService.findOneByUserId(user.id);
   }
 
   @Get('/user/:userId')
-  @ApiResponse({
-    status: 200,
+  @ApiQuery({ name: 'offset', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
+  @ApiOkResponse({
     type: SubmissionDTO,
     isArray: true,
+    description: 'Get some submissions from query',
+  })
+  @ApiBadRequestResponse({
+    description: 'Validation failed (numeric string is expected)',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
   })
   getAllSubmissionByUserId(
     @Param('userId', ParseIntPipe) userId: number,
@@ -151,10 +176,12 @@ export class SubmissionController {
 
   @Roles(Role.User, Role.Admin)
   @Get('/:resultId')
-  @ApiResponse({
-    status: 200,
+  @ApiOkResponse({
     type: SubmissionWithSourceCodeDTO,
+    description: 'Get submission by id',
   })
+  @ApiNotFoundResponse({ description: 'Submission not found' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
   async getSubmissionById(
     @Param('resultId', ParseIntPipe) resultId: number,
     @User() user: UserDTO,

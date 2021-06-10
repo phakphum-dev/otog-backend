@@ -1,6 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { User } from 'src/entities/user.entity';
-import { ContestDTO } from 'src/modules/contest/dto/contest.dto';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { Role } from 'src/core/constants';
 import { SubmissionForScoreboardDTO } from 'src/modules/submission/dto/submission.dto';
 
 export class UserDTO {
@@ -11,7 +10,8 @@ export class UserDTO {
 
   showName: string;
 
-  role: string;
+  @ApiProperty({ enum: Role })
+  role: Role;
 
   rating: number;
 
@@ -42,6 +42,6 @@ export class AttendedContestDTO {
   };
 }
 
-export class PatchShowNameDTO {
-  showName: string;
-}
+export class PatchShowNameDTO extends PickType(UserDTO, [
+  'showName' as const,
+]) {}

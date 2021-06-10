@@ -5,7 +5,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { ChatService } from './chat.service';
 import { ChatDTO } from './dto/chat.dto';
@@ -21,6 +21,12 @@ export class ChatController {
     status: 200,
     type: ChatDTO,
   })
+  @ApiResponse({
+    status: 400,
+    description: 'Validation failed (numeric string is expected)',
+  })
+  @ApiQuery({ name: 'offset', type: Number, required: false })
+  @ApiQuery({ name: 'limit', type: Number, required: false })
   getAllChat(@Query('offset') os: number, @Query('limit') lm: number) {
     const offset: number = +os;
     const limit: number = +lm;
