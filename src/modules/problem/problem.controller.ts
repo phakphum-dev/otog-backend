@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Req,
   Res,
   UploadedFiles,
@@ -33,6 +34,7 @@ import { UserDTO } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
 import {
   CreateProblemDTO,
+  EditProblemDTO,
   ProblemDTO,
   ToggleProblemDTO,
   UploadedFilesObject,
@@ -153,5 +155,31 @@ export class ProblemController {
     @UploadedFiles() files: UploadedFilesObject,
   ) {
     return this.problemService.create(createProblem, files);
+  }
+
+  @Roles(Role.Admin)
+  @Put('/:problemId')
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: EditProblemDTO })
+  @ApiOkResponse({
+    type: ProblemDTO,
+    description: 'New problem detail',
+  })
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'pdf', maxCount: 1 },
+        { name: 'zip', maxCount: 1 },
+      ],
+      {
+        dest: './tmp/upload',
+      },
+    ),
+  )
+  replaceProblem(
+    @Body() newProblem: EditProblemDTO,
+    @UploadedFiles() files: UploadedFilesObject,
+  ) {
+    return this.problemService.ReplaceByProblemId(newProblem, files);
   }
 }
