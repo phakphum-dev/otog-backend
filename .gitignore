@@ -37,3 +37,4 @@ lerna-debug.log*
 /tmp
 /docs
 /source
+/database
