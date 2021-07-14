@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   Param,
@@ -111,7 +112,8 @@ export class ProblemController {
 
     const problem = await this.problemService.findOneById(problemId);
     if (problem?.show == false && user?.role != Role.Admin) {
-      const contest = await this.contestService.getStartedAndUnFinishedContest();
+      const contest =
+        await this.contestService.getStartedAndUnFinishedContest();
       if (!contest || !contest.problems.some((e) => e.id === problem.id))
         throw new ForbiddenException();
     }
@@ -177,9 +179,20 @@ export class ProblemController {
     ),
   )
   replaceProblem(
+    @Param('problemId', ParseIntPipe) problemId: number,
     @Body() newProblem: EditProblemDTO,
     @UploadedFiles() files: UploadedFilesObject,
   ) {
-    return this.problemService.ReplaceByProblemId(newProblem, files);
+    return this.problemService.ReplaceByProblemId(problemId, newProblem, files);
+  }
+
+  @Roles(Role.Admin)
+  @Delete('/:problemId')
+  @ApiOkResponse({
+    type: ProblemDTO,
+    description: 'problem deleted detail',
+  })
+  deleteProblem(@Param('problemId', ParseIntPipe) problemId: number) {
+    return this.problemService.delete(problemId);
   }
 }

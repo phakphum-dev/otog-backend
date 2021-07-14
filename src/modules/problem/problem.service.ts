@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { PROBLEM_REPOSITORY, Role } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
-import { existsSync, mkdirSync, renameSync, unlinkSync } from 'fs';
+import { existsSync, mkdirSync, renameSync, rmdirSync, unlinkSync } from 'fs';
 import { Submission } from 'src/entities/submission.entity';
 import { Op, literal } from 'sequelize';
 import {
@@ -74,6 +74,7 @@ export class ProblemService {
   }
 
   async ReplaceByProblemId(
+    problemId: number,
     newProblem: EditProblemDTO,
     files: UploadedFilesObject,
   ): Promise<Problem> {
@@ -103,7 +104,7 @@ export class ProblemService {
       if (files.zip) {
         const newDir = `./source/${problem.id}`;
         //remove old dir
-        unlinkSync(newDir);
+        rmdirSync(newDir, { recursive: true });
         // check source dir is exist
         if (!existsSync(newDir)) {
           mkdirSync(newDir, { recursive: true });
@@ -230,5 +231,24 @@ export class ProblemService {
     let rIdx = upperBound(latestAccept, problemId, (x) => x.problemId);
     const temp = latestAccept.slice(lIdx, rIdx);
     return temp.map((submission) => submission.user);
+  }
+
+  async delete(problemId: number) {
+    try {
+      const problem = await this.findOneById(problemId);
+
+      const pdfPath = `./docs/${problem.id}.pdf`;
+      if (existsSync(pdfPath)) unlinkSync(pdfPath);
+
+      const testCasePath = `./source/${problem.id}`;
+      if (existsSync(testCasePath))
+        rmdirSync(testCasePath, { recursive: true });
+
+      return await problem.destroy();
+    } catch (e) {
+      console.log(e);
+
+      throw new BadRequestException();
+    }
   }
 }
