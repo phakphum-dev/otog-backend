@@ -15,7 +15,10 @@ import { RolesGuard } from './core/guards/roles.guard';
 import { ChatModule } from './modules/chat/chat.module';
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({
+      envFilePath: [`.env.${process.env.NODE_ENV}`, '.env.local'],
+      isGlobal: true,
+    }),
     DatabaseModule,
     UserModule,
     AuthModule,
