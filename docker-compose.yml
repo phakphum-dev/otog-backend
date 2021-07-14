@@ -1,21 +1,16 @@
 version: '3.9'
-
-networks:
-  otog-net:
-    driver: bridge
-
 services:
-  db:
-    container_name: db
+  mysql:
+    container_name: mysql
     image: mysql:latest
     volumes:
       - ./database:/docker-entrypoint-initdb.d
+    environment:
+      MYSQL_DATABASE: 'otog'
+      MYSQL_ROOT_PASSWORD: '0000'
+      MYSQL_TCP_PORT: 8888
     ports:
       - 8888:8888
-    env_file:
-      - .env
-    networks:
-      - otog-net
   main:
     container_name: nest
     build:
@@ -26,8 +21,6 @@ services:
       - /usr/src/app/node_modules
     ports:
       - 8000:8000
-    depends_on:
-      - db
     command: yarn run start:dev
-    networks:
-      - otog-net
+    links:
+      - mysql
