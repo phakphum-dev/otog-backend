@@ -1,14 +1,11 @@
+import { Dialect } from 'sequelize/types';
+
 export interface IDatabaseConfigAttributes {
-  dialect?: string;
+  dialect?: Dialect;
   host?: string;
-  port?: number | string;
+  port?: number;
   username?: string;
   password?: string;
   database?: string;
   logging?: boolean;
-}
-
-export interface IDatabaseConfig {
-  development: IDatabaseConfigAttributes;
-  production: IDatabaseConfigAttributes;
 }
