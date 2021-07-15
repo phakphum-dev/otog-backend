@@ -21,6 +21,7 @@ jobs:
           script: |
             cd otog/otog-api
             git pull
+            yarn
             yarn build
             /home/otog/.yarn/bin/pm2 restart otog-api
             echo 'Deployment successful to digital ocean'
