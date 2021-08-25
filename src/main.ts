@@ -8,7 +8,6 @@ import { SocketIoAdapter } from './core/adapters/socket-io.adapter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await app.setGlobalPrefix('/api');
   const config = new DocumentBuilder()
     .setTitle('OTOG API')
     .setDescription('API service for OTOG')
