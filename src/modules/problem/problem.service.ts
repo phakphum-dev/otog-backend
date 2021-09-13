@@ -96,7 +96,9 @@ export class ProblemService {
         }
         const newPath = `${newDir}/${problem.id}.pdf`;
         //remove old file
-        unlinkSync(newPath);
+        if (existsSync(newPath)) {
+          unlinkSync(newPath);
+        }
         // move pdf file to source folder
         renameSync(files.pdf[0].path, newPath);
       }
