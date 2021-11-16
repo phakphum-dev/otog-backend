@@ -39,4 +39,4 @@ lerna-debug.log*
 /source
 /database
 /volumes
-.env.production
+.env
