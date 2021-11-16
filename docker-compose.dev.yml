@@ -17,29 +17,15 @@ services:
     container_name: otog-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_DB: otog
       POSTGRES_USER: otog
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PASSWORD: otog
     volumes:
       - ./volumes/postgres:/var/lib/postgresql/data
     ports:
-      - ${DATABASE_PORT}:5432
+      - 5432:5432
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${DATABASE_USERNAME}']
       interval: 10s
       timeout: 5s
       retries: 5
-
-  main:
-    container_name: nest
-    build:
-      context: .
-      target: development
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - 8000:8000
-    command: yarn run start:dev
-    links:
-      - mysql
