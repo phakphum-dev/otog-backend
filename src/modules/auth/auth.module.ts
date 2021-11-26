@@ -20,7 +20,7 @@ import { LocalStrategy } from './local.strategy';
       secret: JWT_PRIVATE,
       signOptions: {
         algorithm: 'RS256',
-        expiresIn: '10m',
+        expiresIn: '1d',
       },
     }),
   ],
