@@ -6,7 +6,7 @@ import { Request } from 'express';
 import { UserService } from 'src/modules/user/user.service';
 import { UserDTO } from '../user/dto/user.dto';
 import { JwtPayloadDTO } from './dto/auth.dto';
-import { JWT_SECRET } from 'src/core/constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtRefreshTokenStrategy extends PassportStrategy(
@@ -16,11 +16,12 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
   constructor(
     private authService: AuthService,
     private userService: UserService,
+    configService: ConfigService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: true,
-      secretOrKey: JWT_SECRET,
+      secretOrKey: configService.get<string>('jwtSecret'),
       passReqToCallback: true,
     });
   }

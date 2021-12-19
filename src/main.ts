@@ -4,7 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
 
-require('dotenv').config();
+const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +23,6 @@ async function bootstrap() {
   });
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
-  await app.listen(8000);
+  await app.listen(PORT);
 }
 bootstrap();

@@ -12,8 +12,6 @@ export const CHAT_REPOSITORY = 'CHAT_REPOSITORY';
 export const ROLES_KEY = 'roles';
 export const IS_PUBLIC_KEY = 'isPublic';
 
-export const JWT_SECRET = process.env.JWT_SECRET;
-
 export enum Role {
   User = 'user',
   Admin = 'admin',
