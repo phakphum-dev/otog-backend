@@ -1,5 +1,3 @@
-import * as fs from 'fs';
-
 export const SEQUELIZE = 'SEQUELIZE';
 export const DEVELOPMENT = 'development';
 export const PRODUCTION = 'production';
@@ -11,10 +9,10 @@ export const CONTEST_REPOSITORY = 'CONTEST_REPOSITORY';
 export const CONTESTPROBLEM_REPOSITORY = 'CONTESTPROBLEM_REPOSITORY';
 export const SUBMISSION_REPOSITORY = 'SUBMISSION_REPOSITORY';
 export const CHAT_REPOSITORY = 'CHAT_REPOSITORY';
-export const JWT_PRIVATE = fs.readFileSync('./private.key', 'utf8');
-export const JWT_PUBLIC = fs.readFileSync('./public.key', 'utf8');
 export const ROLES_KEY = 'roles';
 export const IS_PUBLIC_KEY = 'isPublic';
+
+export const JWT_SECRET = process.env.JWT_SECRET;
 
 export enum Role {
   User = 'user',
