@@ -1,21 +1,25 @@
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as path from 'path';
 import { DOC_DIR, TESTCASE_DIR } from 'src/core/constants';
 import * as unzipper from 'unzipper';
+import * as mv from 'mv';
+import { promisify } from 'util';
+
+const mvPromise = promisify(mv);
 
 interface IUpdateProblemOption {
   override: boolean;
 }
 
 async function createDirIfNotExist(path: string) {
-  if (!fs.existsSync(path)) {
-    fs.mkdirSync(path);
+  if (!(await fs.pathExists(path))) {
+    await fs.mkdir(path);
   }
 }
 
 async function removeDirIfExist(path: string) {
-  if (fs.existsSync(path)) {
-    fs.rmSync(path, { recursive: true });
+  if (await fs.pathExists(path)) {
+    await fs.remove(path);
   }
 }
 
@@ -34,7 +38,7 @@ export async function updateProblemDoc(
   }
 
   // move pdf file to source folder
-  fs.renameSync(oldPath, uploadDocPath);
+  await mvPromise(oldPath, uploadDocPath);
 }
 
 export async function updateProblemTestCase(
@@ -59,11 +63,11 @@ export async function updateProblemTestCase(
   );
 
   // move zip file to source folder
-  fs.renameSync(oldPath, uploadTestCasePath);
+  await mvPromise(oldPath, uploadTestCasePath);
   // unzip source file
   const fileContents = fs.createReadStream(uploadTestCasePath);
   fileContents.pipe(unzipper.Extract({ path: problemTestCaseDir }));
-  fs.unlinkSync(uploadTestCasePath);
+  await removeDirIfExist(uploadTestCasePath);
 }
 
 export async function removeProblemSource(problemName: string) {
