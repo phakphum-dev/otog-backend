@@ -5,7 +5,7 @@ export const configuration = () => ({
   port: parseInt(process.env.PORT) || 3001,
   jwtSecret: process.env.JWT_SECRET,
   jwtOption: {
-    secretOrPrivateKey: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET,
     signOptions: {
       expiresIn: '10m',
     },
