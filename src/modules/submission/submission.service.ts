@@ -145,7 +145,7 @@ export class SubmissionService {
         id: {
           [Op.in]: [
             literal(
-              `SELECT MAX(id) FROM submission WHERE status = 'accept' GROUP BY problemId,userId`,
+              `SELECT MAX(id) FROM submission WHERE status = 'accept' GROUP BY "submission"."problemId","submission"."userId"`,
             ),
           ],
         },

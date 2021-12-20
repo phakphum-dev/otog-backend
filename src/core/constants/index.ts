@@ -12,6 +12,10 @@ export const CHAT_REPOSITORY = 'CHAT_REPOSITORY';
 export const ROLES_KEY = 'roles';
 export const IS_PUBLIC_KEY = 'isPublic';
 
+export const DOC_DIR = `${process.cwd()}/docs`;
+export const TESTCASE_DIR = `${process.cwd()}/source`;
+export const UPLOAD_DIR = `${process.cwd()}/volumes/upload`;
+
 export enum Role {
   User = 'user',
   Admin = 'admin',
