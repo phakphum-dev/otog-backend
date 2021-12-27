@@ -1,9 +1,7 @@
 version: '3.9'
 services:
   backend:
-    build:
-      context: .
-      target: production
+    build: .
     image: otog-backend:latest
     container_name: otog-backend
     restart: unless-stopped
