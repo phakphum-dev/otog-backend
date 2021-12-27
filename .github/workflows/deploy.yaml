@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   IMAGE_NAME: ghcr.io/${{ github.repository }}
 
@@ -16,10 +20,6 @@ jobs:
         platform: [ubuntu-latest]
 
     runs-on: ${{ matrix.platform }}
-
-    permissions:
-      contents: read
-      packages: write
 
     steps:
       - name: Check Out Repo
