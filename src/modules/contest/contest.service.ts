@@ -71,7 +71,7 @@ export class ContestService {
                 id: {
                   [Op.in]: [
                     literal(
-                      `SELECT MAX(id) FROM submission WHERE contestId = ${contestId} GROUP BY "submission"."problemId","submission"."userId"`,
+                      `SELECT MAX(id) FROM submission WHERE "contestId" = ${contestId} GROUP BY "submission"."problemId","submission"."userId"`,
                     ),
                   ],
                 },
