@@ -38,4 +38,6 @@ lerna-debug.log*
 /docs
 /source
 /database
-.env.production
+/volumes
+.env
+.env.prod

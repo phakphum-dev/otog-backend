@@ -1,10 +1,10 @@
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as fs from 'fs';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
-import { SocketIoAdapter } from './core/adapters/socket-io.adapter';
+
+const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,7 +23,6 @@ async function bootstrap() {
   });
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector));
-  app.useWebSocketAdapter(new SocketIoAdapter(app, true));
-  await app.listen(8000);
+  await app.listen(PORT);
 }
 bootstrap();

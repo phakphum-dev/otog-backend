@@ -4,9 +4,9 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Request } from 'express';
 import { UserService } from 'src/modules/user/user.service';
-import { JWT_PUBLIC } from 'src/core/constants';
 import { UserDTO } from '../user/dto/user.dto';
 import { JwtPayloadDTO } from './dto/auth.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class JwtRefreshTokenStrategy extends PassportStrategy(
@@ -16,11 +16,12 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
   constructor(
     private authService: AuthService,
     private userService: UserService,
+    configService: ConfigService,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: true,
-      secretOrKey: JWT_PUBLIC,
+      secretOrKey: configService.get<string>('jwtSecret'),
       passReqToCallback: true,
     });
   }

@@ -1,9 +1,7 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-
-import { JWT_PRIVATE } from 'src/core/constants';
-import { UserService } from 'src/modules/user/user.service';
 import { UserModule } from '../user/user.module';
 import { AuthController } from './auth.controller';
 import { authProvider } from './auth.provider';
@@ -16,12 +14,10 @@ import { LocalStrategy } from './local.strategy';
   imports: [
     PassportModule,
     UserModule,
-    JwtModule.register({
-      secret: JWT_PRIVATE,
-      signOptions: {
-        algorithm: 'RS256',
-        expiresIn: '1d',
-      },
+    JwtModule.registerAsync({
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) =>
+        configService.get<JwtModuleOptions>('jwtOption'),
     }),
   ],
   controllers: [AuthController],
