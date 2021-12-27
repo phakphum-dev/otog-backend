@@ -16,9 +16,10 @@ import { JwtService } from '@nestjs/jwt';
 import { UserDTO } from '../user/dto/user.dto';
 import { userList } from 'src/utils';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: true })
 export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   constructor(
     private chatService: ChatService,
     private jwtService: JwtService,
