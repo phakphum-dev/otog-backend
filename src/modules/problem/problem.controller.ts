@@ -26,7 +26,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { Role } from 'src/core/constants';
+import { Role, TESTCASE_DIR, UPLOAD_DIR } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { AuthService } from '../auth/auth.service';
@@ -148,7 +148,7 @@ export class ProblemController {
         { name: 'zip', maxCount: 1 },
       ],
       {
-        dest: './tmp/upload',
+        dest: UPLOAD_DIR,
       },
     ),
   )
@@ -174,7 +174,7 @@ export class ProblemController {
         { name: 'zip', maxCount: 1 },
       ],
       {
-        dest: './tmp/upload',
+        dest: UPLOAD_DIR,
       },
     ),
   )

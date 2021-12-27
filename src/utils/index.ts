@@ -1,10 +1,3 @@
-import { existsSync, mkdirSync } from 'fs';
-
-const fileExt = {
-  c: '.c',
-  cpp: '.cpp',
-};
-
 export function scodeFileFilter(file: Express.Multer.File) {
   if (!file.originalname.match(/\.(c|cpp|py)$/)) {
     return false;

@@ -10,26 +10,16 @@ import { Submission } from 'src/entities/submission.entity';
 import { User } from 'src/entities/user.entity';
 import { UserContest } from 'src/entities/userContest.entity';
 import { Chat } from 'src/entities/chat.entity';
+import { ConfigService } from '@nestjs/config';
 import { IDatabaseConfigAttributes } from './interfaces/dbConfig.interface';
-import { Dialect } from 'sequelize/types';
 
 export const databaseProviders = [
   {
     provide: SEQUELIZE,
-    useFactory: async () => {
-      const config: IDatabaseConfigAttributes = {
-        dialect: process.env.DB_CONNECTION as Dialect,
-        host: process.env.DB_HOST,
-        port: Number(process.env.DB_PORT),
-        username: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_DATABASE,
-      };
-      if (process.env.NODE_ENV === PRODUCTION) {
-        config.logging = false;
-      }
+    inject: [ConfigService],
+    useFactory: async (configService: ConfigService) => {
       const sequelize = new Sequelize({
-        ...config,
+        ...configService.get<IDatabaseConfigAttributes>('db'),
         define: {
           timestamps: false,
           charset: 'utf8mb4',

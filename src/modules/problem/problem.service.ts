@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { PROBLEM_REPOSITORY, Role } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
-import { existsSync, mkdirSync, renameSync, rmdirSync, unlinkSync } from 'fs';
 import { Submission } from 'src/entities/submission.entity';
 import { Op, literal } from 'sequelize';
 import {
@@ -15,11 +14,14 @@ import {
   EditProblemDTO,
   UploadedFilesObject,
 } from './dto/problem.dto';
-import { createReadStream } from 'fs';
-import { Extract } from 'unzipper';
-import { UserDTO } from '../user/dto/user.dto';
 import { SubmissionService } from '../submission/submission.service';
 import { lowerBound, upperBound } from 'src/utils';
+import {
+  getProblemDocDir,
+  removeProblemSource,
+  updateProblemDoc,
+  updateProblemTestCase,
+} from 'src/utils/file.util';
 @Injectable()
 export class ProblemService {
   constructor(
@@ -41,34 +43,18 @@ export class ProblemService {
       problem.show = false;
       await problem.save();
 
-      //save pdf file
       if (files.pdf) {
-        const newDir = `./docs`;
-        // check source dir is exist
-        if (!existsSync(newDir)) {
-          mkdirSync(newDir);
-        }
-        const newPath = `${newDir}/${problem.id}.pdf`;
-        // move pdf file to source folder
-        renameSync(files.pdf[0].path, newPath);
+        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
       }
 
       if (files.zip) {
-        const newDir = `./source/${problem.id}`;
-        // check source dir is exist
-        if (!existsSync(newDir)) {
-          mkdirSync(newDir, { recursive: true });
-        }
-        const newPath = `${newDir}/tmp.zip`;
-        // move zip file to source folder
-        renameSync(files.zip[0].path, newPath);
-        // unzip source file
-        const fileContents = createReadStream(newPath);
-        fileContents.pipe(Extract({ path: newDir }));
-        unlinkSync(newPath);
+        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
       }
+
       return problem;
     } catch (err) {
+      console.log(err);
+
       throw new BadRequestException();
     }
   }
@@ -79,7 +65,7 @@ export class ProblemService {
     files: UploadedFilesObject,
   ): Promise<Problem> {
     try {
-      const problem = await this.findOneById(newProblem.id);
+      const problem = await this.findOneById(problemId);
       problem.name = newProblem.name;
       problem.score = newProblem.score;
       problem.timeLimit = newProblem.timeLimit;
@@ -87,38 +73,14 @@ export class ProblemService {
       problem.case = newProblem.case;
       await problem.save();
 
-      //save pdf file
       if (files.pdf) {
-        const newDir = `./docs`;
-        // check source dir is exist
-        if (!existsSync(newDir)) {
-          mkdirSync(newDir);
-        }
-        const newPath = `${newDir}/${problem.id}.pdf`;
-        //remove old file
-        if (existsSync(newPath)) {
-          unlinkSync(newPath);
-        }
-        // move pdf file to source folder
-        renameSync(files.pdf[0].path, newPath);
+        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
       }
 
       if (files.zip) {
-        const newDir = `./source/${problem.id}`;
-        //remove old dir
-        rmdirSync(newDir, { recursive: true });
-        // check source dir is exist
-        if (!existsSync(newDir)) {
-          mkdirSync(newDir, { recursive: true });
-        }
-        const newPath = `${newDir}/tmp.zip`;
-        // move zip file to source folder
-        renameSync(files.zip[0].path, newPath);
-        // unzip source file
-        const fileContents = createReadStream(newPath);
-        fileContents.pipe(Extract({ path: newDir }));
-        unlinkSync(newPath);
+        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
       }
+
       return problem;
     } catch (err) {
       throw new BadRequestException();
@@ -150,7 +112,7 @@ export class ProblemService {
             id: {
               [Op.in]: [
                 literal(
-                  'SELECT MAX(id) FROM submission GROUP BY problemId,userId',
+                  'SELECT MAX(id) FROM submission GROUP BY "submission"."problemId","submission"."userId"',
                 ),
               ],
             },
@@ -176,7 +138,7 @@ export class ProblemService {
             id: {
               [Op.in]: [
                 literal(
-                  'SELECT MAX(id) FROM submission GROUP BY problemId,userId',
+                  'SELECT MAX(id) FROM submission GROUP BY "submission"."problemId","submission"."userId"',
                 ),
               ],
             },
@@ -198,9 +160,9 @@ export class ProblemService {
   }
 
   async getProblemDocDir(problem: Problem): Promise<string> {
-    const dir = `${process.cwd()}/docs/${problem?.id}.pdf`;
-    if (!existsSync(dir)) throw new NotFoundException();
-    return `${process.cwd()}/docs/${problem.id}.pdf`;
+    const docDir = getProblemDocDir(`${problem.id}`);
+    if (!docDir) throw new NotFoundException();
+    return docDir;
   }
 
   async changeProblemShowById(problemId: number, show: boolean) {
@@ -239,12 +201,7 @@ export class ProblemService {
     try {
       const problem = await this.findOneById(problemId);
 
-      const pdfPath = `./docs/${problem.id}.pdf`;
-      if (existsSync(pdfPath)) unlinkSync(pdfPath);
-
-      const testCasePath = `./source/${problem.id}`;
-      if (existsSync(testCasePath))
-        rmdirSync(testCasePath, { recursive: true });
+      await removeProblemSource(`${problem.id}`);
 
       return await problem.destroy();
     } catch (e) {
