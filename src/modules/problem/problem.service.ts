@@ -1,11 +1,10 @@
 import {
   BadRequestException,
-  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PROBLEM_REPOSITORY, Role } from 'src/core/constants';
+import { PROBLEM_REPOSITORY } from 'src/core/constants';
 import { Problem } from '../../entities/problem.entity';
 import { Submission } from 'src/entities/submission.entity';
 import { Op, literal } from 'sequelize';
@@ -178,11 +177,11 @@ export class ProblemService {
   }
 
   addPassedCountToProblem(problem: Problem[], latestAccept: Submission[]) {
-    var result: any[] = new Array();
-    for (var i in problem) {
+    const result: any[] = [];
+    for (const i in problem) {
       let passedCount = 0;
-      let lIdx = lowerBound(latestAccept, problem[i].id, (x) => x.problemId);
-      let rIdx = upperBound(latestAccept, problem[i].id, (x) => x.problemId);
+      const lIdx = lowerBound(latestAccept, problem[i].id, (x) => x.problemId);
+      const rIdx = upperBound(latestAccept, problem[i].id, (x) => x.problemId);
       if (lIdx != -1) passedCount = rIdx - lIdx;
       result.push({ ...problem[i], passedCount });
     }
@@ -191,8 +190,8 @@ export class ProblemService {
 
   async findAllUserAcceptByProblemId(problemId: number) {
     const latestAccept = await this.submissionService.findAllLatestAccept();
-    let lIdx = lowerBound(latestAccept, problemId, (x) => x.problemId);
-    let rIdx = upperBound(latestAccept, problemId, (x) => x.problemId);
+    const lIdx = lowerBound(latestAccept, problemId, (x) => x.problemId);
+    const rIdx = upperBound(latestAccept, problemId, (x) => x.problemId);
     const temp = latestAccept.slice(lIdx, rIdx);
     return temp.map((submission) => submission.user);
   }

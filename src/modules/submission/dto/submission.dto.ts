@@ -47,5 +47,5 @@ export class UploadFileDTO {
 
   readonly contestId?: number;
 
-  readonly sourceCode: Object;
+  readonly sourceCode: unknown;
 }

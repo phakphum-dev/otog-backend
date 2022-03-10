@@ -1,6 +1,6 @@
 import { Sequelize } from 'sequelize-typescript';
 
-import { SEQUELIZE, PRODUCTION } from '../constants';
+import { SEQUELIZE } from '../constants';
 
 import { Contest } from 'src/entities/contest.entity';
 import { ContestProblem } from 'src/entities/contestProblem.entity';

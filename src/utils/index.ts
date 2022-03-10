@@ -20,10 +20,10 @@ export const strToObj = (data: string) => {
 };
 
 export function lowerBound(arr: any[], target: any, key = (a: any) => a) {
-  let l: number = 0;
+  let l = 0;
   let r: number = arr.length;
   while (l < r) {
-    let T = l + Math.floor((r - l) / 2);
+    const T = l + Math.floor((r - l) / 2);
     if (key(arr[T]) < target) {
       l = T + 1;
     } else r = T;
@@ -33,10 +33,10 @@ export function lowerBound(arr: any[], target: any, key = (a: any) => a) {
 }
 
 export function upperBound(arr: any[], target: any, key = (a: any) => a) {
-  let l: number = 0;
+  let l = 0;
   let r: number = arr.length;
   while (l < r) {
-    let T = l + Math.floor((r - l) / 2);
+    const T = l + Math.floor((r - l) / 2);
     if (key(arr[T]) <= target) {
       l = T + 1;
     } else r = T;

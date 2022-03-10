@@ -5,7 +5,6 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  WsResponse,
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
@@ -45,8 +44,8 @@ export class ChatGateway
     ]);
   }
 
-  public afterInit(server: Server): void {
-    return this.logger.log('Init');
+  public afterInit(): void {
+    return this.logger.log('ChatWebSocket initialized');
   }
 
   public handleDisconnect(client: Socket): void {

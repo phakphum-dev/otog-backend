@@ -1,12 +1,8 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { col } from 'sequelize';
-import { fn } from 'sequelize';
 import { Op, literal } from 'sequelize';
 import {
-  ContestMode,
   CONTESTPROBLEM_REPOSITORY,
   CONTEST_REPOSITORY,
-  GradingMode,
   Role,
   USERCONTEST_REPOSITORY,
 } from 'src/core/constants';
