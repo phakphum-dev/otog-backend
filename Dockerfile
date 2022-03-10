@@ -20,7 +20,6 @@ WORKDIR /usr/src/app
 
 ENV NODE_ENV production
 
-COPY --chown=node:node --from=build //usr/src/app/package.json ./package.json
 COPY --chown=node:node --from=build /usr/src/app/node_modules ./node_modules
 COPY --chown=node:node --from=build /usr/src/app/dist ./dist
 
