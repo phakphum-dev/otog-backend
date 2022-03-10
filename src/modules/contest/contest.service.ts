@@ -1,5 +1,4 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
 import { col } from 'sequelize';
 import { fn } from 'sequelize';
 import { Op, literal } from 'sequelize';

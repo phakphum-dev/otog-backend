@@ -81,7 +81,7 @@ export class Submission extends Model {
   contestId: number;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.TEXT({ length: 'long' }),
   })
   sourceCode: string;
 
