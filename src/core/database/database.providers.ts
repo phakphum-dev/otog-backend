@@ -12,6 +12,7 @@ import { UserContest } from 'src/entities/userContest.entity';
 import { Chat } from 'src/entities/chat.entity';
 import { ConfigService } from '@nestjs/config';
 import { IDatabaseConfigAttributes } from './interfaces/dbConfig.interface';
+import { Announcement } from 'src/entities/announcement.entity';
 
 export const databaseProviders = [
   {
@@ -35,6 +36,7 @@ export const databaseProviders = [
         RefreshToken,
         Submission,
         UserContest,
+        Announcement,
       ]);
       await sequelize.sync();
       return sequelize;
