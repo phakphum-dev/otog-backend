@@ -42,7 +42,9 @@ export class UserService {
   }
 
   async findAll(): Promise<UserDTO[]> {
-    const result = await this.userRepository.findAll();
+    const result = await this.userRepository.findAll({
+      order: [['id', 'DESC']],
+    });
     const userDTO = result.map((item) => new UserDTO(item));
     return userDTO;
   }
