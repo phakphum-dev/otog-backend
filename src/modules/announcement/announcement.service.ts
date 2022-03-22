@@ -29,7 +29,7 @@ export class AnnouncementService {
   async findShown() {
     return this.announcementRepository.findAll({
       where: { show: true },
-      order: ['id'],
+      order: [['id', 'ASC']],
     });
   }
 
@@ -39,7 +39,8 @@ export class AnnouncementService {
 
   async delete(announcementId: number) {
     const announcement = await this.findOneById(announcementId);
-    announcement.destroy();
+    await announcement.destroy();
+    return announcement;
   }
 
   async updateAnnouncementShow(announcementId: number, show: boolean) {
