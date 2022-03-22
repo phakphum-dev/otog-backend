@@ -14,7 +14,6 @@ import { Public } from '../../core/decorators/isPublic.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
 
-@ApiBearerAuth()
 @ApiTags('auth')
 @Public()
 @Controller('auth')
@@ -68,6 +67,7 @@ export class AuthController {
     type: AuthResDTO,
     description: 'Refresh token successfully',
   })
+  @ApiBearerAuth()
   @ApiResponse({
     status: 403,
     description:
