@@ -66,7 +66,7 @@ export class AuthService {
 
   async generateRefreshToken(user: UserDTO, jwtId: string): Promise<string> {
     const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + 1);
+    expiryDate.setDate(expiryDate.getDate() + 2);
     const refreshToken = new RefreshToken();
     refreshToken.id = uuidv4();
     refreshToken.userId = user.id;
