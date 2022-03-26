@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -8,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import {
@@ -28,6 +30,7 @@ import {
   PatchContestDTO,
   ResPatchContestDTO,
   ScoreboardDTO,
+  UpdateContestDTO,
 } from './dto/contest.dto';
 
 @ApiTags('contest')
@@ -105,6 +108,34 @@ export class ContestController {
     @Body('show', ParseBoolPipe) show: boolean,
   ) {
     return this.contestService.addProblemToContest(contestId, problemId, show);
+  }
+
+  @Roles(Role.Admin)
+  @Put('/:contestId')
+  @ApiBody({ type: UpdateContestDTO })
+  @ApiResponse({
+    status: 200,
+    description: 'Update contest data',
+    type: ContestDTO,
+  })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
+  updateContest(
+    @Param('contestId', ParseIntPipe) contestId: number,
+    @Body() contestData: UpdateContestDTO,
+  ) {
+    return this.contestService.updateContest(contestId, contestData);
+  }
+
+  @Roles(Role.Admin)
+  @Delete('/:contestId')
+  @ApiResponse({
+    status: 200,
+    description: 'Delete contest',
+    type: ContestDTO,
+  })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
+  deleteContest(@Param('contestId', ParseIntPipe) contestId: number) {
+    return this.contestService.deleteContest(contestId);
   }
 
   @Roles(Role.Admin)

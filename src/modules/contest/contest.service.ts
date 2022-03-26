@@ -11,7 +11,7 @@ import { Submission } from 'src/entities/submission.entity';
 import { User } from 'src/entities/user.entity';
 import { UserContest } from 'src/entities/userContest.entity';
 import { Contest } from '../../entities/contest.entity';
-import { CreateContestDTO } from './dto/contest.dto';
+import { CreateContestDTO, UpdateContestDTO } from './dto/contest.dto';
 
 @Injectable()
 export class ContestService {
@@ -139,5 +139,16 @@ export class ContestService {
         contestId,
       },
     });
+  }
+
+  async updateContest(contestId: number, contestData: UpdateContestDTO) {
+    const contest = await this.findOneById(contestId);
+    return contest.update(contestData);
+  }
+
+  async deleteContest(contestId: number) {
+    const contest = await this.findOneById(contestId);
+    await contest.destroy();
+    return contest;
   }
 }
