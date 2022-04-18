@@ -14,4 +14,9 @@ export class AppController {
   serverTime() {
     return new Date();
   }
+
+  @Get('/ping')
+  pingServer() {
+    return 'pong';
+  }
 }
