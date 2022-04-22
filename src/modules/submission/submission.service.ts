@@ -114,6 +114,18 @@ export class SubmissionService {
     });
   }
 
+  findAllByUserId(userId: number, offset = 1e9, limit = 89) {
+    return this.submissionRepository.scope('full').findAll({
+      where: {
+        userId,
+        id: {
+          [Op.lt]: offset,
+        },
+      },
+      limit,
+    });
+  }
+
   findOneByUserId(userId: number): Promise<Submission> {
     return this.submissionRepository.scope('full').findOne({
       where: { userId },
