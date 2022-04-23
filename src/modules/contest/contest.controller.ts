@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  NotFoundException,
   Param,
   ParseBoolPipe,
   ParseIntPipe,
@@ -74,10 +75,14 @@ export class ContestController {
     description: 'Get scoreboard contest by id',
   })
   @ApiNotFoundResponse({ description: 'Contest not found' })
-  getContestScoreBoardById(
+  async getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
-    return this.contestService.scoreboardByContestId(contestId);
+    try {
+      return await this.contestService.scoreboardByContestId(contestId);
+    } catch (e: unknown) {
+      throw new NotFoundException();
+    }
   }
 
   @Get('/:contestId/prize')
@@ -86,8 +91,14 @@ export class ContestController {
     description: 'Get contest prize by id',
   })
   @ApiNotFoundResponse({ description: 'Contest not found' })
-  getContestPrizeById(@Param('contestId', ParseIntPipe) contestId: number) {
-    return this.contestService.scoreboardPrizeByContestId(contestId);
+  async getContestPrizeById(
+    @Param('contestId', ParseIntPipe) contestId: number,
+  ) {
+    try {
+      return await this.contestService.scoreboardPrizeByContestId(contestId);
+    } catch (e: unknown) {
+      throw new NotFoundException();
+    }
   }
 
   //Admin Only
