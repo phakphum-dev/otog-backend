@@ -1,4 +1,4 @@
-import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 import { ContestMode, GradingMode } from 'src/core/constants';
 import { ProblemDTO } from 'src/modules/problem/dto/problem.dto';
 import { UserForScoreboardDTO } from 'src/modules/user/dto/user.dto';
@@ -46,4 +46,22 @@ export class ResPatchContestDTO {
   contestId: number;
   problemId: number;
   show: boolean;
+}
+
+export class MiniSubmission {
+  id: number;
+  timeUsed?: number;
+  problem: {
+    id: number;
+  };
+  user: {
+    id: number;
+    showName: string;
+  };
+}
+export class ScoreboardPrizeDTO {
+  firstBlood: MiniSubmission[];
+  fasterThanLight: MiniSubmission[];
+  passedInOne: MiniSubmission[];
+  oneManSolve: MiniSubmission[];
 }

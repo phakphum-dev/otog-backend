@@ -29,6 +29,7 @@ import {
   PatchContestDTO,
   ResPatchContestDTO,
   ScoreboardDTO,
+  ScoreboardPrizeDTO,
   UpdateContestDTO,
 } from './dto/contest.dto';
 
@@ -81,7 +82,7 @@ export class ContestController {
 
   @Get('/:contestId/prize')
   @ApiOkResponse({
-    type: ScoreboardDTO,
+    type: ScoreboardPrizeDTO,
     description: 'Get contest prize by id',
   })
   @ApiNotFoundResponse({ description: 'Contest not found' })
