@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   ParseBoolPipe,
   ParseIntPipe,
@@ -74,14 +73,20 @@ export class ContestController {
     description: 'Get scoreboard contest by id',
   })
   @ApiNotFoundResponse({ description: 'Contest not found' })
-  async getContestScoreBoardById(
+  getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
-    const scoreboard = await this.contestService.scoreboardByContestId(
-      contestId,
-    );
-    if (!scoreboard) throw new NotFoundException();
-    return scoreboard;
+    return this.contestService.scoreboardByContestId(contestId);
+  }
+
+  @Get('/:contestId/prize')
+  @ApiOkResponse({
+    type: ScoreboardDTO,
+    description: 'Get contest prize by id',
+  })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
+  getContestPrizeById(@Param('contestId', ParseIntPipe) contestId: number) {
+    return this.contestService.scoreboardPrizeByContestId(contestId);
   }
 
   //Admin Only
