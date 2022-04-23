@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
@@ -37,6 +36,7 @@ import { Role } from 'src/core/constants';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
 import { ContestService } from '../contest/contest.service';
+import { OptionalIntPipe } from 'src/utils/optional.pipe';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -58,17 +58,11 @@ export class SubmissionController {
     description: 'Validation failed (numeric string is expected)',
   })
   getAllSubmission(
-    @Query('offset') os: string,
-    @Query('limit') lm: string,
     @User() user: UserDTO,
+    @Query('offset', OptionalIntPipe) offset?: number,
+    @Query('limit', OptionalIntPipe) limit?: number,
   ) {
-    const offset: number = parseInt(os);
-    const limit: number = parseInt(lm);
-    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
-      throw new BadRequestException(
-        'Validation failed (numeric string is expected)',
-      );
-    return user.role == Role.Admin
+    return user.role === Role.Admin
       ? this.submissionService.findAll(offset, limit)
       : this.submissionService.findAllWithOutContestAndAdmin(offset, limit);
   }
@@ -84,16 +78,9 @@ export class SubmissionController {
     description: 'Validation failed (numeric string is expected)',
   })
   getContestSubmission(
-    @Query('offset') os: string,
-    @Query('limit') lm: string,
+    @Query('offset', OptionalIntPipe) offset: number,
+    @Query('limit', OptionalIntPipe) limit: number,
   ) {
-    const offset: number = parseInt(os);
-    const limit: number = parseInt(lm);
-    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
-      throw new BadRequestException(
-        'Validation failed (numeric string is expected)',
-      );
-
     return this.submissionService.findAllWithContest(offset, limit);
   }
 
@@ -141,6 +128,7 @@ export class SubmissionController {
     return this.submissionService.findOneByUserId(user.id);
   }
 
+  @Roles(Role.User, Role.Admin)
   @Get('/user/:userId')
   @ApiQuery({ name: 'offset', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
@@ -155,23 +143,26 @@ export class SubmissionController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
+  @ApiForbiddenResponse({
+    description: 'User id must be the same as userId',
+  })
   getAllSubmissionByUserId(
+    @User() user: UserDTO,
     @Param('userId', ParseIntPipe) userId: number,
-    @Query('offset') os: string,
-    @Query('limit') lm: string,
+    @Query('offset', OptionalIntPipe) offset?: number,
+    @Query('limit', OptionalIntPipe) limit?: number,
   ) {
-    const offset: number = parseInt(os);
-    const limit: number = parseInt(lm);
-    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
-      throw new BadRequestException(
-        'Validation failed (numeric string is expected)',
+    if (user.role === 'admin') {
+      return this.submissionService.findAllByUserId(userId, offset, limit);
+    }
+    if (user.id === userId) {
+      return this.submissionService.findAllByUserIdWithOutContest(
+        userId,
+        offset,
+        limit,
       );
-
-    return this.submissionService.findAllByUserIdWithOutContest(
-      userId,
-      offset,
-      limit,
-    );
+    }
+    throw new ForbiddenException();
   }
 
   @Roles(Role.User, Role.Admin)
