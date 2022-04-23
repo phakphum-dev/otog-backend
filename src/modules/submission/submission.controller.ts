@@ -8,7 +8,6 @@ import {
   ParseIntPipe,
   Post,
   Query,
-  UnauthorizedException,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -25,7 +24,6 @@ import {
   ApiOkResponse,
   ApiQuery,
   ApiTags,
-  ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
 import {
   SubmissionDTO,
@@ -145,7 +143,7 @@ export class SubmissionController {
   @ApiNotFoundResponse({
     description: 'User not found',
   })
-  @ApiUnauthorizedResponse({
+  @ApiForbiddenResponse({
     description: 'User id must be the same as userId',
   })
   getAllSubmissionByUserId(
@@ -164,7 +162,7 @@ export class SubmissionController {
         limit,
       );
     }
-    throw new UnauthorizedException('Unauthorized');
+    throw new ForbiddenException();
   }
 
   @Roles(Role.User, Role.Admin)
