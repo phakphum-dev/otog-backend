@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -22,7 +23,10 @@ import {
 } from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
+import { User } from 'src/core/decorators/user.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
+import { Contest } from 'src/entities/contest.entity';
+import { UserDTO } from '../user/dto/user.dto';
 import { ContestService } from './contest.service';
 import {
   ContestDTO,
@@ -77,12 +81,18 @@ export class ContestController {
   @ApiNotFoundResponse({ description: 'Contest not found' })
   async getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
+    @User() user?: UserDTO,
   ) {
+    let contest: Contest;
     try {
-      return await this.contestService.scoreboardByContestId(contestId);
+      contest = await this.contestService.scoreboardByContestId(contestId);
     } catch (e: unknown) {
       throw new NotFoundException();
     }
+    if (user?.role === Role.Admin || new Date() > new Date(contest.timeEnd)) {
+      return contest;
+    }
+    throw new ForbiddenException();
   }
 
   @Get('/:contestId/prize')
