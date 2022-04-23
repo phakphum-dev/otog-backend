@@ -30,6 +30,7 @@ import {
   PatchContestDTO,
   ResPatchContestDTO,
   ScoreboardDTO,
+  ScoreboardPrizeDTO,
   UpdateContestDTO,
 } from './dto/contest.dto';
 
@@ -77,11 +78,27 @@ export class ContestController {
   async getContestScoreBoardById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
-    const scoreboard = await this.contestService.scoreboardByContestId(
-      contestId,
-    );
-    if (!scoreboard) throw new NotFoundException();
-    return scoreboard;
+    try {
+      return await this.contestService.scoreboardByContestId(contestId);
+    } catch (e: unknown) {
+      throw new NotFoundException();
+    }
+  }
+
+  @Get('/:contestId/prize')
+  @ApiOkResponse({
+    type: ScoreboardPrizeDTO,
+    description: 'Get contest prize by id',
+  })
+  @ApiNotFoundResponse({ description: 'Contest not found' })
+  async getContestPrizeById(
+    @Param('contestId', ParseIntPipe) contestId: number,
+  ) {
+    try {
+      return await this.contestService.scoreboardPrizeByContestId(contestId);
+    } catch (e: unknown) {
+      throw new NotFoundException();
+    }
   }
 
   //Admin Only

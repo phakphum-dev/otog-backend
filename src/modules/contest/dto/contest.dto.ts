@@ -47,3 +47,21 @@ export class ResPatchContestDTO {
   problemId: number;
   show: boolean;
 }
+
+export class MiniSubmission {
+  id: number;
+  timeUsed?: number;
+  problem: {
+    id: number;
+  };
+  user: {
+    id: number;
+    showName: string;
+  };
+}
+export class ScoreboardPrizeDTO {
+  firstBlood: MiniSubmission[];
+  fasterThanLight: MiniSubmission[];
+  passedInOne: MiniSubmission[];
+  oneManSolve: MiniSubmission[];
+}
