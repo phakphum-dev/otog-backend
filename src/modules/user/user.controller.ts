@@ -7,6 +7,7 @@ import {
   Param,
   ParseIntPipe,
   Patch,
+  Put,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -19,7 +20,12 @@ import {
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
-import { PatchShowNameDTO, UserDTO, UserProfileDTO } from './dto/user.dto';
+import {
+  PatchShowNameDTO,
+  UpdateUserDTO,
+  UserDTO,
+  UserProfileDTO,
+} from './dto/user.dto';
 import { UserService } from './user.service';
 
 @ApiTags('user')
@@ -55,6 +61,25 @@ export class UserController {
   // getUserById(@Param('userId') userId: number): Promise<UserDTO> {
   //   return this.userService.getUserProfileById(userId);
   // }
+
+  @Roles(Role.Admin)
+  @Put('/:userId')
+  @ApiBody({ type: PatchShowNameDTO })
+  @ApiOkResponse({
+    type: UserDTO,
+    description: 'user update successfully',
+  })
+  @ApiNotFoundResponse({ description: 'User not found' })
+  async updateUser(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() userData: UpdateUserDTO,
+  ) {
+    try {
+      return await this.userService.updateUser(userId, userData);
+    } catch (e: unknown) {
+      throw new NotFoundException('user not found');
+    }
+  }
 
   @Roles(Role.Admin, Role.User)
   @Patch('/:userId/name')
