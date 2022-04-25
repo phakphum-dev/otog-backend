@@ -11,7 +11,7 @@ import { Contest } from 'src/entities/contest.entity';
 import { userList } from 'src/utils';
 import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
-import { UserDTO } from './dto/user.dto';
+import { UpdateUserDTO, UserDTO } from './dto/user.dto';
 
 @Injectable()
 export class UserService {
@@ -113,5 +113,15 @@ export class UserService {
       checkList.set(user.id, true);
       return true;
     });
+  }
+
+  async updateUser(userId: number, userData: UpdateUserDTO) {
+    const user = await this.findOneById(userId);
+    if (userData.password) {
+      const hash = sha256.create();
+      hash.update(userData.password);
+      return user.update({ ...userData, password: hash.hex() });
+    }
+    return user.update({ ...userData });
   }
 }
