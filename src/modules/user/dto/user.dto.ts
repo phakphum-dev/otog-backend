@@ -50,5 +50,5 @@ export class UpdateUserDTO extends OmitType(UserDTO, [
   'id',
   'rating',
 ] as const) {
-  password: string;
+  password?: string;
 }

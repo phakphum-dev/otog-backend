@@ -117,8 +117,11 @@ export class UserService {
 
   async updateUser(userId: number, userData: UpdateUserDTO) {
     const user = await this.findOneById(userId);
-    const hash = sha256.create();
-    hash.update(userData.password);
-    return user.update({ ...userData, password: hash.hex() });
+    if (userData.password) {
+      const hash = sha256.create();
+      hash.update(userData.password);
+      return user.update({ ...userData, password: hash.hex() });
+    }
+    return user.update({ ...userData });
   }
 }
