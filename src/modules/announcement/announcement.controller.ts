@@ -18,7 +18,8 @@ import {
   ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Role } from 'src/core/constants';
+import { AccessState, Role } from 'src/core/constants';
+import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
@@ -36,6 +37,7 @@ import {
 export class AnnouncementController {
   constructor(private announcementService: AnnouncementService) {}
 
+  @OfflineAccess(AccessState.Authenticated)
   @Get()
   @ApiOkResponse({
     type: AnnouncementDTO,

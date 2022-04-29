@@ -3,6 +3,8 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
+import { configuration } from './core/config/configuration';
+import { OfflineModeGuard } from './core/guards/offline-mode.guard';
 
 const PORT = process.env.PORT || 3000;
 
@@ -22,7 +24,11 @@ async function bootstrap() {
     origin: true,
   });
   const reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  const offlineMode = configuration().offlineMode;
+  app.useGlobalGuards(
+    new JwtAuthGuard(reflector),
+    offlineMode ? new OfflineModeGuard(reflector) : undefined,
+  );
   await app.listen(PORT);
 }
 bootstrap();

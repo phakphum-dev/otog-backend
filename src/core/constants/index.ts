@@ -11,6 +11,7 @@ export const SUBMISSION_REPOSITORY = 'SUBMISSION_REPOSITORY';
 export const CHAT_REPOSITORY = 'CHAT_REPOSITORY';
 export const ANNOUNCEMENT_REPOSITORY = 'ANNOUNCEMENT_REPOSITORY';
 export const ROLES_KEY = 'roles';
+export const OFFLINE_KEY = 'offline_roles';
 export const IS_PUBLIC_KEY = 'isPublic';
 
 export const DOC_DIR = `${process.cwd()}/docs`;
@@ -20,6 +21,11 @@ export const UPLOAD_DIR = `${process.cwd()}/volumes/upload`;
 export enum Role {
   User = 'user',
   Admin = 'admin',
+}
+
+export enum AccessState {
+  Public = 'public',
+  Authenticated = 'authenticated',
 }
 
 export enum Status {

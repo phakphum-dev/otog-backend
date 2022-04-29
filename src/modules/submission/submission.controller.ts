@@ -32,11 +32,12 @@ import {
 } from './dto/submission.dto';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Roles } from 'src/core/decorators/roles.decorator';
-import { Role } from 'src/core/constants';
+import { AccessState, Role } from 'src/core/constants';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
 import { ContestService } from '../contest/contest.service';
 import { OptionalIntPipe } from 'src/utils/optional.pipe';
+import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -84,6 +85,7 @@ export class SubmissionController {
     return this.submissionService.findAllWithContest(offset, limit);
   }
 
+  @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.Admin, Role.User)
   @Get('/problem/:problemId/latest')
   @ApiOkResponse({ type: SubmissionWithSourceCodeDTO })
@@ -99,6 +101,7 @@ export class SubmissionController {
     );
   }
 
+  @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.User, Role.Admin)
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadFileDTO })
@@ -165,6 +168,7 @@ export class SubmissionController {
     throw new ForbiddenException();
   }
 
+  @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.User, Role.Admin)
   @Get('/:resultId')
   @ApiOkResponse({
