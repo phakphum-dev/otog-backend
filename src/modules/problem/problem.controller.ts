@@ -96,7 +96,6 @@ export class ProblemController {
     return this.problemService.findAllUserAcceptByProblemId(problemId);
   }
 
-  @OfflineAccess(AccessState.Authenticated)
   @Get('doc/:problemId')
   @ApiOkResponse({ description: 'Get problem document (pdf)' })
   @ApiNotFoundResponse({ description: 'Problem not found' })
