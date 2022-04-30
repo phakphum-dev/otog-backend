@@ -26,7 +26,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { Role, UPLOAD_DIR } from 'src/core/constants';
+import { AccessState, Role, UPLOAD_DIR } from 'src/core/constants';
+import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { AuthService } from '../auth/auth.service';
@@ -95,6 +96,7 @@ export class ProblemController {
     return this.problemService.findAllUserAcceptByProblemId(problemId);
   }
 
+  @OfflineAccess(AccessState.Public)
   @Get('doc/:problemId')
   @ApiOkResponse({ description: 'Get problem document (pdf)' })
   @ApiNotFoundResponse({ description: 'Problem not found' })

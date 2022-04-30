@@ -13,6 +13,8 @@ import { LocalAuthGuard } from '../../core/guards/local-auth.guard';
 import { Public } from '../../core/decorators/isPublic.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
+import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
+import { AccessState } from 'src/core/constants';
 
 @ApiTags('auth')
 @Public()
@@ -37,6 +39,7 @@ export class AuthController {
   }
 
   @UseGuards(LocalAuthGuard)
+  @OfflineAccess(AccessState.Public)
   @Post('/login')
   @ApiBody({
     type: LoginReqDTO,
@@ -61,6 +64,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtRefreshTokenAuthGuard)
+  @OfflineAccess(AccessState.Public)
   @Get('/refresh/token')
   @ApiResponse({
     status: 200,

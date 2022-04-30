@@ -21,7 +21,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { Role } from 'src/core/constants';
+import { AccessState, Role } from 'src/core/constants';
+import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
@@ -54,6 +55,7 @@ export class ContestController {
     return this.contestService.findAll();
   }
 
+  @OfflineAccess(AccessState.Authenticated)
   @Get('/now')
   @ApiOkResponse({
     type: ContestDTO,
@@ -63,6 +65,7 @@ export class ContestController {
     return this.contestService.currentContest();
   }
 
+  @OfflineAccess(AccessState.Authenticated)
   @Get('/:contestId')
   @ApiOkResponse({
     type: ContestDTO,
