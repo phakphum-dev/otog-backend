@@ -10,25 +10,29 @@ const PORT = process.env.PORT || 3000;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const config = new DocumentBuilder()
-    .setTitle('OTOG API')
-    .setDescription('API service for OTOG')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('doc', app, document);
+  const offlineMode = configuration().offlineMode;
   app.use(cookieParser());
   app.enableCors({
     credentials: true,
     origin: true,
   });
   const reflector = app.get(Reflector);
-  const offlineMode = configuration().offlineMode;
   app.useGlobalGuards(
     new JwtAuthGuard(reflector),
     offlineMode ? new OfflineModeGuard(reflector) : undefined,
   );
+
+  if (!offlineMode) {
+    const config = new DocumentBuilder()
+      .setTitle('OTOG API')
+      .setDescription('API service for OTOG')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('doc', app, document);
+  }
+
   await app.listen(PORT);
 }
 bootstrap();
