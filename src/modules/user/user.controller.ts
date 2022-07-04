@@ -64,7 +64,7 @@ export class UserController {
 
   @Roles(Role.Admin)
   @Put('/:userId')
-  @ApiBody({ type: PatchShowNameDTO })
+  @ApiBody({ type: UpdateUserDTO })
   @ApiOkResponse({
     type: UserDTO,
     description: 'user update successfully',
