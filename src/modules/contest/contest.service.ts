@@ -156,16 +156,15 @@ export class ContestService {
             literal(
               `SELECT s.id AS id
               FROM (
-                SELECT "problemId", COUNT(*) AS "submitCount", "userId"
-                FROM submission
-                INNER JOIN "user"
-                ON "user".id = submission."userId" AND "user"."role"='user'
-                WHERE "contestId" = ${contestId}
-                GROUP BY "problemId", "userId"
+                SELECT "problemId", "userId", MIN(submission.id) as id
+                  FROM submission
+                  INNER JOIN "user"
+                  ON "user".id = submission."userId" AND "user"."role"='user'
+                  WHERE "contestId" = ${contestId}
+                  GROUP BY "problemId", "userId"
               ) t
               INNER JOIN submission s
-              ON t."submitCount" = 1 AND s."problemId" = t."problemId" AND
-              s."userId" = t."userId" AND s."status" = 'accept' AND s."contestId" = ${contestId}`,
+              ON s.id = t.id AND s.status = 'accept'`,
             ),
           ],
         },
