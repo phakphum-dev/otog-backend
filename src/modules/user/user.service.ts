@@ -122,6 +122,6 @@ export class UserService {
       hash.update(userData.password);
       return user.update({ ...userData, password: hash.hex() });
     }
-    return user.update({ ...userData });
+    return user.update({ ...userData, password: undefined });
   }
 }
