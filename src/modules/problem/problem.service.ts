@@ -209,4 +209,14 @@ export class ProblemService {
       throw new BadRequestException();
     }
   }
+  async updateProblemExamples(problemId: number, examples: object) {
+    try {
+      const problem = await this.findOneById(problemId);
+      problem.examples = examples;
+      return problem.save();
+    } catch (e) {
+      console.log(e);
+      throw new BadRequestException();
+    }
+  }
 }
