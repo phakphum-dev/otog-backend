@@ -197,4 +197,17 @@ export class ProblemController {
   deleteProblem(@Param('problemId', ParseIntPipe) problemId: number) {
     return this.problemService.delete(problemId);
   }
+
+  @Roles(Role.Admin)
+  @Put('/:problemId/examples')
+  @ApiOkResponse({
+    // type: ProblemDTO,
+    description: 'Update problem example testcases',
+  })
+  updateProblemTestcase(
+    @Param('problemId', ParseIntPipe) problemId: number,
+    @Body() examples: object,
+  ) {
+    return this.problemService.updateProblemExamples(problemId, examples);
+  }
 }

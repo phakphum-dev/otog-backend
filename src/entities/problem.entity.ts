@@ -1,6 +1,7 @@
 import {
   AutoIncrement,
   Column,
+  DataType,
   DefaultScope,
   HasOne,
   Model,
@@ -50,4 +51,7 @@ export class Problem extends Model {
 
   @HasOne(() => Submission)
   submission: Submission;
+
+  @Column({ type: DataType.JSONB, defaultValue: null })
+  examples: object;
 }

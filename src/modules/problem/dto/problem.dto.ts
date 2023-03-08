@@ -13,6 +13,8 @@ class ProblemDTOBase {
   readonly memoryLimit: number;
 
   readonly case: string;
+
+  readonly examples: string;
 }
 
 export class ProblemDTO extends ProblemDTOBase {
