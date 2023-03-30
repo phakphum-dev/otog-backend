@@ -9,6 +9,7 @@ import {
   Patch,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -22,6 +23,7 @@ import { AccessState, Role } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
+import { RolesGuard } from 'src/core/guards/roles.guard';
 import { UserDTO } from '../user/dto/user.dto';
 import { AnnouncementService } from './announcement.service';
 import {
@@ -34,6 +36,7 @@ import {
 @ApiBearerAuth()
 @ApiTags('announcement')
 @Controller('announcement')
+@UseGuards(RolesGuard)
 export class AnnouncementController {
   constructor(private announcementService: AnnouncementService) {}
 
