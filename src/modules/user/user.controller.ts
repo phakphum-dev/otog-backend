@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBody,
@@ -20,6 +21,7 @@ import {
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
+import { RolesGuard } from 'src/core/guards/roles.guard';
 import {
   PatchShowNameDTO,
   UpdateUserDTO,
@@ -30,6 +32,7 @@ import { UserService } from './user.service';
 
 @ApiTags('user')
 @Controller('user')
+@UseGuards(RolesGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 

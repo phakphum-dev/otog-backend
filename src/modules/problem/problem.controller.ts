@@ -13,6 +13,7 @@ import {
   Req,
   Res,
   UploadedFiles,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -30,6 +31,7 @@ import { AccessState, Role, UPLOAD_DIR } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
+import { RolesGuard } from 'src/core/guards/roles.guard';
 import { AuthService } from '../auth/auth.service';
 import { ContestService } from '../contest/contest.service';
 import { UserDTO } from '../user/dto/user.dto';
@@ -45,6 +47,7 @@ import { ProblemService } from './problem.service';
 
 @ApiTags('problem')
 @Controller('problem')
+@UseGuards(RolesGuard)
 export class ProblemController {
   constructor(
     private problemService: ProblemService,
