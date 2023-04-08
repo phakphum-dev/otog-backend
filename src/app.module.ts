@@ -14,7 +14,7 @@ import { AnnouncementModule } from './modules/announcement/announcement.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: `${process.cwd()}/.env`,
+      envFilePath: ['.env.dev', '.env'],
       load: [configuration],
       isGlobal: true,
     }),
