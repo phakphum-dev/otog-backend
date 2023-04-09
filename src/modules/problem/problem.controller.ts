@@ -29,6 +29,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Request, Response } from 'express';
+import * as path from 'path';
 import { AccessState, Role, UPLOAD_DIR } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -123,6 +124,7 @@ export class ProblemController {
     }
 
     const problem = await this.problemService.findOneById(problemId);
+    if (!problem) throw new NotFoundException();
     if (problem?.show == false && user?.role != Role.Admin) {
       // TODO validate user if contest is private
       const contest =
@@ -130,7 +132,10 @@ export class ProblemController {
       if (!contest || !contest.problems.some((e) => e.id === problem.id))
         throw new ForbiddenException();
     }
-    return res.sendFile(await this.problemService.getProblemDocDir(problem));
+
+    const readStream = await this.problemService.getProblemDocStream(problem);
+
+    return readStream.pipe(res.type('application/pdf'));
   }
 
   //Admin route
@@ -163,7 +168,7 @@ export class ProblemController {
         { name: 'zip', maxCount: 1 },
       ],
       {
-        dest: UPLOAD_DIR,
+        dest: path.join(process.cwd(), UPLOAD_DIR),
       },
     ),
   )
@@ -190,7 +195,7 @@ export class ProblemController {
         { name: 'zip', maxCount: 1 },
       ],
       {
-        dest: UPLOAD_DIR,
+        dest: path.join(process.cwd(), UPLOAD_DIR),
       },
     ),
   )

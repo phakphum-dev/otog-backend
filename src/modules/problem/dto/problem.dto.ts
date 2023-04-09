@@ -1,5 +1,10 @@
 import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
+export interface File extends Blob {
+  readonly lastModified: number;
+  readonly name: string;
+}
+
 class ProblemDTOBase {
   @ApiProperty()
   readonly id: number;
@@ -29,8 +34,16 @@ export class ProblemDTO extends ProblemDTOBase {
 }
 
 export class EditProblemDTO extends ProblemDTOBase {
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
   readonly pdf?: File;
 
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+  })
   readonly zip?: File;
 }
 
