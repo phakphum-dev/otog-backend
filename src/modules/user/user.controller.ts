@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiForbiddenResponse,
@@ -36,7 +37,9 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @Roles(Role.Admin)
   @Get()
+  @ApiBearerAuth()
   @ApiOkResponse({
     type: UserDTO,
     isArray: true,
@@ -67,6 +70,7 @@ export class UserController {
 
   @Roles(Role.Admin)
   @Put('/:userId')
+  @ApiBearerAuth()
   @ApiBody({ type: UpdateUserDTO })
   @ApiOkResponse({
     type: UserDTO,

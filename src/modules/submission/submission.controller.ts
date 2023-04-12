@@ -16,6 +16,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submission.service';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -68,7 +69,10 @@ export class SubmissionController {
       : this.submissionService.findAllWithOutContestAndAdmin(offset, limit);
   }
 
+  // unused
+  @Roles(Role.Admin)
   @Get('/contest')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'offset', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiOkResponse({
@@ -88,6 +92,7 @@ export class SubmissionController {
   @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.Admin, Role.User)
   @Get('/problem/:problemId/latest')
+  @ApiBearerAuth()
   @ApiOkResponse({ type: SubmissionWithSourceCodeDTO })
   @ApiNotFoundResponse({ description: 'Submission for the problem not found' })
   @ApiNotFoundResponse({ description: 'Problem not found' })
@@ -106,6 +111,7 @@ export class SubmissionController {
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: UploadFileDTO })
   @Post('/problem/:problemId')
+  @ApiBearerAuth()
   @ApiCreatedResponse({ description: 'Submit successfully' })
   @ApiNotFoundResponse({ description: 'Problem not found' })
   @UseInterceptors(FileInterceptor('sourceCode'))
@@ -123,6 +129,7 @@ export class SubmissionController {
 
   @Roles(Role.User, Role.Admin)
   @Get('/latest')
+  @ApiBearerAuth()
   @ApiOkResponse({
     type: SubmissionDTO,
     description: 'Get the latest submission',
@@ -133,6 +140,7 @@ export class SubmissionController {
 
   @Roles(Role.User, Role.Admin)
   @Get('/user/:userId')
+  @ApiBearerAuth()
   @ApiQuery({ name: 'offset', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
   @ApiOkResponse({

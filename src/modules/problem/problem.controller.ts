@@ -18,6 +18,7 @@ import {
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConsumes,
   ApiCreatedResponse,
@@ -128,6 +129,7 @@ export class ProblemController {
   //Admin route
   @Roles(Role.Admin)
   @Patch('/:problemId')
+  @ApiBearerAuth()
   @ApiBody({ type: ToggleProblemDTO })
   @ApiOkResponse({ type: ProblemDTO, description: 'Toggle problem show state' })
   @ApiNotFoundResponse({ description: 'Problem not found' })
@@ -140,6 +142,7 @@ export class ProblemController {
 
   @Roles(Role.Admin)
   @Post()
+  @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: CreateProblemDTO })
   @ApiCreatedResponse({
@@ -166,6 +169,7 @@ export class ProblemController {
 
   @Roles(Role.Admin)
   @Put('/:problemId')
+  @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: EditProblemDTO })
   @ApiOkResponse({
@@ -193,6 +197,7 @@ export class ProblemController {
 
   @Roles(Role.Admin)
   @Delete('/:problemId')
+  @ApiBearerAuth()
   @ApiOkResponse({
     type: ProblemDTO,
     description: 'problem deleted detail',
@@ -203,6 +208,7 @@ export class ProblemController {
 
   @Roles(Role.Admin)
   @Put('/:problemId/examples')
+  @ApiBearerAuth()
   @ApiOkResponse({
     // type: ProblemDTO,
     description: 'Update problem example testcases',

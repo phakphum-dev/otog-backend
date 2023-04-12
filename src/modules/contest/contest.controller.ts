@@ -14,6 +14,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiCreatedResponse,
   ApiNotFoundResponse,
@@ -118,6 +119,7 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Post()
+  @ApiBearerAuth()
   @ApiBody({ type: CreateContestDTO })
   @ApiCreatedResponse({ description: 'Contest created succussfully' })
   create(@Body() createContest: CreateContestDTO) {
@@ -126,6 +128,7 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Patch('/:contestId')
+  @ApiBearerAuth()
   @ApiBody({ type: PatchContestDTO })
   @ApiResponse({
     status: 200,
@@ -142,6 +145,7 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Put('/:contestId')
+  @ApiBearerAuth()
   @ApiBody({ type: UpdateContestDTO })
   @ApiResponse({
     status: 200,
@@ -158,6 +162,7 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Delete('/:contestId')
+  @ApiBearerAuth()
   @ApiResponse({
     status: 200,
     description: 'Delete contest',
@@ -170,6 +175,7 @@ export class ContestController {
 
   @Roles(Role.Admin)
   @Post('/:contestId/signup')
+  @ApiBearerAuth()
   addUserToContest(
     @Param('contestId', ParseIntPipe) contestId: number,
     @Body('userId', ParseIntPipe) userId: number,
