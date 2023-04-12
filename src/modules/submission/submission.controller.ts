@@ -177,24 +177,41 @@ export class SubmissionController {
   }
 
   @OfflineAccess(AccessState.Authenticated)
-  @Roles(Role.User, Role.Admin)
   @Get('/:resultId')
   @ApiOkResponse({
-    type: SubmissionWithSourceCodeDTO,
+    type: SubmissionDTO,
     description: 'Get submission by id',
   })
   @ApiNotFoundResponse({ description: 'Submission not found' })
+  async getSubmissionById(@Param('resultId', ParseIntPipe) resultId: number) {
+    const submission = await this.submissionService.findOneByResultId(resultId);
+    if (!submission) {
+      throw new NotFoundException();
+    }
+    return submission;
+  }
+
+  @OfflineAccess(AccessState.Authenticated)
+  @Get('/:resultId/code')
+  @ApiOkResponse({
+    type: SubmissionWithSourceCodeDTO,
+    description: 'Get submission with source code by id',
+  })
+  @ApiNotFoundResponse({ description: 'Submission not found' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
-  async getSubmissionById(
+  async getSubmissionWithCodeById(
     @Param('resultId', ParseIntPipe) resultId: number,
     @User() user: UserDTO,
   ) {
-    const submission = await this.submissionService.findOneByResultId(resultId);
-    if (!submission) throw new NotFoundException();
-
-    if (submission.user.id !== user.id && user.role !== Role.Admin)
+    const submission = await this.submissionService.findOneByResultIdWithCode(
+      resultId,
+    );
+    if (!submission) {
+      throw new NotFoundException();
+    }
+    if (submission.user.id !== user.id && user.role !== Role.Admin) {
       throw new ForbiddenException();
-
+    }
     return submission;
   }
 }

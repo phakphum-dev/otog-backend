@@ -58,11 +58,15 @@ export class SubmissionService {
   }
 
   async findOneByResultId(resultId: number) {
-    return await this.submissionRepository.scope('full').findOne({
+    return this.submissionRepository
+      .scope('full')
+      .findOne({ where: { id: resultId } });
+  }
+
+  async findOneByResultIdWithCode(resultId: number) {
+    return this.submissionRepository.scope('full').findOne({
       where: { id: resultId },
-      attributes: {
-        include: ['sourceCode'],
-      },
+      attributes: { include: ['sourceCode'] },
     });
   }
 
