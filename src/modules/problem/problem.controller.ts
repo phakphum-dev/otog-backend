@@ -4,6 +4,7 @@ import {
   Delete,
   ForbiddenException,
   Get,
+  NotFoundException,
   Param,
   ParseBoolPipe,
   ParseIntPipe,
@@ -82,8 +83,13 @@ export class ProblemController {
     @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
   ) {
-    const problem = await this.problemService.findOneById(problemId);
-    if (problem?.show == false && user.role != Role.Admin) {
+    const problem = await this.problemService.findOneByIdWithExamples(
+      problemId,
+    );
+    if (!problem) {
+      throw new NotFoundException();
+    }
+    if (problem.show === false && user.role !== Role.Admin) {
       throw new ForbiddenException();
     }
     return problem;

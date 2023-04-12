@@ -155,7 +155,14 @@ export class ProblemService {
   }
 
   async findOneById(id: number): Promise<Problem> {
-    return await this.problemRepository.findOne({ where: { id } });
+    return this.problemRepository.findOne({ where: { id } });
+  }
+
+  async findOneByIdWithExamples(id: number): Promise<Problem> {
+    return this.problemRepository.findOne({
+      where: { id },
+      attributes: { include: ['examples'] },
+    });
   }
 
   async getProblemDocDir(problem: Problem): Promise<string> {

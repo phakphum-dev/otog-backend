@@ -12,6 +12,9 @@ import { Submission } from './submission.entity';
 
 @DefaultScope(() => ({
   order: [['id', 'DESC']],
+  attributes: {
+    exclude: ['examples'],
+  },
 }))
 @Table({ tableName: 'problem' })
 export class Problem extends Model {
