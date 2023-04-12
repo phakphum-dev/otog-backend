@@ -193,6 +193,7 @@ export class SubmissionController {
 
   @OfflineAccess(AccessState.Authenticated)
   @Get('/:resultId/code')
+  @ApiBearerAuth()
   @ApiOkResponse({
     type: SubmissionWithSourceCodeDTO,
     description: 'Get submission with source code by id',
