@@ -28,6 +28,7 @@ import {
 } from '@nestjs/swagger';
 import {
   LatestSubmissionDTO,
+  LatestSubmissionWithSourceCodeDTO,
   SubmissionDTO,
   SubmissionWithSourceCodeDTO,
   UploadFileDTO,
@@ -94,17 +95,20 @@ export class SubmissionController {
   @Roles(Role.Admin, Role.User)
   @Get('/problem/:problemId/latest')
   @ApiBearerAuth()
-  @ApiOkResponse({ type: SubmissionWithSourceCodeDTO })
+  @ApiOkResponse({ type: LatestSubmissionWithSourceCodeDTO })
   @ApiNotFoundResponse({ description: 'Submission for the problem not found' })
   @ApiNotFoundResponse({ description: 'Problem not found' })
-  getLatestSubmissionByProblemId(
+  async getLatestSubmissionByProblemId(
     @Param('problemId', ParseIntPipe) problemId: number,
     @User() user: UserDTO,
   ) {
-    return this.submissionService.findOneByProblemIdAndUserId(
-      problemId,
-      user.id,
-    );
+    return {
+      latestSubmission:
+        await this.submissionService.findOneByProblemIdAndUserId(
+          problemId,
+          user.id,
+        ),
+    };
   }
 
   @OfflineAccess(AccessState.Authenticated)

@@ -50,6 +50,10 @@ export class UploadFileDTO {
   readonly sourceCode: unknown;
 }
 
+export class LatestSubmissionWithSourceCodeDTO {
+  latestSubmission: SubmissionWithSourceCodeDTO;
+}
+
 export class LatestSubmissionDTO {
   latestSubmission: SubmissionDTO;
 }
