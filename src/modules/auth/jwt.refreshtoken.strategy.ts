@@ -28,10 +28,14 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
 
   async validate(req: Request, payload: JwtPayloadDTO): Promise<UserDTO> {
     const refreshTokenId = req.cookies['RID'];
-    const { jti, id } = payload;
-    if (!(await this.authService.validateToken(refreshTokenId, jti))) {
-      throw new ForbiddenException();
+    if (!refreshTokenId) {
+      throw new ForbiddenException('No refresh token');
     }
+    if (!payload) {
+      throw new ForbiddenException('No access token');
+    }
+    const { jti, id } = payload;
+    await this.authService.validateToken(refreshTokenId, jti);
     const user = await this.userService.findOneById(id);
     const userAuthDTO = new UserDTO(user);
     return userAuthDTO;

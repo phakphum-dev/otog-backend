@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { sha256 } from 'js-sha256';
 import { REFRESHTOKEN_REPOSITORY } from 'src/core/constants';
@@ -77,31 +77,18 @@ export class AuthService {
   }
 
   async validateToken(refreshTokenId: string, jwtId: string) {
-    // fetch refreshToken
     const refreshToken = await this.findOneByRID(refreshTokenId);
-
-    //check refresh token is valid and match jwt
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
-      console.log('access token and refresh token mismatch.');
-      return false;
+      throw new ForbiddenException('Access token and refresh token mismatch.');
     }
-
-    //check refresh expire
     if (!this.isRefreshTokenExpired(refreshToken)) {
-      console.log('refresh token expired.');
-      return false;
+      throw new ForbiddenException('Refresh token expired.');
     }
-
-    //check refresh token used
     if (!this.isRefreshTokenUsed(refreshToken)) {
-      console.log('refresh token used.');
-      return false;
+      throw new ForbiddenException('refresh token used.');
     }
-
     refreshToken.used = true;
     await refreshToken.save();
-
-    return true;
   }
 
   isRefreshTokenLinkedToToken(refreshToken: RefreshToken, jwtId: string) {
