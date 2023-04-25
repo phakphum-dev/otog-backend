@@ -27,6 +27,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import {
+  LatestSubmissionDTO,
   SubmissionDTO,
   SubmissionWithSourceCodeDTO,
   UploadFileDTO,
@@ -131,11 +132,13 @@ export class SubmissionController {
   @Get('/latest')
   @ApiBearerAuth()
   @ApiOkResponse({
-    type: SubmissionDTO,
+    type: LatestSubmissionDTO,
     description: 'Get the latest submission',
   })
-  getLatestSubmissionWithUserId(@User() user: UserDTO) {
-    return this.submissionService.findOneByUserId(user.id);
+  async getLatestSubmissionWithUserId(@User() user: UserDTO) {
+    return {
+      latestSubmission: await this.submissionService.findOneByUserId(user.id),
+    };
   }
 
   @Roles(Role.User, Role.Admin)

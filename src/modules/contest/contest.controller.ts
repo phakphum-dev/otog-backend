@@ -33,6 +33,7 @@ import { ContestService } from './contest.service';
 import {
   ContestDTO,
   CreateContestDTO,
+  LatestContestDTO,
   PatchContestDTO,
   ResPatchContestDTO,
   ScoreboardDTO,
@@ -59,11 +60,13 @@ export class ContestController {
   @OfflineAccess(AccessState.Authenticated)
   @Get('/now')
   @ApiOkResponse({
-    type: ContestDTO,
+    type: LatestContestDTO,
     description: 'Get current contest',
   })
-  getCurrentContest() {
-    return this.contestService.currentContest();
+  async getCurrentContest() {
+    return {
+      currentContest: await this.contestService.currentContest(),
+    };
   }
 
   @OfflineAccess(AccessState.Authenticated)

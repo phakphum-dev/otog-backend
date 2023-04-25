@@ -49,3 +49,7 @@ export class UploadFileDTO {
 
   readonly sourceCode: unknown;
 }
+
+export class LatestSubmissionDTO {
+  latestSubmission: SubmissionDTO;
+}

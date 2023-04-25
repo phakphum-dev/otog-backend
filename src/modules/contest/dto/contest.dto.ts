@@ -22,6 +22,10 @@ export class ContestDTO extends ContestDTOBase {
   readonly problems: ProblemDTO[] | undefined;
 }
 
+export class LatestContestDTO {
+  latestSubmission: ContestDTO;
+}
+
 export class UpdateContestDTO extends OmitType(ContestDTOBase, [
   'id',
 ] as const) {}
