@@ -14,7 +14,7 @@ async function bootstrap() {
   app.use(cookieParser());
   app.enableCors({
     credentials: true,
-    origin: 'https://otog.cf',
+    origin: true,
   });
   const reflector = app.get(Reflector);
   app.useGlobalGuards(
