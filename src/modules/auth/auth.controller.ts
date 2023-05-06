@@ -15,6 +15,7 @@ import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { AccessState } from 'src/core/constants';
+import { configuration } from 'src/core/config/configuration';
 
 @ApiTags('auth')
 @Public()
@@ -61,8 +62,7 @@ export class AuthController {
     return res
       .cookie('RID', token.refreshToken, {
         httpOnly: true,
-        secure: true,
-        domain: '.otog.cf',
+        domain: configuration().domain,
       })
       .json(authResDTO);
   }
@@ -87,7 +87,10 @@ export class AuthController {
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;
     return res
-      .cookie('RID', token.refreshToken, { httpOnly: true })
+      .cookie('RID', token.refreshToken, {
+        httpOnly: true,
+        domain: configuration().domain,
+      })
       .json(authResDTO);
   }
 }

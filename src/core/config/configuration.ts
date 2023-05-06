@@ -5,6 +5,7 @@ export const configuration = () => ({
   port: parseInt(process.env.PORT) || 3001,
   jwtSecret: process.env.JWT_SECRET,
   offlineMode: process.env.OFFLINE_MODE === 'true',
+  domain: process.env.COOKIE_DOMAIN,
   jwtOption: {
     secret: process.env.JWT_SECRET,
     signOptions: {
