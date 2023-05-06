@@ -59,7 +59,11 @@ export class AuthController {
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;
     return res
-      .cookie('RID', token.refreshToken, { httpOnly: true })
+      .cookie('RID', token.refreshToken, {
+        httpOnly: true,
+        secure: true,
+        domain: '.otog.cf',
+      })
       .json(authResDTO);
   }
 
