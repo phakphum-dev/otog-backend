@@ -9,7 +9,7 @@ export const configuration = () => ({
   jwtOption: {
     secret: process.env.JWT_SECRET,
     signOptions: {
-      expiresIn: '15m',
+      expiresIn: '1d',
     },
   },
   db: {
