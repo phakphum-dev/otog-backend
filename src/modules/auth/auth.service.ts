@@ -64,7 +64,7 @@ export class AuthService {
     return { accessToken, refreshToken };
   }
 
-  async generateRefreshToken(user: UserDTO, jwtId: string): Promise<string> {
+  async generateRefreshToken(user: UserDTO, jwtId: string) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 2);
     const refreshToken = new RefreshToken();
@@ -73,7 +73,7 @@ export class AuthService {
     refreshToken.jwtId = jwtId;
     refreshToken.expiryDate = expiryDate;
     await refreshToken.save();
-    return refreshToken.id;
+    return { id: refreshToken.id, expiryDate: refreshToken.expiryDate };
   }
 
   async validateToken(refreshTokenId: string, jwtId: string) {

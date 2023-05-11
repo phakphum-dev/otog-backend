@@ -60,9 +60,10 @@ export class AuthController {
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;
     return res
-      .cookie('RID', token.refreshToken, {
+      .cookie('RID', token.refreshToken.id, {
         httpOnly: true,
         domain: configuration().domain,
+        expires: token.refreshToken.expiryDate,
       })
       .json(authResDTO);
   }
@@ -87,9 +88,10 @@ export class AuthController {
     authResDTO.user = user;
     authResDTO.accessToken = token.accessToken;
     return res
-      .cookie('RID', token.refreshToken, {
+      .cookie('RID', token.refreshToken.id, {
         httpOnly: true,
         domain: configuration().domain,
+        expires: token.refreshToken.expiryDate,
       })
       .json(authResDTO);
   }
