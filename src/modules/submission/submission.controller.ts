@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Query,
   UploadedFile,
@@ -41,6 +42,7 @@ import { UserDTO } from '../user/dto/user.dto';
 import { ContestService } from '../contest/contest.service';
 import { OptionalIntPipe } from 'src/utils/optional.pipe';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
+import { Status } from 'src/core/constants';
 
 @ApiTags('submission')
 @Controller('submission')
@@ -221,5 +223,42 @@ export class SubmissionController {
       throw new ForbiddenException();
     }
     return submission;
+  }
+
+  @Roles(Role.Admin)
+  @Patch('/:resultId/rejudge')
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    type: SubmissionWithSourceCodeDTO,
+    description: 'Rejudge a submission by setting status to waiting',
+  })
+  @ApiNotFoundResponse({ description: 'Submission not found' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  async rejudgeSubmission(@Param('resultId', ParseIntPipe) resultId: number) {
+    const submission = await this.submissionService.findOneByResultId(resultId);
+    if (!submission) {
+      throw new NotFoundException();
+    }
+    submission.status = Status.Waiting;
+    return await submission.save();
+  }
+
+  @Roles(Role.Admin)
+  @Patch('problem/:problemId/rejudge')
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    description: 'Rejudge all latest submission of a problem',
+  })
+  @ApiNotFoundResponse({ description: 'ProblemId not found' })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  async rejudgeProblem(@Param('problemId', ParseIntPipe) problemId: number) {
+    const submissions = await this.submissionService.findAllLatestSubmission(
+      problemId,
+    );
+    await Promise.all(
+      submissions.map((submission) =>
+        submission.update({ status: Status.Waiting }),
+      ),
+    );
   }
 }

@@ -174,4 +174,22 @@ export class SubmissionService {
       nest: true,
     });
   }
+
+  findAllLatestSubmission(problemId: number) {
+    return this.submissionRepository.findAll({
+      attributes: {
+        include: ['userId', 'problemId'],
+      },
+      where: {
+        id: {
+          [Op.in]: [
+            literal(
+              `SELECT MAX(id) FROM submission WHERE "submission"."problemId" = ${problemId} GROUP BY "submission"."userId"`,
+            ),
+          ],
+        },
+      },
+      nest: true,
+    });
+  }
 }
