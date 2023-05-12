@@ -48,10 +48,13 @@ export class AnnouncementController {
     description: 'Get announcements depending on user permission',
   })
   getAllAnnouncement(@User() user: UserDTO) {
+    // TODO find all only if contestId null
     return user?.role === Role.Admin
       ? this.announcementService.findAll()
       : this.announcementService.findShown();
   }
+
+  // TODO all announcement for contestId
 
   @Roles(Role.Admin)
   @Post()
@@ -62,6 +65,7 @@ export class AnnouncementController {
   @ApiBody({
     type: CreateAnnouncementDTO,
   })
+  // TODO contestId?
   createAnnouncement(@Body('value') value: object) {
     return this.announcementService.create(value);
   }

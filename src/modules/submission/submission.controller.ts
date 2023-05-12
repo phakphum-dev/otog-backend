@@ -129,6 +129,7 @@ export class SubmissionController {
     @Body() data: UploadFileDTO,
   ) {
     if (data.contestId) {
+      // TODO validate user if contest is private
       await this.contestService.addUserToContest(data.contestId, user.id);
     }
     return this.submissionService.create(user, problemId, data, file);

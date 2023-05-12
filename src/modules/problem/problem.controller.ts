@@ -124,6 +124,7 @@ export class ProblemController {
 
     const problem = await this.problemService.findOneById(problemId);
     if (problem?.show == false && user?.role != Role.Admin) {
+      // TODO validate user if contest is private
       const contest =
         await this.contestService.getStartedAndUnFinishedContest();
       if (!contest || !contest.problems.some((e) => e.id === problem.id))

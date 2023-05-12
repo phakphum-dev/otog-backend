@@ -64,6 +64,7 @@ export class ContestController {
     description: 'Get current contest',
   })
   async getCurrentContest() {
+    // TODO not private
     return {
       currentContest: await this.contestService.currentContest(),
     };
@@ -96,6 +97,7 @@ export class ContestController {
     } catch (e: unknown) {
       throw new NotFoundException();
     }
+    // TODO validate user if contest is private
     if (user?.role === Role.Admin || new Date() > new Date(contest.timeEnd)) {
       return contest;
     }
@@ -111,12 +113,15 @@ export class ContestController {
   async getContestPrizeById(
     @Param('contestId', ParseIntPipe) contestId: number,
   ) {
+    // TODO validate user if contest is private
     try {
       return await this.contestService.scoreboardPrizeByContestId(contestId);
     } catch (e: unknown) {
       throw new NotFoundException();
     }
   }
+
+  //  TODO have i join the contest
 
   //Admin Only
 
@@ -185,4 +190,6 @@ export class ContestController {
   ) {
     return this.contestService.addUserToContest(contestId, userId);
   }
+
+  //  TODO who have join the contest?
 }

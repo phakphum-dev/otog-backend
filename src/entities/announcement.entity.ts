@@ -21,4 +21,6 @@ export class Announcement extends Model {
   @Default(false)
   @Column
   show: boolean;
+
+  // TODO add announcement for contestId
 }

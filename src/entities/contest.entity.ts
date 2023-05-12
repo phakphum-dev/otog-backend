@@ -69,4 +69,6 @@ export class Contest extends Model {
 
   @BelongsToMany(() => User, () => UserContest)
   users: User[];
+
+  // TODO add private
 }
