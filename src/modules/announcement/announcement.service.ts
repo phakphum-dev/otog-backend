@@ -23,13 +23,13 @@ export class AnnouncementService {
   }
 
   async findAll() {
-    return this.announcementRepository.findAll({ order: [['id', 'ASC']] });
+    return this.announcementRepository.findAll({ order: [['id', 'DESC']] });
   }
 
   async findShown() {
     return this.announcementRepository.findAll({
       where: { show: true },
-      order: [['id', 'ASC']],
+      order: [['id', 'DESC']],
     });
   }
 
