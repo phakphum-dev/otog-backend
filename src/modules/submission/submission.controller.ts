@@ -5,6 +5,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
@@ -220,10 +221,45 @@ export class SubmissionController {
     if (!submission) {
       throw new NotFoundException();
     }
-    if (submission.user.id !== user.id && user.role !== Role.Admin) {
+    if (
+      !(
+        submission.public ||
+        submission.user.id === user.id ||
+        user.role === Role.Admin
+      )
+    ) {
       throw new ForbiddenException();
     }
     return submission;
+  }
+
+  @Roles(Role.User, Role.Admin)
+  @Patch('/:resultId/share')
+  @ApiBearerAuth()
+  @ApiOkResponse({
+    type: SubmissionWithSourceCodeDTO,
+  })
+  @ApiNotFoundResponse({ description: 'Submission not found' })
+  @ApiBadRequestResponse({
+    description: 'Validation failed (numeric string is expected)',
+  })
+  @ApiForbiddenResponse({ description: 'Forbidden' })
+  async shareSubmission(
+    @User() user: UserDTO,
+    @Param('resultId', ParseIntPipe) resultId: number,
+    @Body('show', ParseBoolPipe) show: boolean,
+  ) {
+    const submission = await this.submissionService.findOneByResultIdWithCode(
+      resultId,
+    );
+    if (!submission) {
+      throw new NotFoundException();
+    }
+    if (!(user.id === submission.user.id || user.role === Role.Admin)) {
+      throw new ForbiddenException();
+    }
+    submission.public = show;
+    return await submission.save();
   }
 
   @Roles(Role.Admin)

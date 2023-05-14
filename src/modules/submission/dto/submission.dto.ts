@@ -26,6 +26,8 @@ export class SubmissionDTO {
   readonly problem: ProblemDTO;
 
   readonly user: UserDTO;
+
+  readonly share: boolean;
 }
 
 export class SubmissionForScoreboardDTO extends PickType(SubmissionDTO, [

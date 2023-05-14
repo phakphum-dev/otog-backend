@@ -85,6 +85,9 @@ export class Submission extends Model {
   })
   sourceCode: string;
 
+  @Column({ defaultValue: false })
+  public: boolean;
+
   @Column
   language: string;
 
