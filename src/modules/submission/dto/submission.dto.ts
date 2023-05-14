@@ -59,3 +59,7 @@ export class LatestSubmissionWithSourceCodeDTO {
 export class LatestSubmissionDTO {
   latestSubmission: SubmissionDTO;
 }
+
+export class PublicSubmissionDTO {
+  readonly show: boolean;
+}

@@ -31,6 +31,7 @@ import {
 import {
   LatestSubmissionDTO,
   LatestSubmissionWithSourceCodeDTO,
+  PublicSubmissionDTO,
   SubmissionDTO,
   SubmissionWithSourceCodeDTO,
   UploadFileDTO,
@@ -238,6 +239,9 @@ export class SubmissionController {
   @ApiBearerAuth()
   @ApiOkResponse({
     type: SubmissionWithSourceCodeDTO,
+  })
+  @ApiBody({
+    type: PublicSubmissionDTO,
   })
   @ApiNotFoundResponse({ description: 'Submission not found' })
   @ApiBadRequestResponse({
