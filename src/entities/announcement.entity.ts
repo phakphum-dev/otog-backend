@@ -22,5 +22,9 @@ export class Announcement extends Model {
   @Column
   show: boolean;
 
-  // TODO add announcement for contestId
+  @Column({
+    allowNull: true,
+    defaultValue: null,
+  })
+  contestId: number | null;
 }

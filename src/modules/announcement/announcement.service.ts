@@ -23,18 +23,35 @@ export class AnnouncementService {
   }
 
   async findAll() {
-    return this.announcementRepository.findAll({ order: [['id', 'DESC']] });
+    return this.announcementRepository.findAll({
+      order: [['id', 'DESC']],
+      where: { contestId: null },
+    });
   }
 
   async findShown() {
     return this.announcementRepository.findAll({
-      where: { show: true },
+      where: { show: true, contestId: null },
       order: [['id', 'DESC']],
     });
   }
 
-  async create(value: object) {
-    return this.announcementRepository.create({ value });
+  async findAllWithContestId(contestId: number) {
+    return this.announcementRepository.findAll({
+      order: [['id', 'DESC']],
+      where: { contestId },
+    });
+  }
+
+  async findShownWithContestId(contestId: number) {
+    return this.announcementRepository.findAll({
+      where: { show: true, contestId },
+      order: [['id', 'DESC']],
+    });
+  }
+
+  async create(value: object, contestId: number | null = null) {
+    return this.announcementRepository.create({ value, contestId });
   }
 
   async delete(announcementId: number) {
