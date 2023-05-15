@@ -1,5 +1,5 @@
 export function scodeFileFilter(file: Express.Multer.File) {
-  if (!file.originalname.match(/\.(c|cpp|py)$/)) {
+  if (!file.originalname.match(/\.(c|cpp|cc|py)$/)) {
     return false;
   }
   return true;
