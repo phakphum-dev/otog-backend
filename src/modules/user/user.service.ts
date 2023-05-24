@@ -1,21 +1,28 @@
 import {
   BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { sha256 } from 'js-sha256';
-import { Op } from 'sequelize';
-import { ContestMode, Role, USER_REPOSITORY } from 'src/core/constants';
-import { Contest } from 'src/entities/contest.entity';
+import { Role } from 'src/core/constants';
 import { userList } from 'src/utils';
 import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
-import { UpdateUserDTO, UserDTO } from './dto/user.dto';
+import { UpdateUserDTO } from './dto/user.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { ContestMode } from '@prisma/client';
+
+const WITHOUT_PASSWORD = {
+  id: true,
+  username: true,
+  showName: true,
+  role: true,
+  rating: true,
+} as const;
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(USER_REPOSITORY) private userRepository: typeof User) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateUserDTO) {
     const userNameExists = await this.findOneByUsername(data.username);
@@ -41,29 +48,31 @@ export class UserService {
     return { message: 'Create user complete.', status: true };
   }
 
-  async findAll(): Promise<UserDTO[]> {
-    const result = await this.userRepository.findAll({
-      order: [['id', 'DESC']],
+  async findAll() {
+    return this.prisma.user.findMany({
+      orderBy: { id: 'desc' },
+      select: WITHOUT_PASSWORD,
     });
-    const userDTO = result.map((item) => new UserDTO(item));
-    return userDTO;
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneByUsername(username: string) {
+    return this.prisma.user.findUnique({
       where: { username },
+      select: WITHOUT_PASSWORD,
     });
   }
 
-  async findOneById(id: number): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneById(id: number) {
+    return this.prisma.user.findUnique({
       where: { id },
+      select: WITHOUT_PASSWORD,
     });
   }
 
-  async findOneByShowName(showName: string): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneByShowName(showName: string) {
+    return this.prisma.user.findUnique({
       where: { showName },
+      select: WITHOUT_PASSWORD,
     });
   }
 
@@ -72,36 +81,27 @@ export class UserService {
     if (showNameExists) {
       throw new ConflictException('showName was taken.');
     }
-    const user = await this.findOneById(id);
-    user.showName = showName;
-    await user.save();
-    return new UserDTO(user);
+    return this.prisma.user.update({
+      where: { id },
+      data: { showName },
+      select: WITHOUT_PASSWORD,
+    });
   }
 
-  async getUserProfileById(id: number): Promise<User> {
-    return await this.userRepository.scope('noPass').findOne({
-      where: {
-        id,
-      },
-      include: [
-        {
-          model: Contest,
-          where: {
-            mode: ContestMode.Rated,
+  async getUserProfileById(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        ...WITHOUT_PASSWORD,
+        userContest: {
+          select: {
+            contest: true,
+            rank: true,
+            ratingAfterUpdate: true,
           },
-          through: {
-            attributes: ['rank', 'ratingAfterUpdate'],
-            as: 'detail',
-            where: {
-              rank: {
-                [Op.not]: null,
-              },
-            },
-          },
-          attributes: ['id', 'name', 'timeEnd'],
-          required: false,
+          where: { rank: { not: null }, contest: { mode: ContestMode.rated } },
         },
-      ],
+      },
     });
   }
 
@@ -116,12 +116,17 @@ export class UserService {
   }
 
   async updateUser(userId: number, userData: UpdateUserDTO) {
-    const user = await this.findOneById(userId);
     if (userData.password) {
       const hash = sha256.create();
       hash.update(userData.password);
-      return user.update({ ...userData, password: hash.hex() });
+      return this.prisma.user.update({
+        where: { id: userId },
+        data: { password: hash.hex() },
+      });
     }
-    return user.update({ ...userData, password: undefined });
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: userData,
+    });
   }
 }

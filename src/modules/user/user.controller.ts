@@ -45,7 +45,7 @@ export class UserController {
     isArray: true,
     description: 'Get all registered users',
   })
-  getAllUsers(): Promise<UserDTO[]> {
+  getAllUsers() {
     return this.userService.findAll();
   }
 

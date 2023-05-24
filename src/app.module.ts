@@ -11,6 +11,7 @@ import { ChatModule } from './modules/chat/chat.module';
 import { ConfigModule } from '@nestjs/config';
 import { configuration } from './core/config/configuration';
 import { AnnouncementModule } from './modules/announcement/announcement.module';
+import { PrismaModule } from './core/database/prisma.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -18,14 +19,15 @@ import { AnnouncementModule } from './modules/announcement/announcement.module';
       load: [configuration],
       isGlobal: true,
     }),
-    DatabaseModule,
+    PrismaModule,
+    // DatabaseModule,
     UserModule,
     AuthModule,
-    ProblemModule,
-    SubmissionModule,
-    ContestModule,
-    ChatModule,
-    AnnouncementModule,
+    // ProblemModule,
+    // SubmissionModule,
+    // ContestModule,
+    // ChatModule,
+    // AnnouncementModule,
   ],
   controllers: [AppController],
   providers: [AppService],
