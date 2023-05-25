@@ -46,6 +46,7 @@ import {
   UploadedFilesObject,
 } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('problem')
 @Controller('problem')
@@ -65,11 +66,13 @@ export class ProblemController {
     description: 'Get problems depends on user permission',
   })
   async getAllProblems(@User() user: UserDTO) {
-    return user
-      ? user.role == Role.Admin
-        ? await this.problemService.findAllWithSubmissionByUserId_ADMIN(user.id)
-        : await this.problemService.findAllWithSubmissionByUserId(user.id)
-      : await this.problemService.findAllNotShow();
+    if (user.role === Role.Admin) {
+      return this.problemService.findAllWithSubmission(user.id);
+    }
+    if (user) {
+      return this.problemService.findOnlyShownWithSubmission(user.id);
+    }
+    return this.problemService.findOnlyShown();
   }
 
   @Get('/:problemId')
@@ -103,7 +106,7 @@ export class ProblemController {
   })
   @ApiNotFoundResponse({ description: 'Problem not found' })
   async getUserAccept(@Param('problemId', ParseIntPipe) problemId: number) {
-    return this.problemService.findAllUserAcceptByProblemId(problemId);
+    return this.problemService.findPassedUser(problemId);
   }
 
   @OfflineAccess(AccessState.Public)
@@ -123,14 +126,14 @@ export class ProblemController {
     }
 
     const problem = await this.problemService.findOneById(problemId);
-    if (problem?.show == false && user?.role != Role.Admin) {
+    if (problem?.show === false && user?.role !== Role.Admin) {
       // TODO validate user if contest is private
       const contest =
         await this.contestService.getStartedAndUnFinishedContest();
       if (!contest || !contest.problems.some((e) => e.id === problem.id))
         throw new ForbiddenException();
     }
-    return res.sendFile(await this.problemService.getProblemDocDir(problem));
+    return res.sendFile(await this.problemService.getProblemDocDir(problem.id));
   }
 
   //Admin route
@@ -168,7 +171,7 @@ export class ProblemController {
     ),
   )
   createProblem(
-    @Body() createProblem: CreateProblemDTO,
+    @Body() createProblem: Prisma.ProblemCreateInput,
     @UploadedFiles() files: UploadedFilesObject,
   ) {
     return this.problemService.create(createProblem, files);
@@ -199,7 +202,7 @@ export class ProblemController {
     @Body() newProblem: EditProblemDTO,
     @UploadedFiles() files: UploadedFilesObject,
   ) {
-    return this.problemService.ReplaceByProblemId(problemId, newProblem, files);
+    return this.problemService.replaceByProblemId(problemId, newProblem, files);
   }
 
   @Roles(Role.Admin)

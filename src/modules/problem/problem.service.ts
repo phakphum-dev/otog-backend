@@ -1,226 +1,202 @@
 import {
   BadRequestException,
-  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PROBLEM_REPOSITORY } from 'src/core/constants';
-import { Problem } from '../../entities/problem.entity';
-import { Submission } from 'src/entities/submission.entity';
-import { Op, literal } from 'sequelize';
-import {
-  CreateProblemDTO,
-  EditProblemDTO,
-  UploadedFilesObject,
-} from './dto/problem.dto';
-import { SubmissionService } from '../submission/submission.service';
-import { lowerBound, upperBound } from 'src/utils';
+import { UploadedFilesObject } from './dto/problem.dto';
 import {
   getProblemDocDir,
   removeProblemSource,
   updateProblemDoc,
   updateProblemTestCase,
 } from 'src/utils/file.util';
+import { Prisma, Problem, SubmissionStatus, User } from '@prisma/client';
+import { PrismaService } from 'src/core/database/prisma.service';
+
+type ProblemNoExample = Omit<Problem, 'example'>;
+type PassedCount = { passedCount: number };
+type LatestSubmission = {
+  latestSubmissionId: number | null;
+  status: SubmissionStatus | null;
+};
+type ProblemWithDetail = ProblemNoExample & PassedCount & LatestSubmission;
+type PassedUser = Pick<
+  User,
+  'id' | 'role' | 'username' | 'showName' | 'rating'
+>;
+
+export const WITHOUT_EXAMPLE = {
+  id: true,
+  name: true,
+  sname: true,
+  score: true,
+  timeLimit: true,
+  memoryLimit: true,
+  show: true,
+  recentShowTime: true,
+  case: true,
+  rating: true,
+};
+
 @Injectable()
 export class ProblemService {
-  constructor(
-    @Inject(PROBLEM_REPOSITORY) private problemRepository: typeof Problem,
-    private submissionService: SubmissionService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(
-    createProblem: CreateProblemDTO,
+    problemData: Prisma.ProblemCreateInput,
     files: UploadedFilesObject,
-  ): Promise<Problem> {
+  ) {
     try {
-      const problem = new Problem();
-      problem.name = createProblem.name;
-      problem.score = createProblem.score;
-      problem.timeLimit = createProblem.timeLimit;
-      problem.memoryLimit = createProblem.memoryLimit;
-      problem.case = createProblem.case;
-      problem.show = false;
-      await problem.save();
-
+      const problem = await this.prisma.problem.create({
+        data: {
+          name: problemData.name,
+          score: problemData.score,
+          timeLimit: problemData.timeLimit,
+          memoryLimit: problemData.memoryLimit,
+          case: problemData.case,
+          show: false,
+        },
+      });
       if (files.pdf) {
         await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
       }
-
       if (files.zip) {
         await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
       }
-
       return problem;
     } catch (err) {
       console.log(err);
-
       throw new BadRequestException();
     }
   }
 
-  async ReplaceByProblemId(
+  async replaceByProblemId(
     problemId: number,
-    newProblem: EditProblemDTO,
+    problemData: Prisma.ProblemUpdateInput,
     files: UploadedFilesObject,
-  ): Promise<Problem> {
+  ) {
     try {
-      const problem = await this.findOneById(problemId);
-      problem.name = newProblem.name;
-      problem.score = newProblem.score;
-      problem.timeLimit = newProblem.timeLimit;
-      problem.memoryLimit = newProblem.memoryLimit;
-      problem.case = newProblem.case;
-      await problem.save();
-
+      const problem = await this.prisma.problem.update({
+        data: {
+          name: problemData.name,
+          score: problemData.score,
+          timeLimit: problemData.timeLimit,
+          memoryLimit: problemData.memoryLimit,
+          case: problemData.case,
+        },
+        where: { id: problemId },
+      });
       if (files.pdf) {
         await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
       }
-
       if (files.zip) {
         await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
       }
-
       return problem;
     } catch (err) {
       throw new BadRequestException();
     }
   }
 
-  async findAllNotShow() {
-    const problem = await this.problemRepository.findAll({
-      where: {
-        show: true,
-      },
-      group: ['id'],
-      raw: true,
-      nest: true,
-    });
-    const latestAccept = await this.submissionService.findAllLatestAccept();
-    return this.addPassedCountToProblem(problem, latestAccept);
+  async findOnlyShown() {
+    return this.prisma.$queryRaw<Array<ProblemNoExample & PassedCount>>`
+      SELECT "id", "name", "sname", "score", "timeLimit", "memoryLimit", "show", "recentShowTime", "case", "rating", COALESCE("passedCount", 0) as "passedCount" FROM (
+        SELECT COUNT(*)::integer AS "passedCount", "problemId" FROM (
+          SELECT "submissionId", "submission"."problemId", submission."userId" FROM (
+            SELECT MAX(id) as "submissionId", "submission"."problemId", submission."userId" FROM submission GROUP BY submission."problemId", submission."userId"
+          ) AS LatestIdTable JOIN submission ON submission.id = LatestIdTable."submissionId" AND submission.status = 'accept' JOIN "user" ON LatestIdTable."userId" = "user"."id" AND "user"."role" = 'user'
+        ) AS CountTable GROUP BY "problemId"
+      ) AS G RIGHT JOIN problem ON "problemId" = problem."id" WHERE "show" = true ORDER BY problem."id" DESC`;
   }
 
-  async findAllWithSubmissionByUserId(userId: number) {
-    const problem = await this.problemRepository.findAll({
-      where: {
-        show: true,
-      },
-      include: [
-        {
-          model: Submission,
-          where: {
-            id: {
-              [Op.in]: [
-                literal(
-                  'SELECT MAX(id) FROM submission GROUP BY "submission"."problemId","submission"."userId"',
-                ),
-              ],
-            },
-            userId,
-          },
-          required: false,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-
-    const latestAccept = await this.submissionService.findAllLatestAccept();
-    return this.addPassedCountToProblem(problem, latestAccept);
+  async findOnlyShownWithSubmission(userId: number) {
+    return this.prisma.$queryRaw<ProblemWithDetail[]>`
+      SELECT "id", "name", "sname", "score", "timeLimit", "memoryLimit", "show", "recentShowTime", "case", "rating", COALESCE("passedCount", 0) as "passedCount", "latestSubmissionId", "status" FROM (
+        SELECT LatestAndCountTable."problemId", "passedCount", "latestSubmissionId", "status" FROM (
+          SELECT COALESCE(CountIdTable."problemId", LatestIdTable."problemId") as "problemId", "passedCount", "latestSubmissionId" FROM (
+            SELECT COUNT(*)::integer AS "passedCount", "problemId" FROM (
+              SELECT "submissionId", "submission"."problemId", submission."userId" FROM (
+                SELECT MAX(id) as "submissionId", "submission"."problemId", submission."userId" FROM submission GROUP BY submission."problemId", submission."userId"
+              ) AS LatestIdTable JOIN submission ON submission.id = LatestIdTable."submissionId" AND submission.status = 'accept' JOIN "user" ON LatestIdTable."userId" = "user"."id" AND "user"."role" = 'user'
+            ) AS CountTable GROUP BY "problemId"
+          ) AS CountIdTable FULL JOIN (
+            SELECT MAX(id) as "latestSubmissionId", submission."problemId" FROM submission WHERE "userId" = ${userId} GROUP BY submission."problemId"
+          ) AS LatestIdTable ON CountIdTable."problemId" = LatestIdTable."problemId" 
+        ) AS LatestAndCountTable LEFT JOIN submission ON "latestSubmissionId" = "submission".id
+      ) AS AggTable RIGHT JOIN problem ON "problemId" = problem."id" WHERE "show" = true ORDER BY problem."id" DESC`;
   }
 
-  async findAllWithSubmissionByUserId_ADMIN(userId: number) {
-    const problem = await this.problemRepository.findAll({
-      include: [
-        {
-          model: Submission,
-          where: {
-            id: {
-              [Op.in]: [
-                literal(
-                  'SELECT MAX(id) FROM submission GROUP BY "submission"."problemId","submission"."userId"',
-                ),
-              ],
-            },
-            userId,
-          },
-          required: false,
-        },
-      ],
-      raw: true,
-      nest: true,
-    });
-
-    const latestAccept = await this.submissionService.findAllLatestAccept();
-    return this.addPassedCountToProblem(problem, latestAccept);
+  async findAllWithSubmission(userId: number) {
+    return this.prisma.$queryRaw<ProblemWithDetail[]>`
+      SELECT "id", "name", "sname", "score", "timeLimit", "memoryLimit", "show", "recentShowTime", "case", "rating", COALESCE("passedCount", 0) as "passedCount", "latestSubmissionId", "status" FROM (
+        SELECT LatestAndCountTable."problemId", "passedCount", "latestSubmissionId", "status" FROM (
+          SELECT COALESCE(CountIdTable."problemId", LatestIdTable."problemId") as "problemId", "passedCount", "latestSubmissionId" FROM (
+            SELECT COUNT(*)::integer AS "passedCount", "problemId" FROM (
+              SELECT "submissionId", "submission"."problemId", submission."userId" FROM (
+                SELECT MAX(id) as "submissionId", "submission"."problemId", submission."userId" FROM submission GROUP BY submission."problemId", submission."userId"
+              ) AS LatestIdTable JOIN submission ON submission.id = LatestIdTable."submissionId" AND submission.status = 'accept' JOIN "user" ON LatestIdTable."userId" = "user"."id" AND "user"."role" = 'user'
+            ) AS CountTable GROUP BY "problemId"
+          ) AS CountIdTable FULL JOIN (
+            SELECT MAX(id) as "latestSubmissionId", submission."problemId" FROM submission WHERE "userId" = ${userId} GROUP BY submission."problemId"
+          ) AS LatestIdTable ON CountIdTable."problemId" = LatestIdTable."problemId" 
+        ) AS LatestAndCountTable LEFT JOIN submission ON "latestSubmissionId" = "submission".id
+      ) AS AggTable RIGHT JOIN problem ON "problemId" = problem."id" ORDER BY problem."id" DESC`;
   }
 
-  async findOneById(id: number): Promise<Problem> {
-    return this.problemRepository.findOne({ where: { id } });
-  }
-
-  async findOneByIdWithExamples(id: number): Promise<Problem> {
-    return this.problemRepository.findOne({
+  async findOneById(id: number) {
+    return this.prisma.problem.findUnique({
       where: { id },
-      attributes: { include: ['examples'] },
+      select: WITHOUT_EXAMPLE,
     });
   }
 
-  async getProblemDocDir(problem: Problem): Promise<string> {
-    const docDir = getProblemDocDir(`${problem.id}`);
+  async findOneByIdWithExamples(id: number) {
+    return this.prisma.problem.findUnique({ where: { id } });
+  }
+
+  async getProblemDocDir(problemId: number) {
+    const docDir = getProblemDocDir(`${problemId}`);
     if (!docDir) throw new NotFoundException();
     return docDir;
   }
 
   async changeProblemShowById(problemId: number, show: boolean) {
-    const problem = await this.problemRepository.findOne({
-      where: {
-        id: problemId,
-      },
+    return this.prisma.problem.update({
+      where: { id: problemId },
+      data: { show, recentShowTime: new Date() },
     });
-    if (problem.show == show) throw new BadRequestException();
-    problem.show = show;
-    problem.recentShowTime = new Date();
-    return problem.save();
   }
 
-  addPassedCountToProblem(problem: Problem[], latestAccept: Submission[]) {
-    const result: any[] = [];
-    for (const i in problem) {
-      let passedCount = 0;
-      const lIdx = lowerBound(latestAccept, problem[i].id, (x) => x.problemId);
-      const rIdx = upperBound(latestAccept, problem[i].id, (x) => x.problemId);
-      if (lIdx != -1) passedCount = rIdx - lIdx;
-      result.push({ ...problem[i], passedCount });
-    }
-    return result;
-  }
-
-  async findAllUserAcceptByProblemId(problemId: number) {
-    const latestAccept = await this.submissionService.findAllLatestAccept();
-    const lIdx = lowerBound(latestAccept, problemId, (x) => x.problemId);
-    const rIdx = upperBound(latestAccept, problemId, (x) => x.problemId);
-    const temp = latestAccept.slice(lIdx, rIdx);
-    return temp.map((submission) => submission.user);
+  async findPassedUser(problemId: number) {
+    return this.prisma.$queryRaw<PassedUser[]>`
+      SELECT "id", "role", "username", "showName", "rating" FROM (
+        SELECT * FROM (
+          SELECT "submissionId", "status", submission."userId" FROM (
+            SELECT MAX(id) as "submissionId", submission."userId" FROM submission WHERE submission."problemId" = ${problemId} GROUP BY submission."userId"
+          ) AS X JOIN submission ON submission.id = "submissionId"
+        ) AS T WHERE "status" = 'accept'
+      ) AS S JOIN "user" ON "user"."id" = "userId" ORDER BY "user"."role"`;
   }
 
   async delete(problemId: number) {
     try {
-      const problem = await this.findOneById(problemId);
-
-      await removeProblemSource(`${problem.id}`);
-
-      return await problem.destroy();
+      const problem = await this.prisma.problem.delete({
+        where: { id: problemId },
+      });
+      await removeProblemSource(`${problemId}`);
+      return problem;
     } catch (e) {
       console.log(e);
-
       throw new BadRequestException();
     }
   }
+
   async updateProblemExamples(problemId: number, examples: object) {
     try {
-      const problem = await this.findOneById(problemId);
-      problem.examples = examples;
-      return problem.save();
+      this.prisma.problem.update({
+        data: { examples },
+        where: { id: problemId },
+      });
     } catch (e) {
       console.log(e);
       throw new BadRequestException();
