@@ -16,17 +16,34 @@ import {
 import { SubmissionService } from '../submission/submission.service';
 import { lowerBound, upperBound } from 'src/utils';
 import {
-  getProblemDocDir,
+  getProblemDocStream,
   removeProblemSource,
   updateProblemDoc,
   updateProblemTestCase,
 } from 'src/utils/file.util';
+import { InjectS3, S3 } from 'nestjs-s3';
+import {
+  FileFileManager,
+  FileManager,
+  S3FileManager,
+} from 'src/core/fileManager';
+import { Readable } from 'stream';
+import { ConfigService } from '@nestjs/config';
+import { Configuration } from 'src/core/config/configuration';
 @Injectable()
 export class ProblemService {
+  private fileManager: FileManager;
+
   constructor(
     @Inject(PROBLEM_REPOSITORY) private problemRepository: typeof Problem,
+    @InjectS3() private readonly s3: S3,
     private submissionService: SubmissionService,
-  ) {}
+    private configService: ConfigService<Configuration>,
+  ) {
+    this.fileManager = this.configService.get('useS3')
+      ? new S3FileManager(this.s3, 'otog-bucket')
+      : new FileFileManager();
+  }
 
   async create(
     createProblem: CreateProblemDTO,
@@ -43,11 +60,19 @@ export class ProblemService {
       await problem.save();
 
       if (files.pdf) {
-        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
+        await updateProblemDoc(
+          `${problem.id}`,
+          files.pdf[0].path,
+          this.fileManager,
+        );
       }
 
       if (files.zip) {
-        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
+        await updateProblemTestCase(
+          `${problem.id}`,
+          files.zip[0].path,
+          this.fileManager,
+        );
       }
 
       return problem;
@@ -73,11 +98,19 @@ export class ProblemService {
       await problem.save();
 
       if (files.pdf) {
-        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
+        await updateProblemDoc(
+          `${problem.id}`,
+          files.pdf[0].path,
+          this.fileManager,
+        );
       }
 
       if (files.zip) {
-        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
+        await updateProblemTestCase(
+          `${problem.id}`,
+          files.zip[0].path,
+          this.fileManager,
+        );
       }
 
       return problem;
@@ -165,10 +198,14 @@ export class ProblemService {
     });
   }
 
-  async getProblemDocDir(problem: Problem): Promise<string> {
-    const docDir = getProblemDocDir(`${problem.id}`);
-    if (!docDir) throw new NotFoundException();
-    return docDir;
+  async getProblemDocStream(problem: Problem): Promise<Readable> {
+    const docStream = await getProblemDocStream(
+      `${problem.id}`,
+      this.fileManager,
+    );
+
+    if (!docStream) throw new NotFoundException();
+    return docStream;
   }
 
   async changeProblemShowById(problemId: number, show: boolean) {
@@ -207,7 +244,7 @@ export class ProblemService {
     try {
       const problem = await this.findOneById(problemId);
 
-      await removeProblemSource(`${problem.id}`);
+      await removeProblemSource(`${problem.id}`, this.fileManager);
 
       return await problem.destroy();
     } catch (e) {

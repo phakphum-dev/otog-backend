@@ -1,85 +1,92 @@
 import * as fs from 'fs-extra';
+import * as mime from 'mime-types';
 import * as path from 'path';
 import { DOC_DIR, TESTCASE_DIR } from 'src/core/constants';
+import { FileManager } from 'src/core/fileManager';
 import * as unzipper from 'unzipper';
-import * as mv from 'mv';
-import { promisify } from 'util';
-
-const mvPromise = promisify(mv);
-
-interface IUpdateProblemOption {
-  override: boolean;
-}
-
-async function createDirIfNotExist(path: string) {
-  if (!(await fs.pathExists(path))) {
-    await fs.mkdir(path);
-  }
-}
-
-async function removeDirIfExist(path: string) {
-  if (await fs.pathExists(path)) {
-    await fs.remove(path);
-  }
-}
 
 export async function updateProblemDoc(
   problemName: string,
-  oldPath: string,
-  option?: IUpdateProblemOption,
+  pdfFullPath: string,
+  fileManager: FileManager,
 ) {
-  const { override = true } = option || {};
-  await createDirIfNotExist(DOC_DIR);
+  // create doc folder
+  await fileManager.createDirIfNotExist(DOC_DIR);
 
+  // remove old pdf file
   const uploadDocPath = path.join(DOC_DIR, `${problemName}.pdf`);
+  await fileManager.removeDirIfExist(uploadDocPath);
 
-  if (override) {
-    await removeDirIfExist(uploadDocPath);
-  }
+  // get pdf file buffer
+  const buffer = await fs.readFile(pdfFullPath);
 
-  // move pdf file to source folder
-  await mvPromise(oldPath, uploadDocPath);
+  // save pdf file
+  await fileManager.saveFile(uploadDocPath, buffer, {
+    ContentType: 'application/pdf',
+  });
+
+  // remove pdf file
+  await fs.remove(pdfFullPath);
 }
 
 export async function updateProblemTestCase(
   problemName: string,
-  oldPath: string,
-  option?: IUpdateProblemOption,
+  zipFullPath: string,
+  fileManager: FileManager,
 ) {
-  const { override = true } = option || {};
-  await createDirIfNotExist(TESTCASE_DIR);
+  // create testcase folder
+  await fileManager.createDirIfNotExist(TESTCASE_DIR);
 
+  // clear old testcase
   const problemTestCaseDir = path.join(TESTCASE_DIR, problemName);
+  await fileManager.removeDirIfExist(problemTestCaseDir);
 
-  if (override) {
-    await removeDirIfExist(problemTestCaseDir);
-  }
+  // create new testcase folder
+  await fileManager.createDirIfNotExist(problemTestCaseDir);
 
-  await createDirIfNotExist(problemTestCaseDir);
+  // unzip file
+  const fileContents = fs.createReadStream(zipFullPath);
+  await fileContents
+    .pipe(unzipper.Parse())
+    .on('entry', async (entry) => {
+      const fileName = entry.path;
+      const type = entry.type;
+      if (type === 'Directory') {
+        entry.autodrain();
+      } else {
+        const dest = path.join(problemTestCaseDir, fileName);
+        const buffer = await entry.buffer();
+        const ext = path.extname(fileName);
+        const contentType = ['.in', '.sol'].includes(ext)
+          ? 'text/plain'
+          : mime.lookup(ext);
+        await fileManager.saveFile(dest, buffer, {
+          ContentType: contentType || undefined,
+        });
+      }
+    })
+    .promise();
 
-  const uploadTestCasePath = path.join(
-    problemTestCaseDir,
-    `${problemName}.zip`,
-  );
-
-  // move zip file to source folder
-  await mvPromise(oldPath, uploadTestCasePath);
-  // unzip source file
-  const fileContents = fs.createReadStream(uploadTestCasePath);
-  fileContents.pipe(unzipper.Extract({ path: problemTestCaseDir }));
-  await removeDirIfExist(uploadTestCasePath);
+  // remove zip file
+  await fs.remove(zipFullPath);
 }
 
-export async function removeProblemSource(problemName: string) {
+export async function removeProblemSource(
+  problemName: string,
+  fileManager: FileManager,
+) {
   const docPath = path.join(DOC_DIR, `${problemName}.pdf`);
   const testCasePath = path.join(TESTCASE_DIR, problemName);
 
-  await removeDirIfExist(docPath);
-  await removeDirIfExist(testCasePath);
+  await fileManager.removeDirIfExist(docPath);
+  await fileManager.removeDirIfExist(testCasePath);
 }
 
-export function getProblemDocDir(problemName: string) {
+export async function getProblemDocStream(
+  problemName: string,
+  fileManager: FileManager,
+) {
   const docDir = path.join(DOC_DIR, `${problemName}.pdf`);
-  if (!fs.existsSync(docDir)) return null;
-  return docDir;
+  if (!(await fileManager.isExists(docDir))) return null;
+  return await fileManager.getFileReadSteam(docDir);
 }

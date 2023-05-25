@@ -14,9 +14,9 @@ export const ROLES_KEY = 'roles';
 export const OFFLINE_KEY = 'offline_roles';
 export const IS_PUBLIC_KEY = 'isPublic';
 
-export const DOC_DIR = `${process.cwd()}/docs`;
-export const TESTCASE_DIR = `${process.cwd()}/source`;
-export const UPLOAD_DIR = `${process.cwd()}/volumes/upload`;
+export const DOC_DIR = 'docs';
+export const TESTCASE_DIR = 'source';
+export const UPLOAD_DIR = 'volumes/upload';
 
 export enum Role {
   User = 'user',
