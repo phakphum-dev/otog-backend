@@ -1,72 +1,75 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Op, literal } from 'sequelize';
-import { Role, Status, SUBMISSION_REPOSITORY } from 'src/core/constants';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { scodeFileFilter, scodeFileSizeLimit } from 'src/utils';
-import { Submission } from '../../entities/submission.entity';
-import { User } from '../../entities/user.entity';
 import { UserDTO } from '../user/dto/user.dto';
 import { UploadFileDTO } from './dto/submission.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { WITHOUT_PASSWORD } from '../user/user.service';
+import { SubmissionStatus, UserRole } from '@prisma/client';
+
+export const WITHOUT_SOURCECODE = {
+  id: true,
+  result: true,
+  score: true,
+  timeUsed: true,
+  status: true,
+  errmsg: true,
+  contestId: true,
+  language: true,
+  creationDate: true,
+  public: true,
+  problem: { select: { id: true, name: true } },
+  user: { select: WITHOUT_PASSWORD },
+} as const;
 
 @Injectable()
 export class SubmissionService {
-  constructor(
-    @Inject(SUBMISSION_REPOSITORY)
-    private submissionRepository: typeof Submission,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  findAll(offset: number, limit: number): Promise<Submission[]> {
-    return this.submissionRepository.scope('full').findAll({
-      where: {
-        id: {
-          [Op.lt]: offset || 1e9,
-        },
-      },
-      limit: limit || 89,
+  findAll(offset = 1e9, limit = 89) {
+    return this.prisma.submission.findMany({
+      where: { id: { lt: offset } },
+      take: limit,
+      select: WITHOUT_SOURCECODE,
+      orderBy: { id: 'desc' },
     });
   }
 
-  findAllWithOutContestAndAdmin(
-    offset: number,
-    limit: number,
-  ): Promise<Submission[]> {
-    return this.submissionRepository.scope('full').findAll({
+  findAllWithOutContestAndAdmin(offset = 1e9, limit = 89) {
+    return this.prisma.submission.findMany({
       where: {
         contestId: null,
-        id: {
-          [Op.lt]: offset || 1e9,
-        },
-        '$user.role$': {
-          [Op.not]: Role.Admin,
-        },
+        id: { lt: offset },
+        user: { role: { not: UserRole.admin } },
       },
-      limit: limit || 89,
+      take: limit,
+      select: WITHOUT_SOURCECODE,
+      orderBy: { id: 'desc' },
     });
   }
 
-  findAllWithContest(offset: number, limit: number): Promise<Submission[]> {
-    return this.submissionRepository.scope('full').findAll({
+  findAllWithContest(offset = 1e9, limit = 89) {
+    return this.prisma.submission.findMany({
       where: {
-        contestId: {
-          [Op.not]: null,
-        },
-        id: {
-          [Op.lt]: offset || 1e9,
-        },
+        contestId: { not: null },
+        id: { lt: offset },
       },
-      limit: limit || 89,
+      take: limit,
+      select: WITHOUT_SOURCECODE,
+      orderBy: { id: 'desc' },
     });
   }
 
   async findOneByResultId(resultId: number) {
-    return this.submissionRepository
-      .scope('full')
-      .findOne({ where: { id: resultId } });
+    return this.prisma.submission.findUnique({
+      where: { id: resultId },
+      select: WITHOUT_SOURCECODE,
+    });
   }
 
   async findOneByResultIdWithCode(resultId: number) {
-    return this.submissionRepository.scope('full').findOne({
+    return this.prisma.submission.findUnique({
       where: { id: resultId },
-      attributes: { include: ['sourceCode'] },
+      select: { ...WITHOUT_SOURCECODE, sourceCode: true },
     });
   }
 
@@ -87,109 +90,117 @@ export class SubmissionService {
   ) {
     this.fileCheck(file);
     try {
-      const submission = new Submission();
-      submission.userId = user?.id;
-      submission.problemId = problemId;
-      submission.language = data.language;
-      submission.status = Status.Waiting;
-      submission.contestId = Number(data.contestId) || null;
-      submission.sourceCode = file.buffer.toString();
-      await submission.save();
+      await this.prisma.submission.create({
+        data: {
+          userId: user.id,
+          problemId,
+          language: data.language,
+          status: SubmissionStatus.waiting,
+          sourceCode: file.buffer.toString(),
+          contestId: Number(data.contestId) || null,
+        },
+      });
     } catch {
       throw new BadRequestException();
     }
     return { msg: 'create submission complete.' };
   }
 
-  findAllByUserIdWithOutContest(
-    userId: number,
-    offset: number,
-    limit: number,
-  ): Promise<Submission[]> {
-    return this.submissionRepository.scope('full').findAll({
+  findAllByUserIdWithOutContest(userId: number, offset = 1e9, limit = 89) {
+    return this.prisma.submission.findMany({
       where: {
         contestId: null,
         userId,
-        id: {
-          [Op.lt]: offset || 1e9,
-        },
+        id: { lt: offset },
       },
-      limit: limit || 89,
+      take: limit,
+      select: WITHOUT_SOURCECODE,
+      orderBy: { id: 'desc' },
     });
   }
 
   findAllByUserId(userId: number, offset = 1e9, limit = 89) {
-    return this.submissionRepository.scope('full').findAll({
+    return this.prisma.submission.findMany({
       where: {
         userId,
-        id: {
-          [Op.lt]: offset,
-        },
+        id: { lt: offset },
       },
-      limit,
+      take: limit,
+      select: WITHOUT_SOURCECODE,
+      orderBy: { id: 'desc' },
     });
   }
 
-  findOneByUserId(userId: number): Promise<Submission> {
-    return this.submissionRepository.scope('full').findOne({
+  findFirstByUserId(userId: number) {
+    return this.prisma.submission.findFirst({
       where: { userId },
-      attributes: {
-        include: ['sourceCode'],
-      },
+      orderBy: { id: 'desc' },
+      select: { ...WITHOUT_PASSWORD, sourceCode: true },
     });
   }
 
-  findOneByProblemIdAndUserId(
-    problemId: number,
-    userId: number,
-  ): Promise<Submission> {
-    return this.submissionRepository.scope('full').findOne({
+  findFirstByProblemIdAndUserId(problemId: number, userId: number) {
+    return this.prisma.submission.findFirst({
       where: { userId, problemId },
-      attributes: {
-        include: ['sourceCode'],
+      orderBy: { id: 'desc' },
+      select: { ...WITHOUT_PASSWORD, sourceCode: true },
+    });
+  }
+
+  async findAllLatestAccept() {
+    const maxGroups = await this.prisma.submission.groupBy({
+      _max: { id: true },
+      by: ['problemId', 'userId'],
+      where: { status: SubmissionStatus.accept },
+    });
+    const ids = maxGroups.map((group) => group._max.id);
+    return this.prisma.submission.findMany({
+      select: WITHOUT_SOURCECODE,
+      where: {
+        id: { in: ids },
+        user: { role: { not: UserRole.admin } },
+      },
+      orderBy: { problemId: 'asc' },
+    });
+  }
+
+  async findLatestSubmissionIds(problemId: number) {
+    const maxGroups = await this.prisma.submission.groupBy({
+      _max: { id: true },
+      by: ['userId'],
+      where: { status: SubmissionStatus.accept, problemId },
+    });
+    return maxGroups.map((group) => group._max.id);
+  }
+
+  async findAllLatestSubmission(problemId: number) {
+    const ids = await this.findLatestSubmissionIds(problemId);
+    return this.prisma.submission.findMany({
+      where: {
+        id: { in: ids },
       },
     });
   }
 
-  findAllLatestAccept() {
-    return this.submissionRepository.findAll({
-      attributes: {
-        include: ['userId', 'problemId'],
-      },
-      include: [User.scope('noPass')],
-      where: {
-        id: {
-          [Op.in]: [
-            literal(
-              `SELECT MAX(id) FROM submission WHERE status = 'accept' GROUP BY "submission"."problemId","submission"."userId"`,
-            ),
-          ],
-        },
-        '$user.role$': {
-          [Op.not]: Role.Admin,
-        },
-      },
-      order: ['problemId'],
-      raw: true,
-      nest: true,
+  updateSubmissionPublic(submissionId: number, show: boolean) {
+    return this.prisma.submission.update({
+      where: { id: submissionId },
+      data: { public: show },
     });
   }
 
-  findAllLatestSubmission(problemId: number) {
-    return this.submissionRepository.findAll({
-      attributes: {
-        include: ['userId', 'problemId'],
-      },
-      where: {
-        id: {
-          [Op.in]: [
-            literal(
-              `SELECT MAX(id) FROM submission WHERE "submission"."problemId" = ${problemId} GROUP BY "submission"."userId"`,
-            ),
-          ],
-        },
-      },
-      nest: true,
+  setSubmissionStatusToWaiting(submissionId: number) {
+    return this.prisma.submission.update({
+      where: { id: submissionId },
+      data: { status: SubmissionStatus.waiting },
+    });
+  }
+
+  async setAllLatestSubmissionStatusToWaiting(problemId: number) {
+    const ids = await this.findLatestSubmissionIds(problemId);
+    return this.prisma.submission.updateMany({
+      where: { id: { in: ids } },
+      data: { status: SubmissionStatus.waiting },
     });
   }
 }

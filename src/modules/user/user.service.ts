@@ -12,7 +12,7 @@ import { UpdateUserDTO } from './dto/user.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { ContestMode } from '@prisma/client';
 
-const WITHOUT_PASSWORD = {
+export const WITHOUT_PASSWORD = {
   id: true,
   username: true,
   showName: true,

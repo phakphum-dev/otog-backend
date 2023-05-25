@@ -41,19 +41,14 @@ import { Roles } from 'src/core/decorators/roles.decorator';
 import { AccessState, Role } from 'src/core/constants';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
-import { ContestService } from '../contest/contest.service';
 import { OptionalIntPipe } from 'src/utils/optional.pipe';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
-import { Status } from 'src/core/constants';
 
 @ApiTags('submission')
 @Controller('submission')
 @UseGuards(RolesGuard)
 export class SubmissionController {
-  constructor(
-    private submissionService: SubmissionService,
-    private contestService: ContestService,
-  ) {}
+  constructor(private submissionService: SubmissionService) {}
 
   @Get()
   @ApiQuery({ name: 'offset', type: Number, required: false })
@@ -108,7 +103,7 @@ export class SubmissionController {
   ) {
     return {
       latestSubmission:
-        await this.submissionService.findOneByProblemIdAndUserId(
+        await this.submissionService.findFirstByProblemIdAndUserId(
           problemId,
           user.id,
         ),
@@ -132,7 +127,7 @@ export class SubmissionController {
   ) {
     if (data.contestId) {
       // TODO validate user if contest is private
-      await this.contestService.addUserToContest(data.contestId, user.id);
+      // await this.contestService.addUserToContest(data.contestId, user.id);
     }
     return this.submissionService.create(user, problemId, data, file);
   }
@@ -146,7 +141,7 @@ export class SubmissionController {
   })
   async getLatestSubmissionWithUserId(@User() user: UserDTO) {
     return {
-      latestSubmission: await this.submissionService.findOneByUserId(user.id),
+      latestSubmission: await this.submissionService.findFirstByUserId(user.id),
     };
   }
 
@@ -262,8 +257,7 @@ export class SubmissionController {
     if (!(user.id === submission.user.id || user.role === Role.Admin)) {
       throw new ForbiddenException();
     }
-    submission.public = show;
-    return await submission.save();
+    return await this.submissionService.updateSubmissionPublic(resultId, show);
   }
 
   @Roles(Role.Admin)
@@ -280,8 +274,7 @@ export class SubmissionController {
     if (!submission) {
       throw new NotFoundException();
     }
-    submission.status = Status.Waiting;
-    return await submission.save();
+    return await this.submissionService.setSubmissionStatusToWaiting(resultId);
   }
 
   @Roles(Role.Admin)
@@ -293,13 +286,8 @@ export class SubmissionController {
   @ApiNotFoundResponse({ description: 'ProblemId not found' })
   @ApiForbiddenResponse({ description: 'Forbidden' })
   async rejudgeProblem(@Param('problemId', ParseIntPipe) problemId: number) {
-    const submissions = await this.submissionService.findAllLatestSubmission(
+    await this.submissionService.setAllLatestSubmissionStatusToWaiting(
       problemId,
-    );
-    await Promise.all(
-      submissions.map((submission) =>
-        submission.update({ status: Status.Waiting }),
-      ),
     );
   }
 }
