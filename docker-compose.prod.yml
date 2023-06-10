@@ -17,6 +17,7 @@ services:
       - ${PORT}:${PORT}
     networks:
       - otog-network
+      - api-gateway
 
   postgres:
     image: postgres:14
@@ -60,3 +61,5 @@ services:
 networks:
   otog-network:
     name: otog-network
+  api-gateway:
+    external: true
