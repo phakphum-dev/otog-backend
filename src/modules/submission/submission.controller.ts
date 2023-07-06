@@ -281,6 +281,7 @@ export class SubmissionController {
       throw new NotFoundException();
     }
     submission.status = Status.Waiting;
+    submission.result = 'Rejudging';
     return await submission.save();
   }
 
@@ -298,7 +299,10 @@ export class SubmissionController {
     );
     await Promise.all(
       submissions.map((submission) =>
-        submission.update({ status: Status.Waiting }),
+        submission.update({
+          status: Status.Waiting,
+          result: 'Rejudging',
+        }),
       ),
     );
   }
