@@ -19,8 +19,8 @@ model Chat {
   id           Int      @id @default(autoincrement())
   message      String   @db.VarChar(255)
   userId       Int
-  creationDate DateTime @db.Timestamptz(6)
-  updateDate   DateTime @db.Timestamptz(6)
+  creationDate DateTime? @db.Timestamptz(6) @default(now()) 
+  updateDate   DateTime? @db.Timestamptz(6) @default(now()) 
   user         User     @relation(fields: [userId], references: [id], onDelete: NoAction)
 	@@map("chat")
 }

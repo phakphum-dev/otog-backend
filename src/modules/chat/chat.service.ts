@@ -1,27 +1,21 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Op } from 'sequelize';
-import { CHAT_REPOSITORY } from 'src/core/constants';
-import { Chat } from 'src/entities/chat.entity';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { WITHOUT_PASSWORD } from '../user/user.service';
 
 @Injectable()
 export class ChatService {
-  constructor(@Inject(CHAT_REPOSITORY) private chatRepository: typeof Chat) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(message: string, userId: number) {
-    const chat = new Chat();
-    chat.message = message;
-    chat.userId = userId;
-    return await chat.save();
+    return this.prisma.chat.create({ data: { message, userId } });
   }
 
-  async findAll(offset: number, limit: number): Promise<Chat[]> {
-    return this.chatRepository.scope('full').findAll({
-      where: {
-        id: {
-          [Op.lt]: offset || 1e9,
-        },
-      },
-      limit: limit || 23,
+  async findAll(offset = 1e9, take = 25) {
+    return this.prisma.chat.findMany({
+      where: { id: { lt: offset } },
+      take,
+      orderBy: { id: 'desc' },
+      include: { user: { select: WITHOUT_PASSWORD } },
     });
   }
 }

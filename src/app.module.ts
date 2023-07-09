@@ -24,7 +24,7 @@ import { PrismaModule } from './core/database/prisma.module';
     SubmissionModule,
     ProblemModule,
     ContestModule,
-    // ChatModule,
+    ChatModule,
     // AnnouncementModule,
   ],
   controllers: [AppController],

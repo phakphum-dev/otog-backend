@@ -1,14 +1,9 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { ChatService } from './chat.service';
 import { ChatDTO } from './dto/chat.dto';
+import { OptionalIntPipe } from 'src/utils/optional.pipe';
 
 @ApiTags('chat')
 @Controller('chat')
@@ -27,13 +22,10 @@ export class ChatController {
   })
   @ApiQuery({ name: 'offset', type: Number, required: false })
   @ApiQuery({ name: 'limit', type: Number, required: false })
-  getAllChat(@Query('offset') os: number, @Query('limit') lm: number) {
-    const offset: number = +os;
-    const limit: number = +lm;
-    if ((os && isNaN(offset)) || (lm && isNaN(limit)))
-      throw new BadRequestException(
-        'Validation failed (numeric string is expected)',
-      );
+  getAllChat(
+    @Query('offset', OptionalIntPipe) offset?: number,
+    @Query('limit', OptionalIntPipe) limit?: number,
+  ) {
     return this.chatService.findAll(offset, limit);
   }
 }
