@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { ChatController } from './chat.controller';
 import { ChatGateway } from './chat.gateway';
-import { chatProvider } from './chat.provider';
 import { ChatService } from './chat.service';
 
 @Module({
@@ -15,6 +14,6 @@ import { ChatService } from './chat.service';
     }),
   ],
   controllers: [ChatController],
-  providers: [ChatService, ChatGateway, ...chatProvider],
+  providers: [ChatService, ChatGateway],
 })
 export class ChatModule {}
