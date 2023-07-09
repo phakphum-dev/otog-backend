@@ -6,7 +6,6 @@ import {
 import { sha256 } from 'js-sha256';
 import { Role } from 'src/core/constants';
 import { userList } from 'src/utils';
-import { User } from '../../entities/user.entity';
 import { CreateUserDTO } from '../auth/dto/auth.dto';
 import { UpdateUserDTO } from './dto/user.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
@@ -36,12 +35,14 @@ export class UserService {
     const hash = sha256.create();
     hash.update(data.password);
     try {
-      const user = new User();
-      user.username = data.username;
-      user.password = hash.hex();
-      user.showName = data.showName;
-      user.role = Role.User;
-      await user.save();
+      return await this.prisma.user.create({
+        data: {
+          username: data.username,
+          password: hash.hex(),
+          showName: data.showName,
+          role: Role.User,
+        },
+      });
     } catch {
       throw new BadRequestException();
     }
