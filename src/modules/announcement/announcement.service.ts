@@ -1,75 +1,67 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ANNOUNCEMENT_REPOSITORY } from 'src/core/constants';
-import { Announcement } from 'src/entities/announcement.entity';
-import { AnnouncementDTO } from './dto/announcement.dto';
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AnnouncementService {
-  constructor(
-    @Inject(ANNOUNCEMENT_REPOSITORY)
-    private announcementRepository: typeof Announcement,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async findOneById(announcementId: number) {
-    try {
-      return await this.announcementRepository.findOne({
-        where: { id: announcementId },
-        rejectOnEmpty: true,
-      });
-    } catch (e) {
-      console.error(e);
-      throw new NotFoundException();
-    }
+    return this.prisma.announcement.findUnique({
+      where: { id: announcementId },
+    });
   }
 
   async findAll() {
-    return this.announcementRepository.findAll({
-      order: [['id', 'DESC']],
+    return this.prisma.announcement.findMany({
       where: { contestId: null },
+      orderBy: { id: 'desc' },
     });
   }
 
   async findShown() {
-    return this.announcementRepository.findAll({
+    return this.prisma.announcement.findMany({
       where: { show: true, contestId: null },
-      order: [['id', 'DESC']],
+      orderBy: { id: 'desc' },
     });
   }
 
   async findAllWithContestId(contestId: number) {
-    return this.announcementRepository.findAll({
-      order: [['id', 'DESC']],
+    return this.prisma.announcement.findMany({
       where: { contestId },
+      orderBy: { id: 'desc' },
     });
   }
 
   async findShownWithContestId(contestId: number) {
-    return this.announcementRepository.findAll({
+    return this.prisma.announcement.findMany({
       where: { show: true, contestId },
-      order: [['id', 'DESC']],
+      orderBy: { id: 'desc' },
     });
   }
 
   async create(value: object, contestId: number | null = null) {
-    return this.announcementRepository.create({ value, contestId });
+    return this.prisma.announcement.create({ data: { value, contestId } });
   }
 
   async delete(announcementId: number) {
-    const announcement = await this.findOneById(announcementId);
-    await announcement.destroy();
-    return announcement;
+    return this.prisma.announcement.delete({ where: { id: announcementId } });
   }
 
   async updateAnnouncementShow(announcementId: number, show: boolean) {
-    const announcement = await this.findOneById(announcementId);
-    return announcement.update({ show });
+    return this.prisma.announcement.update({
+      where: { id: announcementId },
+      data: { show },
+    });
   }
 
   async updateAnnounce(
     announcementId: number,
-    announcementData: AnnouncementDTO,
+    announcementData: Prisma.AnnouncementUpdateInput,
   ) {
-    const announcement = await this.findOneById(announcementId);
-    return announcement.update(announcementData);
+    return this.prisma.announcement.update({
+      where: { id: announcementId },
+      data: announcementData,
+    });
   }
 }
