@@ -35,7 +35,7 @@ export class UserService {
     const hash = sha256.create();
     hash.update(data.password);
     try {
-      return await this.prisma.user.create({
+      await this.prisma.user.create({
         data: {
           username: data.username,
           password: hash.hex(),
