@@ -130,7 +130,10 @@ export class ProblemController {
       // TODO validate user if contest is private
       const contest =
         await this.contestService.getStartedAndUnFinishedContest();
-      if (!contest || !contest.problems.some((e) => e.id === problem.id))
+      if (
+        !contest ||
+        !contest.contestProblem.some((p) => p.problemId === problem.id)
+      )
         throw new ForbiddenException();
     }
     return res.sendFile(await this.problemService.getProblemDocDir(problem.id));

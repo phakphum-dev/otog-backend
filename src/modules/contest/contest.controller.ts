@@ -27,7 +27,6 @@ import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
-import { Contest } from 'src/entities/contest.entity';
 import { UserDTO } from '../user/dto/user.dto';
 import { ContestService } from './contest.service';
 import {
@@ -91,15 +90,16 @@ export class ContestController {
     @Param('contestId', ParseIntPipe) contestId: number,
     @User() user?: UserDTO,
   ) {
-    let contest: Contest;
     try {
-      contest = await this.contestService.scoreboardByContestId(contestId);
+      const contest = await this.contestService.scoreboardByContestId(
+        contestId,
+      );
+      // TODO validate user if contest is private
+      if (user?.role === Role.Admin || new Date() > new Date(contest.timeEnd)) {
+        return contest;
+      }
     } catch (e: unknown) {
       throw new NotFoundException();
-    }
-    // TODO validate user if contest is private
-    if (user?.role === Role.Admin || new Date() > new Date(contest.timeEnd)) {
-      return contest;
     }
     throw new ForbiddenException();
   }

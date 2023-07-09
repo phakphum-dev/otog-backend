@@ -23,7 +23,7 @@ import { PrismaModule } from './core/database/prisma.module';
     UserModule,
     SubmissionModule,
     ProblemModule,
-    // ContestModule,
+    ContestModule,
     // ChatModule,
     // AnnouncementModule,
   ],
