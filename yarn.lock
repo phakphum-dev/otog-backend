@@ -14,6 +14,13 @@
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.0"
 
+"@anatine/zod-openapi@^1.12.0":
+  version "1.14.2"
+  resolved "https://registry.yarnpkg.com/@anatine/zod-openapi/-/zod-openapi-1.14.2.tgz#ba5d2b0732bbb7b2bebb009e6312adfdc159d148"
+  integrity sha512-q0qHfnuNYVKu0Swrnnvfj9971AEyW7c8v9jCOZGCl5ZbyGMNG4RPyJkRcMi/JC8CRfdOe0IDfNm1nNsi2avprg==
+  dependencies:
+    ts-deepmerge "^6.0.3"
+
 "@angular-devkit/core@13.2.5":
   version "13.2.5"
   resolved "https://registry.yarnpkg.com/@angular-devkit/core/-/core-13.2.5.tgz#376f3d205a75cd381191ddabfe3c368e0e9a7d82"
@@ -839,6 +846,14 @@
   version "3.26.3"
   resolved "https://registry.yarnpkg.com/@ts-rest/nest/-/nest-3.26.3.tgz#cf5da377a1e01376c72e95921a0aab27e9c1af32"
   integrity sha512-36BWFFrOZoj8b4afb6SZaoXt9SPBgT5cY292+C2htKKeaV8uNK0IjMR9h4IqU063YZ16pwoXuJBwQIHEolMj/w==
+
+"@ts-rest/open-api@^3.26.3":
+  version "3.26.3"
+  resolved "https://registry.yarnpkg.com/@ts-rest/open-api/-/open-api-3.26.3.tgz#f9a94e936040bc0baa8da73f3519c513b3f0f61c"
+  integrity sha512-XJrHf5mgvRcZ0XIm1W4dX/jUMwRRO19+pbIF4Gnpyhrq4xyCfydfRwy0DnuEhLW7Ipm0EwLrW1xZXEQTjM/a3g==
+  dependencies:
+    "@anatine/zod-openapi" "^1.12.0"
+    openapi3-ts "^2.0.2"
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
@@ -4971,6 +4986,13 @@ onetime@^5.1.0, onetime@^5.1.2:
   dependencies:
     mimic-fn "^2.1.0"
 
+openapi3-ts@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/openapi3-ts/-/openapi3-ts-2.0.2.tgz#a200dd838bf24c9086c8eedcfeb380b7eb31e82a"
+  integrity sha512-TxhYBMoqx9frXyOgnRHufjQfPXomTIHYKhSKJ6jHfj13kS8OEIhvmE8CTuQyKtjjWttAjX5DPxM1vmalEpo8Qw==
+  dependencies:
+    yaml "^1.10.2"
+
 optional@0.1.4:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/optional/-/optional-0.1.4.tgz#cdb1a9bedc737d2025f690ceeb50e049444fd5b3"
@@ -6379,6 +6401,11 @@ tree-kill@1.2.2:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/tree-kill/-/tree-kill-1.2.2.tgz#4ca09a9092c88b73a7cdc5e8a01b507b0790a0cc"
   integrity sha512-L0Orpi8qGpRG//Nd+H90vFB+3iHnue1zSSGmNOOCh1GLJ7rUKVwV2HvijphGQS2UmhUZewS9VgvxYIdgr+fG1A==
+
+ts-deepmerge@^6.0.3:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/ts-deepmerge/-/ts-deepmerge-6.1.0.tgz#1a77431d062fbe45f2dd5abc553c5499d98bed1e"
+  integrity sha512-YVJBhdIwYAZv6QoYz/mihpgbv+r0+QfQazTcSS6WXhQkbCxjTRoV+IOLtyArtz3au7xb+fPQVp1d7o5Qw1f1fg==
 
 ts-jest@^26.4.3:
   version "26.5.6"

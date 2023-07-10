@@ -5,6 +5,8 @@ import * as cookieParser from 'cookie-parser';
 import { JwtAuthGuard } from './core/guards/jwt-auth.guard';
 import { configuration } from './core/config/configuration';
 import { OfflineModeGuard } from './core/guards/offline-mode.guard';
+import { generateOpenApi } from '@ts-rest/open-api';
+import { router } from './api';
 
 const PORT = process.env.PORT || 3000;
 
@@ -29,7 +31,7 @@ async function bootstrap() {
       .setVersion('1.0')
       .addBearerAuth()
       .build();
-    const document = SwaggerModule.createDocument(app, config);
+    const document = generateOpenApi(router, config);
     SwaggerModule.setup('doc', app, document);
   }
 

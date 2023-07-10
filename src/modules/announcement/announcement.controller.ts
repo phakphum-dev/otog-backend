@@ -41,36 +41,7 @@ import {
   nestControllerContract,
   tsRestHandler,
 } from '@ts-rest/nest';
-import { z } from 'zod';
-import { initContract } from '@ts-rest/core';
-import {
-  AnnouncementCreateInputSchema,
-  AnnouncementSchema,
-} from 'src/prisma/generated/zod';
-
-const contract = initContract();
-
-// TODO: https://github.com/colinhacks/zod/discussions/2171
-
-export const apiAnnouncement = contract.router({
-  getAllAnnouncement: {
-    method: 'GET',
-    path: '/',
-    responses: {
-      200: z.array(AnnouncementSchema),
-    },
-    summary: 'Get all shown announcements',
-  },
-  createAnnouncement: {
-    method: 'POST',
-    path: '/',
-    responses: {
-      201: AnnouncementSchema,
-    },
-    body: AnnouncementCreateInputSchema,
-    summary: 'Create a post',
-  },
-});
+import { apiAnnouncement } from 'src/api';
 
 const c = nestControllerContract(apiAnnouncement);
 // type RequestShapes = NestRequestShapes<typeof c>;
