@@ -35,8 +35,8 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
       throw new ForbiddenException('No access token');
     }
     const { jti, id } = payload;
-    await this.authService.validateToken(refreshTokenId, jti);
-    const user = await this.userService.findOneById(id);
+    await this.authService.validateToken(refreshTokenId, jti!);
+    const user = await this.userService.findOneById(id!);
     const userAuthDTO = new UserDTO(user);
     return userAuthDTO;
   }

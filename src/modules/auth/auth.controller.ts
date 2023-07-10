@@ -16,6 +16,7 @@ import { UserDTO } from '../user/dto/user.dto';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { AccessState } from 'src/core/constants';
 import { configuration } from 'src/core/config/configuration';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('auth')
 @Public()
@@ -35,7 +36,7 @@ export class AuthController {
     status: 409,
     description: 'username or showName already exists',
   })
-  newUser(@Body() data: CreateUserDTO) {
+  newUser(@Body() data: Prisma.UserCreateInput) {
     return this.authService.signup(data);
   }
 
@@ -63,7 +64,7 @@ export class AuthController {
       .cookie('RID', token.refreshToken.id, {
         httpOnly: true,
         domain: configuration().domain,
-        expires: token.refreshToken.expiryDate,
+        expires: token.refreshToken.expiryDate ?? undefined,
       })
       .json(authResDTO);
   }
@@ -91,7 +92,7 @@ export class AuthController {
       .cookie('RID', token.refreshToken.id, {
         httpOnly: true,
         domain: configuration().domain,
-        expires: token.refreshToken.expiryDate,
+        expires: token.refreshToken.expiryDate ?? undefined,
       })
       .json(authResDTO);
   }

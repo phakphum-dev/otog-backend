@@ -2,11 +2,11 @@ import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
 export class AnnouncementDTO {
   @ApiProperty()
-  readonly id: number;
+  readonly id?: number;
 
-  readonly value: string;
+  readonly value?: string;
 
-  readonly show: boolean;
+  readonly show?: boolean;
 }
 
 export class CreateAnnouncementDTO extends PickType(AnnouncementDTO, [

@@ -10,7 +10,7 @@ import { ChatService } from './chat.service';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) =>
-        configService.get<JwtModuleOptions>('jwtOption'),
+        configService.get<JwtModuleOptions>('jwtOption')!,
     }),
   ],
   controllers: [ChatController],

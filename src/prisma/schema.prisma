@@ -2,6 +2,11 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator zod {
+  provider       = "zod-prisma-types"
+  // createInputTypes = false
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -30,8 +35,8 @@ model Contest {
   name           String?                  @db.VarChar(255)
   mode           ContestMode
   gradingMode    ContestGradingMode
-  timeStart      DateTime?                @db.Timestamptz(6)
-  timeEnd        DateTime?                @db.Timestamptz(6)
+  timeStart      DateTime                 @db.Timestamptz(6)
+  timeEnd        DateTime                 @db.Timestamptz(6)
   announce       String?                  @db.VarChar(255)
   contestProblem ContestProblem[]
   userContest    UserContest[]
@@ -78,7 +83,7 @@ model RefreshToken {
 
 model Submission {
   id           Int                    @id @default(autoincrement())
-  userId       Int?
+  userId       Int
   problemId    Int?
   result       String?                @default("WAITING") @db.VarChar(255)
   score        Int?
@@ -92,7 +97,7 @@ model Submission {
   updateDate   DateTime?              @default(now()) @db.Timestamptz(6)
   public       Boolean?               @default(false)
   problem      Problem?               @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  user         User?                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
 	@@map("submission")
 }
 

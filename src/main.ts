@@ -19,7 +19,7 @@ async function bootstrap() {
   const reflector = app.get(Reflector);
   app.useGlobalGuards(
     new JwtAuthGuard(reflector),
-    offlineMode ? new OfflineModeGuard(reflector) : undefined,
+    offlineMode ? new OfflineModeGuard(reflector) : (undefined as never),
   );
 
   if (!offlineMode) {

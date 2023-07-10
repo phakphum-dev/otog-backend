@@ -3,11 +3,11 @@ import { UserDTO } from 'src/modules/user/dto/user.dto';
 
 export class ChatDTO {
   @ApiProperty()
-  readonly id: number;
+  readonly id?: number;
 
-  readonly message: string;
+  readonly message?: string;
 
-  readonly creationDate: Date;
+  readonly creationDate?: Date;
 
-  readonly user: UserDTO;
+  readonly user?: UserDTO;
 }

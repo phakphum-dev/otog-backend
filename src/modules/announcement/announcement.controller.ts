@@ -33,34 +33,85 @@ import {
   UpdateAnnouncementDTO,
 } from './dto/announcement.dto';
 
+import {
+  // NestControllerInterface,
+  // NestRequestShapes,
+  // TsRest,
+  TsRestHandler,
+  nestControllerContract,
+  tsRestHandler,
+} from '@ts-rest/nest';
+import { z } from 'zod';
+import { initContract } from '@ts-rest/core';
+import {
+  AnnouncementCreateInputSchema,
+  AnnouncementSchema,
+} from 'src/prisma/generated/zod';
+
+const contract = initContract();
+
+// TODO: https://github.com/colinhacks/zod/discussions/2171
+
+export const apiAnnouncement = contract.router({
+  getAllAnnouncement: {
+    method: 'GET',
+    path: '/',
+    responses: {
+      200: z.array(AnnouncementSchema),
+    },
+    summary: 'Get all shown announcements',
+  },
+  createAnnouncement: {
+    method: 'POST',
+    path: '/',
+    responses: {
+      201: AnnouncementSchema,
+    },
+    body: AnnouncementCreateInputSchema,
+    summary: 'Create a post',
+  },
+});
+
+const c = nestControllerContract(apiAnnouncement);
+// type RequestShapes = NestRequestShapes<typeof c>;
+
 @ApiBearerAuth()
 @ApiTags('announcement')
 @Controller('announcement')
 @UseGuards(RolesGuard)
+// implements NestControllerInterface<typeof c>
 export class AnnouncementController {
   constructor(private announcementService: AnnouncementService) {}
 
+  @TsRestHandler(c.getAllAnnouncement)
   @OfflineAccess(AccessState.Authenticated)
-  @Get()
   @ApiOkResponse({
     type: AnnouncementDTO,
     isArray: true,
     description: 'Get announcements depending on user permission',
   })
   getAllAnnouncement(@User() user: UserDTO) {
-    return user?.role === Role.Admin
-      ? this.announcementService.findAll()
-      : this.announcementService.findShown();
+    return tsRestHandler(c.getAllAnnouncement, async () => {
+      const announcements =
+        user?.role === Role.Admin
+          ? await this.announcementService.findAll()
+          : await this.announcementService.findShown();
+      return { status: 200, body: announcements };
+    });
   }
 
+  @TsRestHandler(c.createAnnouncement)
   @Roles(Role.Admin)
   @Post()
   @ApiCreatedResponse({
     type: AnnouncementDTO,
     description: 'Create new announcement',
   })
-  createAnnouncement(@Body('value') value: object) {
-    return this.announcementService.create(value);
+  createAnnouncement() {
+    return tsRestHandler(c.createAnnouncement, async ({ body }) => {
+      const announcement = await this.announcementService.create(body);
+      return { status: 201, body: announcement };
+    });
   }
 
   @OfflineAccess(AccessState.Authenticated)

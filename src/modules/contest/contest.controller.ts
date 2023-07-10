@@ -39,6 +39,7 @@ import {
   ScoreboardPrizeDTO,
   UpdateContestDTO,
 } from './dto/contest.dto';
+import { Prisma } from '@prisma/client';
 
 @ApiTags('contest')
 @Controller('contest')
@@ -91,12 +92,15 @@ export class ContestController {
     @User() user?: UserDTO,
   ) {
     try {
-      const contest = await this.contestService.scoreboardByContestId(
+      const scoreboard = await this.contestService.scoreboardByContestId(
         contestId,
       );
       // TODO validate user if contest is private
-      if (user?.role === Role.Admin || new Date() > new Date(contest.timeEnd)) {
-        return contest;
+      if (
+        user?.role === Role.Admin ||
+        new Date() > new Date(scoreboard.contest.timeEnd)
+      ) {
+        return scoreboard;
       }
     } catch (e: unknown) {
       throw new NotFoundException();
@@ -130,7 +134,7 @@ export class ContestController {
   @ApiBearerAuth()
   @ApiBody({ type: CreateContestDTO })
   @ApiCreatedResponse({ description: 'Contest created succussfully' })
-  create(@Body() createContest: CreateContestDTO) {
+  create(@Body() createContest: Prisma.ContestCreateInput) {
     return this.contestService.create(createContest);
   }
 

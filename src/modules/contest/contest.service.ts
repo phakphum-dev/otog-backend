@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { Prisma, UserContest } from '@prisma/client';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { Role } from 'src/core/constants';
 import { PrismaService } from 'src/core/database/prisma.service';
 
@@ -46,6 +50,9 @@ export class ContestService {
         userContest: true,
       },
     });
+    if (!contest) {
+      throw new NotFoundException();
+    }
     const lastSubmissions = await this.prisma.submission.groupBy({
       _max: {
         id: true,
@@ -53,13 +60,12 @@ export class ContestService {
       by: ['userId', 'problemId'],
       where: {
         user: { role: Role.User },
-        // userId: { in: userIds },
         contestId,
       },
     });
-    const submissionIds = lastSubmissions.map(
-      (submission) => submission._max.id,
-    );
+    const submissionIds = lastSubmissions
+      .map((submission) => submission._max.id)
+      .filter((id): id is number => id !== null);
     const submissions = await this.prisma.submission.findMany({
       where: { id: { in: submissionIds } },
       select: {
@@ -75,21 +81,17 @@ export class ContestService {
     const userIdToSubmissions = new Map<number, typeof submissions>();
     submissions.forEach((submission) => {
       if (userIdToSubmissions.has(submission.userId)) {
-        userIdToSubmissions.get(submission.userId).push(submission);
+        userIdToSubmissions.get(submission.userId)!.push(submission);
       } else {
         userIdToSubmissions.set(submission.userId, [submission]);
       }
     });
 
-    (
-      contest.userContest as Array<
-        UserContest & { submissions: typeof submissions }
-      >
-    ).forEach((user) => {
-      user.submissions = userIdToSubmissions.get(user.userId);
-    });
-
-    return contest;
+    const userContestResult = contest.userContest.map((user) => ({
+      ...user,
+      submissions: userIdToSubmissions.get(user.userId),
+    }));
+    return { contest, userContest: userContestResult };
   }
 
   // TODO: RAW

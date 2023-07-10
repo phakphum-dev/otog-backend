@@ -153,7 +153,9 @@ export class SubmissionService {
       by: ['problemId', 'userId'],
       where: { status: SubmissionStatus.accept },
     });
-    const ids = maxGroups.map((group) => group._max.id);
+    const ids = maxGroups
+      .map((group) => group._max.id)
+      .filter((id): id is number => id !== null);
     return this.prisma.submission.findMany({
       select: WITHOUT_SOURCECODE,
       where: {
@@ -174,7 +176,8 @@ export class SubmissionService {
   }
 
   async findAllLatestSubmission(problemId: number) {
-    const ids = await this.findLatestSubmissionIds(problemId);
+    const submissionIds = await this.findLatestSubmissionIds(problemId);
+    const ids = submissionIds.filter((id): id is number => id !== null);
     return this.prisma.submission.findMany({
       where: {
         id: { in: ids },
@@ -197,7 +200,8 @@ export class SubmissionService {
   }
 
   async setAllLatestSubmissionStatusToWaiting(problemId: number) {
-    const ids = await this.findLatestSubmissionIds(problemId);
+    const submissionIds = await this.findLatestSubmissionIds(problemId);
+    const ids = submissionIds.filter((id): id is number => id !== null);
     return this.prisma.submission.updateMany({
       where: { id: { in: ids } },
       data: { status: SubmissionStatus.waiting },

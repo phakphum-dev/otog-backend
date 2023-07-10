@@ -6,10 +6,9 @@ import {
 import { sha256 } from 'js-sha256';
 import { Role } from 'src/core/constants';
 import { userList } from 'src/utils';
-import { CreateUserDTO } from '../auth/dto/auth.dto';
 import { UpdateUserDTO } from './dto/user.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { ContestMode } from '@prisma/client';
+import { ContestMode, Prisma } from '@prisma/client';
 
 export const WITHOUT_PASSWORD = {
   id: true,
@@ -23,7 +22,7 @@ export const WITHOUT_PASSWORD = {
 export class UserService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateUserDTO) {
+  async create(data: Prisma.UserCreateInput) {
     const userNameExists = await this.findOneByUsername(data.username);
     if (userNameExists) {
       throw new ConflictException('username was taken.');

@@ -5,29 +5,29 @@ import { UserDTO } from 'src/modules/user/dto/user.dto';
 
 export class SubmissionDTO {
   @ApiProperty()
-  readonly id: number;
+  readonly id?: number;
 
-  readonly result: string;
+  readonly result?: string;
 
-  readonly score: number;
+  readonly score?: number;
 
-  readonly timeUsed: number;
+  readonly timeUsed?: number;
 
-  readonly status: Status;
+  readonly status?: Status;
 
-  readonly errmsg: string | null;
+  readonly errmsg?: string | null;
 
-  readonly contestId: number | null;
+  readonly contestId?: number | null;
 
-  readonly language: string;
+  readonly language?: string;
 
-  readonly creationDate: Date;
+  readonly creationDate?: Date;
 
-  readonly problem: ProblemDTO;
+  readonly problem?: ProblemDTO;
 
-  readonly user: UserDTO;
+  readonly user?: UserDTO;
 
-  readonly share: boolean;
+  readonly share?: boolean;
 }
 
 export class SubmissionForScoreboardDTO extends PickType(SubmissionDTO, [
@@ -36,30 +36,30 @@ export class SubmissionForScoreboardDTO extends PickType(SubmissionDTO, [
   'timeUsed',
   'status',
 ] as const) {
-  readonly problemId: number;
+  readonly problemId?: number;
 }
 
 export class SubmissionWithSourceCodeDTO extends SubmissionDTO {
-  readonly sourceCode: string;
+  readonly sourceCode?: string;
 }
 
 export class UploadFileDTO {
   @ApiProperty()
-  readonly language: string;
+  readonly language?: string;
 
   readonly contestId?: number;
 
-  readonly sourceCode: unknown;
+  readonly sourceCode?: unknown;
 }
 
 export class LatestSubmissionWithSourceCodeDTO {
-  latestSubmission: SubmissionWithSourceCodeDTO;
+  latestSubmission?: SubmissionWithSourceCodeDTO;
 }
 
 export class LatestSubmissionDTO {
-  latestSubmission: SubmissionDTO;
+  latestSubmission?: SubmissionDTO;
 }
 
 export class PublicSubmissionDTO {
-  readonly show: boolean;
+  readonly show?: boolean;
 }

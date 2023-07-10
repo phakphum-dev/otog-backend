@@ -1,12 +1,15 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { sha256 } from 'js-sha256';
 import { v4 as uuidv4 } from 'uuid';
 import { UserDTO } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
-import { CreateUserDTO } from './dto/auth.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
-import { RefreshToken } from '@prisma/client';
+import { Prisma, RefreshToken } from '@prisma/client';
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,16 +18,19 @@ export class AuthService {
     private readonly prisma: PrismaService,
   ) {}
 
-  async signup(data: CreateUserDTO) {
+  async signup(data: Prisma.UserCreateInput) {
     return await this.userService.create(data);
   }
 
   async validateUser(username: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { username } });
+    if (!user) {
+      throw new NotFoundException();
+    }
     const hash = sha256.create();
     hash.update(password);
     if (user.password === hash.hex()) {
-      delete user.password;
+      (user.password as string | undefined) = undefined;
       return user;
     }
     return null;
@@ -74,6 +80,9 @@ export class AuthService {
 
   async validateToken(refreshTokenId: string, jwtId: string) {
     const refreshToken = await this.findOneByRID(refreshTokenId);
+    if (!refreshToken) {
+      throw new NotFoundException();
+    }
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
       throw new ForbiddenException('Access token and refresh token mismatch.');
     }
@@ -97,7 +106,7 @@ export class AuthService {
 
   isRefreshTokenExpired(refreshToken: RefreshToken) {
     const now = new Date();
-    if (!refreshToken) return false;
+    if (!refreshToken?.expiryDate) return false;
     if (refreshToken.expiryDate < now) return false;
     return true;
   }

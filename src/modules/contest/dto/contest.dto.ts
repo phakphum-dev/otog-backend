@@ -4,17 +4,17 @@ import { ProblemDTO } from 'src/modules/problem/dto/problem.dto';
 import { UserForScoreboardDTO } from 'src/modules/user/dto/user.dto';
 
 class ContestDTOBase {
-  readonly id: number;
+  readonly id?: number;
 
-  readonly name: string;
+  readonly name?: string;
 
-  readonly mode: ContestMode;
+  readonly mode?: ContestMode;
 
-  readonly gradingMode: GradingMode;
+  readonly gradingMode?: GradingMode;
 
-  readonly timeStart: Date;
+  readonly timeStart?: Date;
 
-  readonly timeEnd: Date;
+  readonly timeEnd?: Date;
 }
 
 export class ContestDTO extends ContestDTOBase {
@@ -23,7 +23,7 @@ export class ContestDTO extends ContestDTOBase {
 }
 
 export class CurrentContestDTO {
-  currentContest: ContestDTO;
+  currentContest?: ContestDTO;
 }
 
 export class UpdateContestDTO extends OmitType(ContestDTOBase, [
@@ -36,36 +36,36 @@ export class CreateContestDTO extends OmitType(ContestDTOBase, [
 
 export class ScoreboardDTO extends ContestDTOBase {
   @ApiProperty()
-  readonly problems: ProblemDTO[];
+  readonly problems?: ProblemDTO[];
 
-  readonly users: UserForScoreboardDTO[];
+  readonly users?: UserForScoreboardDTO[];
 }
 
 export class PatchContestDTO {
-  problemId: number;
-  show: boolean;
+  problemId?: number;
+  show?: boolean;
 }
 
 export class ResPatchContestDTO {
-  contestId: number;
-  problemId: number;
-  show: boolean;
+  contestId?: number;
+  problemId?: number;
+  show?: boolean;
 }
 
 export class MiniSubmission {
-  id: number;
+  id?: number;
   timeUsed?: number;
-  problem: {
+  problem?: {
     id: number;
   };
-  user: {
+  user?: {
     id: number;
     showName: string;
   };
 }
 export class ScoreboardPrizeDTO {
-  firstBlood: MiniSubmission[];
-  fasterThanLight: MiniSubmission[];
-  passedInOne: MiniSubmission[];
-  oneManSolve: MiniSubmission[];
+  firstBlood?: MiniSubmission[];
+  fasterThanLight?: MiniSubmission[];
+  passedInOne?: MiniSubmission[];
+  oneManSolve?: MiniSubmission[];
 }

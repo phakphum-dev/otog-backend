@@ -2,30 +2,30 @@ import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
 
 class ProblemDTOBase {
   @ApiProperty()
-  readonly id: number;
+  readonly id?: number;
 
-  readonly name: string;
+  readonly name?: string;
 
-  readonly score: number;
+  readonly score?: number;
 
-  readonly timeLimit: number;
+  readonly timeLimit?: number;
 
-  readonly memoryLimit: number;
+  readonly memoryLimit?: number;
 
-  readonly case: string;
+  readonly case?: string;
 
-  readonly examples: string;
+  readonly examples?: string;
 }
 
 export class ProblemDTO extends ProblemDTOBase {
   @ApiProperty()
-  readonly sname: string;
+  readonly sname?: string;
 
-  readonly show: boolean;
+  readonly show?: boolean;
 
-  readonly recentShowTime: Date;
+  readonly recentShowTime?: Date;
 
-  readonly rating: number;
+  readonly rating?: number;
 }
 
 export class EditProblemDTO extends ProblemDTOBase {
@@ -39,9 +39,9 @@ export class CreateProblemDTO extends OmitType(EditProblemDTO, [
 ] as const) {}
 
 export class UploadedFilesObject {
-  readonly pdf?: Express.Multer.File;
+  readonly pdf?: Express.Multer.File[];
 
-  readonly zip?: Express.Multer.File;
+  readonly zip?: Express.Multer.File[];
 }
 
 export class ToggleProblemDTO extends PickType(ProblemDTO, ['show'] as const) {}

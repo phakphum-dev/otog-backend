@@ -11,7 +11,7 @@ import { Role, AccessState, OFFLINE_KEY } from '../constants';
 export class OfflineModeGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(context: ExecutionContext) {
     const accessibility = this.reflector.getAllAndOverride<AccessState>(
       OFFLINE_KEY,
       [context.getHandler(), context.getClass()],
@@ -33,5 +33,7 @@ export class OfflineModeGuard implements CanActivate {
     if (accessibility === AccessState.Authenticated) {
       return user.role === Role.User;
     }
+
+    return false;
   }
 }

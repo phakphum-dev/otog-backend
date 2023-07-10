@@ -25,18 +25,18 @@ export class UserDTO {
 }
 
 export class UserForScoreboardDTO extends UserDTO {
-  submissions: SubmissionForScoreboardDTO[];
+  submissions?: SubmissionForScoreboardDTO[];
 }
 
 export class UserProfileDTO extends UserDTO {
-  attendedContest: AttendedContestDTO[];
+  attendedContest?: AttendedContestDTO[];
 }
 
 export class AttendedContestDTO {
-  id: number;
-  name: string;
-  timeEnd: Date;
-  detail: {
+  id?: number;
+  name?: string;
+  timeEnd?: Date;
+  detail?: {
     rank: number;
     ratingAfterUpdate: number;
   };

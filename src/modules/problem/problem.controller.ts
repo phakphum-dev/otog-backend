@@ -122,10 +122,16 @@ export class ProblemController {
     const rid = await req.cookies['RID'];
     if (rid) {
       const refreshToken = await this.authService.findOneByRID(rid);
-      user = await this.userService.findOneById(refreshToken?.userId);
+      if (!refreshToken?.userId) {
+        throw new NotFoundException();
+      }
+      user = await this.userService.findOneById(refreshToken.userId);
     }
 
     const problem = await this.problemService.findOneById(problemId);
+    if (!problem) {
+      throw new NotFoundException();
+    }
     if (problem?.show === false && user?.role !== Role.Admin) {
       // TODO validate user if contest is private
       const contest =
