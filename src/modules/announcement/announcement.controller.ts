@@ -1,24 +1,12 @@
 import {
-  Body,
   Controller,
   Delete,
   Get,
-  Param,
-  ParseBoolPipe,
-  ParseIntPipe,
   Patch,
   Post,
   Put,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiCreatedResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
 import { AccessState, Role } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -26,12 +14,6 @@ import { User } from 'src/core/decorators/user.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { UserDTO } from '../user/dto/user.dto';
 import { AnnouncementService } from './announcement.service';
-import {
-  AnnouncementDTO,
-  CreateAnnouncementDTO,
-  ToggleAnnouncementDTO,
-  UpdateAnnouncementDTO,
-} from './dto/announcement.dto';
 
 import {
   // NestControllerInterface,
@@ -41,28 +23,22 @@ import {
   nestControllerContract,
   tsRestHandler,
 } from '@ts-rest/nest';
-import { apiAnnouncement } from 'src/api';
+import { announcementRouter } from 'src/api';
+import { z } from 'zod';
 
-const c = nestControllerContract(apiAnnouncement);
+const c = nestControllerContract(announcementRouter);
 // type RequestShapes = NestRequestShapes<typeof c>;
 
-@ApiBearerAuth()
-@ApiTags('announcement')
-@Controller('announcement')
+@Controller()
 @UseGuards(RolesGuard)
 // implements NestControllerInterface<typeof c>
 export class AnnouncementController {
   constructor(private announcementService: AnnouncementService) {}
 
-  @TsRestHandler(c.getAllAnnouncement)
+  @TsRestHandler(c.getAnnouncements)
   @OfflineAccess(AccessState.Authenticated)
-  @ApiOkResponse({
-    type: AnnouncementDTO,
-    isArray: true,
-    description: 'Get announcements depending on user permission',
-  })
-  getAllAnnouncement(@User() user: UserDTO) {
-    return tsRestHandler(c.getAllAnnouncement, async () => {
+  getAnnouncements(@User() user: UserDTO) {
+    return tsRestHandler(c.getAnnouncements, async () => {
       const announcements =
         user?.role === Role.Admin
           ? await this.announcementService.findAll()
@@ -74,96 +50,96 @@ export class AnnouncementController {
   @TsRestHandler(c.createAnnouncement)
   @Roles(Role.Admin)
   @Post()
-  @ApiCreatedResponse({
-    type: AnnouncementDTO,
-    description: 'Create new announcement',
-  })
   createAnnouncement() {
     return tsRestHandler(c.createAnnouncement, async ({ body }) => {
-      const announcement = await this.announcementService.create(body);
+      if (!body.value) {
+        return { status: 400, body: { message: 'No value is sent' } };
+      }
+      const announcement = await this.announcementService.create(body.value);
       return { status: 201, body: announcement };
     });
   }
 
+  @TsRestHandler(c.getContestAnnouncments)
   @OfflineAccess(AccessState.Authenticated)
   @Get('/contest/:contestId')
-  @ApiOkResponse({
-    type: AnnouncementDTO,
-    isArray: true,
-    description: 'Get contest announcements',
-  })
-  getAllContestAnnouncement(
-    @User() user: UserDTO,
-    @Param('contestId', ParseIntPipe) contestId: number,
-  ) {
-    return user?.role === Role.Admin
-      ? this.announcementService.findAllWithContestId(contestId)
-      : this.announcementService.findShownWithContestId(contestId);
-  }
-
-  @Roles(Role.Admin)
-  @Post('/contest/:contestId')
-  @ApiCreatedResponse({
-    type: AnnouncementDTO,
-    description: 'Create new contest announcement',
-  })
-  @ApiBody({
-    type: CreateAnnouncementDTO,
-  })
-  createContestAnnouncementInContest(
-    @Body('value') value: object,
-    @Param('contestId', ParseIntPipe) contestId: number,
-  ) {
-    return this.announcementService.create(value, contestId);
-  }
-
-  @Roles(Role.Admin)
-  @Delete('/:announcementId')
-  @ApiOkResponse({
-    type: AnnouncementDTO,
-    description: 'Delete announcement by id',
-  })
-  @ApiNotFoundResponse({ description: 'Announcement not found' })
-  deleteAnnouncement(
-    @Param('announcementId', ParseIntPipe) announcementId: number,
-  ) {
-    return this.announcementService.delete(announcementId);
-  }
-
-  @Roles(Role.Admin)
-  @Patch('/:announcementId')
-  @ApiOkResponse({
-    type: AnnouncementDTO,
-    description: 'Update visibility of announcement by id',
-  })
-  @ApiBody({
-    type: ToggleAnnouncementDTO,
-  })
-  @ApiNotFoundResponse({ description: 'Announcement not found' })
-  patchAnnouncement(
-    @Param('announcementId', ParseIntPipe) announcementId: number,
-    @Body('show', ParseBoolPipe) show: boolean,
-  ) {
-    return this.announcementService.updateAnnouncementShow(
-      announcementId,
-      show,
+  getContestAnnouncments(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.getContestAnnouncments,
+      async ({ params: { contestId } }) => {
+        const id = z.number().parse(contestId);
+        const announcements =
+          user?.role === Role.Admin
+            ? await this.announcementService.findAllWithContestId(id)
+            : await this.announcementService.findShownWithContestId(id);
+        return { status: 200, body: announcements };
+      },
     );
   }
 
+  @TsRestHandler(c.createContestAnnouncement)
+  @Roles(Role.Admin)
+  @Post('/contest/:contestId')
+  createContestAnnouncement() {
+    return tsRestHandler(
+      c.createContestAnnouncement,
+      async ({ params: { contestId }, body }) => {
+        const id = z.number().parse(contestId);
+        if (!body.value) {
+          return { status: 400, body: { message: 'No value is sent' } };
+        }
+        const announcement = await this.announcementService.create(
+          body.value,
+          id,
+        );
+        return { status: 201, body: announcement };
+      },
+    );
+  }
+
+  @TsRestHandler(c.deleteAnnouncement)
+  @Roles(Role.Admin)
+  @Delete('/:announcementId')
+  deleteAnnouncement() {
+    return tsRestHandler(
+      c.deleteAnnouncement,
+      async ({ params: { announcementId } }) => {
+        const id = z.number().parse(announcementId);
+        const announcement = await this.announcementService.delete(id);
+        return { status: 200, body: announcement };
+      },
+    );
+  }
+
+  @TsRestHandler(c.showAnnouncement)
+  @Roles(Role.Admin)
+  @Patch('/:announcementId')
+  showAnnouncement() {
+    return tsRestHandler(
+      c.showAnnouncement,
+      async ({ params: { announcementId }, body: { show } }) => {
+        const id = z.number().parse(announcementId);
+        const announcement =
+          await this.announcementService.updateAnnouncementShow(id, show);
+        return { status: 200, body: announcement };
+      },
+    );
+  }
+
+  @TsRestHandler(c.updateAnnouncement)
   @Roles(Role.Admin)
   @Put('/:announcementId')
-  @ApiOkResponse({
-    type: UpdateAnnouncementDTO,
-    description: 'Update announcement by id',
-  })
-  @ApiNotFoundResponse({ description: 'Announcement not found' })
-  putAnnouncement(
-    @Param('announcementId', ParseIntPipe) announcementId: number,
-    @Body() announcementData: AnnouncementDTO,
-  ) {
-    return this.announcementService.updateAnnounce(
-      announcementId,
-      announcementData,
+  updateAnnouncement() {
+    return tsRestHandler(
+      c.updateAnnouncement,
+      async ({ params: { announcementId }, body }) => {
+        const id = z.number().parse(announcementId);
+        const announcement = await this.announcementService.updateAnnounce(
+          id,
+          body,
+        );
+        return { status: 200, body: announcement };
+      },
     );
   }
 }

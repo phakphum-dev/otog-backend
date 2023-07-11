@@ -15,7 +15,7 @@ datasource db {
 model Announcement {
   id        Int      @id @default(autoincrement())
   value     Json?
-  show      Boolean? @default(false)
+  show      Boolean  @default(false)
   contestId Int?
 	@@map("announcement")
 }

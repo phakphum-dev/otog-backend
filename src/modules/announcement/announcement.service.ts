@@ -40,7 +40,10 @@ export class AnnouncementService {
     });
   }
 
-  async create(value: object, contestId: number | null = null) {
+  async create(
+    value: Prisma.NullableJsonNullValueInput | Prisma.InputJsonValue,
+    contestId: number | null = null,
+  ) {
     return this.prisma.announcement.create({ data: { value, contestId } });
   }
 
