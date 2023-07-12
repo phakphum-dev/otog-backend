@@ -3,6 +3,7 @@ import { z } from 'zod';
 import {
   AnnouncementCreateInputSchema,
   AnnouncementSchema,
+  ChatSchema,
 } from './prisma/generated/zod';
 
 // TODO: https://github.com/colinhacks/zod/discussions/2171
@@ -78,6 +79,22 @@ export const announcementRouter = contract.router(
   { pathPrefix: '/announcement' },
 );
 
+export const chatRouter = contract.router({
+  getChats: {
+    method: 'GET',
+    path: '/chat',
+    responses: {
+      200: z.array(ChatSchema),
+    },
+    query: z.object({
+      offset: z.string().pipe(z.coerce.number()).optional(),
+      limit: z.string().pipe(z.coerce.number()).optional(),
+    }),
+    summary: 'Get paginated chats',
+  },
+});
+
 export const router = contract.router({
   announcement: announcementRouter,
+  chat: chatRouter,
 });
