@@ -25,7 +25,6 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @TsRestHandler(c.register)
-  @Post('/register')
   register() {
     return tsRestHandler(c.register, async ({ body }) => {
       const result = await this.authService.signup(body);

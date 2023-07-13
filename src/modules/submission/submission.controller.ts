@@ -1,10 +1,7 @@
 import {
   Controller,
-  Get,
   Param,
   ParseIntPipe,
-  Patch,
-  Post,
   UploadedFile,
   UseGuards,
   UseInterceptors,
@@ -37,7 +34,6 @@ export class SubmissionController {
   ) {}
 
   @TsRestHandler(c.getSubmissions)
-  @Get()
   getSubmissions(@User() user: UserDTO) {
     return tsRestHandler(
       c.getSubmissions,
@@ -57,7 +53,6 @@ export class SubmissionController {
   // unused
   @TsRestHandler(c.getContestSubmissions)
   @Roles(Role.Admin)
-  @Get('/contest')
   getContestSubmissions() {
     return tsRestHandler(
       c.getContestSubmissions,
@@ -74,7 +69,6 @@ export class SubmissionController {
   @TsRestHandler(c.getLatestSubmissionByProblemId)
   @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.Admin, Role.User)
-  @Get('/problem/:problemId/latest')
   getLatestSubmissionByProblemId(@User() user: UserDTO) {
     return tsRestHandler(
       c.getLatestSubmissionByProblemId,
@@ -94,7 +88,6 @@ export class SubmissionController {
   @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.User, Role.Admin)
   // @ApiConsumes('multipart/form-data')
-  @Post('/problem/:problemId')
   @UseInterceptors(FileInterceptor('sourceCode'))
   uploadFile(@UploadedFile() file: Express.Multer.File, @User() user: UserDTO) {
     return tsRestHandler(
@@ -118,7 +111,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.getLatestSubmissionByUserId)
   @Roles(Role.User, Role.Admin)
-  @Get('/latest')
   getLatestSubmissionByUserId(@User() user: UserDTO) {
     return tsRestHandler(c.getLatestSubmissionByUserId, async () => {
       const latestSubmission = await this.submissionService.findFirstByUserId(
@@ -130,7 +122,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.getSubmissionsByUserId)
   @Roles(Role.User, Role.Admin)
-  @Get('/user/:userId')
   getSubmissionsByUserId(@User() user: UserDTO) {
     return tsRestHandler(
       c.getSubmissionsByUserId,
@@ -160,7 +151,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.getSubmission)
   @OfflineAccess(AccessState.Authenticated)
-  @Get('/:submissionId')
   getSubmissionById() {
     return tsRestHandler(
       c.getSubmission,
@@ -177,7 +167,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.getSubmissionWithSourceCode)
   @OfflineAccess(AccessState.Authenticated)
-  @Get('/:submissionId/code')
   getSubmissionWithSourceCode(
     @Param('submissionId', ParseIntPipe) submissionId: number,
     @User() user: UserDTO,
@@ -204,7 +193,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.shareSubmission)
   @Roles(Role.User, Role.Admin)
-  @Patch('/:submissionId/share')
   shareSubmission(@User() user: UserDTO) {
     return tsRestHandler(
       c.shareSubmission,
@@ -228,7 +216,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.rejudgeSubmission)
   @Roles(Role.Admin)
-  @Patch('/:submissionId/rejudge')
   rejudgeSubmission() {
     return tsRestHandler(
       c.rejudgeSubmission,
@@ -248,7 +235,6 @@ export class SubmissionController {
 
   @TsRestHandler(c.rejudgeProblem)
   @Roles(Role.Admin)
-  @Patch('/problem/:problemId/rejudge')
   rejudgeProblem() {
     return tsRestHandler(
       c.rejudgeProblem,

@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Patch,
-  Post,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { AccessState, Role } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -31,7 +23,6 @@ export class ContestController {
   constructor(private contestService: ContestService) {}
 
   @TsRestHandler(c.getContests)
-  @Get()
   getContests() {
     return tsRestHandler(c.getContests, async () => {
       const contests = await this.contestService.findAll();
@@ -41,7 +32,6 @@ export class ContestController {
 
   @TsRestHandler(c.getCurrentContest)
   @OfflineAccess(AccessState.Authenticated)
-  @Get('/now')
   getCurrentContest() {
     return tsRestHandler(c.getCurrentContest, async () => {
       // TODO not private
@@ -52,7 +42,6 @@ export class ContestController {
 
   @TsRestHandler(c.getContest)
   @OfflineAccess(AccessState.Authenticated)
-  @Get('/:contestId')
   getContest() {
     return tsRestHandler(c.getContest, async ({ params: { contestId } }) => {
       const id = z.coerce.number().parse(contestId);
@@ -62,7 +51,6 @@ export class ContestController {
   }
 
   @TsRestHandler(c.getContestScoreboard)
-  @Get('/:contestId/scoreboard')
   getContestScoreboard(@User() user?: UserDTO) {
     return tsRestHandler(
       c.getContestScoreboard,
@@ -85,7 +73,6 @@ export class ContestController {
   }
 
   @TsRestHandler(c.getContestPrize)
-  @Get('/:contestId/prize')
   getContestPrize() {
     return tsRestHandler(
       c.getContestPrize,
@@ -103,7 +90,6 @@ export class ContestController {
   //Admin Only
 
   @TsRestHandler(c.createContest)
-  @Post()
   @Roles(Role.Admin)
   createContest() {
     return tsRestHandler(c.createContest, async ({ body }) => {
@@ -114,7 +100,6 @@ export class ContestController {
 
   @TsRestHandler(c.toggleProblemToContest)
   @Roles(Role.Admin)
-  @Patch('/:contestId')
   toggleProblemToContest() {
     return tsRestHandler(
       c.toggleProblemToContest,
@@ -132,7 +117,6 @@ export class ContestController {
 
   @TsRestHandler(c.updateContest)
   @Roles(Role.Admin)
-  @Put('/:contestId')
   updateContest() {
     return tsRestHandler(
       c.updateContest,
@@ -146,7 +130,6 @@ export class ContestController {
 
   @TsRestHandler(c.deleteContest)
   @Roles(Role.Admin)
-  @Delete('/:contestId')
   deleteContest() {
     return tsRestHandler(c.deleteContest, async ({ params: { contestId } }) => {
       const id = z.coerce.number().parse(contestId);
@@ -157,7 +140,6 @@ export class ContestController {
 
   @TsRestHandler(c.contestSignUp)
   @Roles(Role.Admin)
-  @Post('/:contestId/signup')
   contestSignUp() {
     return tsRestHandler(
       c.contestSignUp,

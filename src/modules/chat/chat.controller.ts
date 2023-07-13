@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { ChatService } from './chat.service';
 import {
@@ -16,7 +16,6 @@ export class ChatController {
   constructor(private chatService: ChatService) {}
 
   @TsRestHandler(c.getChats)
-  @Get()
   getChats() {
     return tsRestHandler(c.getChats, async ({ query: { limit, offset } }) => {
       const chats = await this.chatService.findAll(offset, limit);

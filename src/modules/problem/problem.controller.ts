@@ -1,14 +1,10 @@
 import {
   Controller,
-  Delete,
   ForbiddenException,
   Get,
   NotFoundException,
   Param,
   ParseIntPipe,
-  Patch,
-  Post,
-  Put,
   Req,
   Res,
   UploadedFiles,
@@ -49,7 +45,6 @@ export class ProblemController {
   ) {}
 
   @TsRestHandler(c.getProblems)
-  @Get()
   getProblems(@User() user: UserDTO) {
     return tsRestHandler(c.getProblems, async () => {
       if (user.role === Role.Admin) {
@@ -71,7 +66,6 @@ export class ProblemController {
   }
 
   @TsRestHandler(c.getProblem)
-  @Get('/:problemId')
   getProblem(@User() user: UserDTO) {
     return tsRestHandler(c.getProblem, async ({ params: { problemId } }) => {
       const id = z.coerce.number().parse(problemId);
@@ -87,7 +81,6 @@ export class ProblemController {
   }
 
   @TsRestHandler(c.getPassedUsers)
-  @Get('/:problemId/user')
   getPassedUsers() {
     return tsRestHandler(
       c.getPassedUsers,
@@ -136,7 +129,6 @@ export class ProblemController {
   //Admin route
   @TsRestHandler(c.toggleShowProblem)
   @Roles(Role.Admin)
-  @Patch('/:problemId')
   toggleShowProblem() {
     return tsRestHandler(
       c.toggleShowProblem,
@@ -153,7 +145,6 @@ export class ProblemController {
 
   @TsRestHandler(c.createProblem)
   @Roles(Role.Admin)
-  @Post()
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -174,7 +165,6 @@ export class ProblemController {
 
   @TsRestHandler(c.updateProblem)
   @Roles(Role.Admin)
-  @Put('/:problemId')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -203,7 +193,6 @@ export class ProblemController {
 
   @TsRestHandler(c.deleteProblem)
   @Roles(Role.Admin)
-  @Delete('/:problemId')
   deleteProblem() {
     return tsRestHandler(c.deleteProblem, async ({ params: { problemId } }) => {
       const id = z.coerce.number().parse(problemId);
@@ -214,7 +203,6 @@ export class ProblemController {
 
   @TsRestHandler(c.updateProblemExamples)
   @Roles(Role.Admin)
-  @Put('/:problemId/examples')
   updateProblemExamples() {
     return tsRestHandler(
       c.updateProblemExamples,

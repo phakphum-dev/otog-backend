@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Delete,
-  Get,
-  Patch,
-  Post,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { AccessState, Role } from 'src/core/constants';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
 import { Roles } from 'src/core/decorators/roles.decorator';
@@ -49,7 +41,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.createAnnouncement)
   @Roles(Role.Admin)
-  @Post()
   createAnnouncement() {
     return tsRestHandler(c.createAnnouncement, async ({ body }) => {
       if (!body.value) {
@@ -62,7 +53,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.getContestAnnouncments)
   @OfflineAccess(AccessState.Authenticated)
-  @Get('/contest/:contestId')
   getContestAnnouncments(@User() user: UserDTO) {
     return tsRestHandler(
       c.getContestAnnouncments,
@@ -79,7 +69,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.createContestAnnouncement)
   @Roles(Role.Admin)
-  @Post('/contest/:contestId')
   createContestAnnouncement() {
     return tsRestHandler(
       c.createContestAnnouncement,
@@ -99,7 +88,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.deleteAnnouncement)
   @Roles(Role.Admin)
-  @Delete('/:announcementId')
   deleteAnnouncement() {
     return tsRestHandler(
       c.deleteAnnouncement,
@@ -113,7 +101,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.showAnnouncement)
   @Roles(Role.Admin)
-  @Patch('/:announcementId')
   showAnnouncement() {
     return tsRestHandler(
       c.showAnnouncement,
@@ -128,7 +115,6 @@ export class AnnouncementController {
 
   @TsRestHandler(c.updateAnnouncement)
   @Roles(Role.Admin)
-  @Put('/:announcementId')
   updateAnnouncement() {
     return tsRestHandler(
       c.updateAnnouncement,

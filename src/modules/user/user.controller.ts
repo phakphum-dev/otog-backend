@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Put, UseGuards } from '@nestjs/common';
+import { Controller, UseGuards } from '@nestjs/common';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
@@ -22,7 +22,6 @@ export class UserController {
 
   @TsRestHandler(c.getUsers)
   @Roles(Role.Admin)
-  @Get()
   getUsers() {
     return tsRestHandler(c.getUsers, async () => {
       const users = await this.userService.findAll();
@@ -31,7 +30,6 @@ export class UserController {
   }
 
   @TsRestHandler(c.getUsers)
-  @Get('/online')
   getOnlineUsers() {
     return tsRestHandler(c.getUsers, async () => {
       const users = await this.userService.onlineUser();
@@ -40,7 +38,6 @@ export class UserController {
   }
 
   @TsRestHandler(c.getUserProfile)
-  @Get('/:userId/profile')
   getUserProfile() {
     return tsRestHandler(c.getUserProfile, async ({ params: { userId } }) => {
       const id = z.coerce.number().parse(userId);
@@ -54,7 +51,6 @@ export class UserController {
 
   @TsRestHandler(c.updateUser)
   @Roles(Role.Admin)
-  @Put('/:userId')
   updateUser() {
     return tsRestHandler(c.updateUser, async ({ params: { userId }, body }) => {
       const id = z.coerce.number().parse(userId);
@@ -65,7 +61,6 @@ export class UserController {
 
   @TsRestHandler(c.updateShowName)
   @Roles(Role.Admin, Role.User)
-  @Patch('/:userId/name')
   updateShowName(@User() user: UserDTO) {
     return tsRestHandler(
       c.updateShowName,
