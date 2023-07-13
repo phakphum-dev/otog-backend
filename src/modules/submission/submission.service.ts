@@ -1,10 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { scodeFileFilter, scodeFileSizeLimit } from 'src/utils';
 import { UserDTO } from '../user/dto/user.dto';
-import { UploadFileDTO } from './dto/submission.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { WITHOUT_PASSWORD } from '../user/user.service';
-import { SubmissionStatus, UserRole } from '@prisma/client';
+import { Submission, SubmissionStatus, UserRole } from '@prisma/client';
 
 export const WITHOUT_SOURCECODE = {
   id: true,
@@ -20,6 +19,11 @@ export const WITHOUT_SOURCECODE = {
   problem: { select: { id: true, name: true } },
   user: { select: WITHOUT_PASSWORD },
 } as const;
+
+const WITH_SOURCECODE = {
+  ...WITHOUT_SOURCECODE,
+  sourceCode: true,
+};
 
 @Injectable()
 export class SubmissionService {
@@ -69,7 +73,7 @@ export class SubmissionService {
   async findOneByResultIdWithCode(resultId: number) {
     return this.prisma.submission.findUnique({
       where: { id: resultId },
-      select: { ...WITHOUT_SOURCECODE, sourceCode: true },
+      select: WITH_SOURCECODE,
     });
   }
 
@@ -85,12 +89,12 @@ export class SubmissionService {
   async create(
     user: UserDTO,
     problemId: number,
-    data: UploadFileDTO,
+    data: Pick<Submission, 'language' | 'contestId'>,
     file: Express.Multer.File,
   ) {
     this.fileCheck(file);
     try {
-      await this.prisma.submission.create({
+      return await this.prisma.submission.create({
         data: {
           userId: user.id,
           problemId,
@@ -103,7 +107,6 @@ export class SubmissionService {
     } catch {
       throw new BadRequestException();
     }
-    return { msg: 'create submission complete.' };
   }
 
   findAllByUserIdWithOutContest(userId: number, offset = 1e9, limit = 89) {
@@ -135,7 +138,7 @@ export class SubmissionService {
     return this.prisma.submission.findFirst({
       where: { userId },
       orderBy: { id: 'desc' },
-      select: { ...WITHOUT_PASSWORD, sourceCode: true },
+      select: WITH_SOURCECODE,
     });
   }
 
@@ -143,7 +146,7 @@ export class SubmissionService {
     return this.prisma.submission.findFirst({
       where: { userId, problemId },
       orderBy: { id: 'desc' },
-      select: { ...WITHOUT_PASSWORD, sourceCode: true },
+      select: WITH_SOURCECODE,
     });
   }
 
@@ -189,6 +192,7 @@ export class SubmissionService {
     return this.prisma.submission.update({
       where: { id: submissionId },
       data: { public: show },
+      select: { public: true },
     });
   }
 
@@ -196,6 +200,7 @@ export class SubmissionService {
     return this.prisma.submission.update({
       where: { id: submissionId },
       data: { status: SubmissionStatus.waiting },
+      select: WITHOUT_SOURCECODE,
     });
   }
 

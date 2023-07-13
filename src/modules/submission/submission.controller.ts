@@ -1,293 +1,262 @@
 import {
-  Body,
   Controller,
-  ForbiddenException,
   Get,
-  NotFoundException,
   Param,
-  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
-  Query,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SubmissionService } from './submission.service';
-import {
-  ApiBadRequestResponse,
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
-import {
-  LatestSubmissionDTO,
-  LatestSubmissionWithSourceCodeDTO,
-  PublicSubmissionDTO,
-  SubmissionDTO,
-  SubmissionWithSourceCodeDTO,
-  UploadFileDTO,
-} from './dto/submission.dto';
 import { RolesGuard } from 'src/core/guards/roles.guard';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { AccessState, Role } from 'src/core/constants';
 import { User } from 'src/core/decorators/user.decorator';
 import { UserDTO } from '../user/dto/user.dto';
-import { OptionalIntPipe } from 'src/utils/optional.pipe';
 import { OfflineAccess } from 'src/core/decorators/offline-mode.decorator';
+import {
+  TsRestHandler,
+  nestControllerContract,
+  tsRestHandler,
+} from '@ts-rest/nest';
+import { submissionRouter } from 'src/api';
+import { z } from 'zod';
+import { ContestService } from '../contest/contest.service';
 
-@ApiTags('submission')
-@Controller('submission')
+const c = nestControllerContract(submissionRouter);
+
+@Controller()
 @UseGuards(RolesGuard)
 export class SubmissionController {
-  constructor(private submissionService: SubmissionService) {}
+  constructor(
+    private submissionService: SubmissionService,
+    private contestService: ContestService,
+  ) {}
 
+  @TsRestHandler(c.getSubmissions)
   @Get()
-  @ApiQuery({ name: 'offset', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiOkResponse({
-    type: SubmissionDTO,
-    isArray: true,
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation failed (numeric string is expected)',
-  })
-  getAllSubmission(
-    @User() user: UserDTO,
-    @Query('offset', OptionalIntPipe) offset?: number,
-    @Query('limit', OptionalIntPipe) limit?: number,
-  ) {
-    return user.role === Role.Admin
-      ? this.submissionService.findAll(offset, limit)
-      : this.submissionService.findAllWithOutContestAndAdmin(offset, limit);
+  getSubmissions(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.getSubmissions,
+      async ({ query: { limit, offset } }) => {
+        const submissions =
+          user.role === Role.Admin
+            ? await this.submissionService.findAll(offset, limit)
+            : await this.submissionService.findAllWithOutContestAndAdmin(
+                offset,
+                limit,
+              );
+        return { status: 200, body: submissions };
+      },
+    );
   }
 
   // unused
+  @TsRestHandler(c.getContestSubmissions)
   @Roles(Role.Admin)
   @Get('/contest')
-  @ApiBearerAuth()
-  @ApiQuery({ name: 'offset', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiOkResponse({
-    type: SubmissionDTO,
-    isArray: true,
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation failed (numeric string is expected)',
-  })
-  getContestSubmission(
-    @Query('offset', OptionalIntPipe) offset: number,
-    @Query('limit', OptionalIntPipe) limit: number,
-  ) {
-    return this.submissionService.findAllWithContest(offset, limit);
+  getContestSubmissions() {
+    return tsRestHandler(
+      c.getContestSubmissions,
+      async ({ query: { limit, offset } }) => {
+        const submissions = await this.submissionService.findAllWithContest(
+          offset,
+          limit,
+        );
+        return { status: 200, body: submissions };
+      },
+    );
   }
 
+  @TsRestHandler(c.getLatestSubmissionByProblemId)
   @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.Admin, Role.User)
   @Get('/problem/:problemId/latest')
-  @ApiBearerAuth()
-  @ApiOkResponse({ type: LatestSubmissionWithSourceCodeDTO })
-  @ApiNotFoundResponse({ description: 'Submission for the problem not found' })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
-  async getLatestSubmissionByProblemId(
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @User() user: UserDTO,
-  ) {
-    return {
-      latestSubmission:
-        await this.submissionService.findFirstByProblemIdAndUserId(
-          problemId,
-          user.id,
-        ),
-    };
+  getLatestSubmissionByProblemId(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.getLatestSubmissionByProblemId,
+      async ({ params: { problemId } }) => {
+        const id = z.coerce.number().parse(problemId);
+        const latestSubmission =
+          await this.submissionService.findFirstByProblemIdAndUserId(
+            id,
+            user.id,
+          );
+        return { status: 200, body: { latestSubmission } };
+      },
+    );
   }
 
+  @TsRestHandler(c.uploadFile)
   @OfflineAccess(AccessState.Authenticated)
   @Roles(Role.User, Role.Admin)
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: UploadFileDTO })
+  // @ApiConsumes('multipart/form-data')
   @Post('/problem/:problemId')
-  @ApiBearerAuth()
-  @ApiCreatedResponse({ description: 'Submit successfully' })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
   @UseInterceptors(FileInterceptor('sourceCode'))
-  async uploadFile(
-    @UploadedFile() file: Express.Multer.File,
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @User() user: UserDTO,
-    @Body() data: UploadFileDTO,
-  ) {
-    if (data.contestId) {
-      // TODO validate user if contest is private
-      // await this.contestService.addUserToContest(data.contestId, user.id);
-    }
-    return this.submissionService.create(user, problemId, data, file);
+  uploadFile(@UploadedFile() file: Express.Multer.File, @User() user: UserDTO) {
+    return tsRestHandler(
+      c.uploadFile,
+      async ({ body, params: { problemId } }) => {
+        if (body.contestId) {
+          // TODO validate user if contest is private
+          await this.contestService.addUserToContest(body.contestId, user.id);
+        }
+        const id = z.coerce.number().parse(problemId);
+        const submission = await this.submissionService.create(
+          user,
+          id,
+          body,
+          file,
+        );
+        return { status: 200, body: submission };
+      },
+    );
   }
 
+  @TsRestHandler(c.getLatestSubmissionByUserId)
   @Roles(Role.User, Role.Admin)
   @Get('/latest')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: LatestSubmissionDTO,
-    description: 'Get the latest submission',
-  })
-  async getLatestSubmissionWithUserId(@User() user: UserDTO) {
-    return {
-      latestSubmission: await this.submissionService.findFirstByUserId(user.id),
-    };
+  getLatestSubmissionByUserId(@User() user: UserDTO) {
+    return tsRestHandler(c.getLatestSubmissionByUserId, async () => {
+      const latestSubmission = await this.submissionService.findFirstByUserId(
+        user.id,
+      );
+      return { status: 200, body: { latestSubmission } };
+    });
   }
 
+  @TsRestHandler(c.getSubmissionsByUserId)
   @Roles(Role.User, Role.Admin)
   @Get('/user/:userId')
-  @ApiBearerAuth()
-  @ApiQuery({ name: 'offset', type: Number, required: false })
-  @ApiQuery({ name: 'limit', type: Number, required: false })
-  @ApiOkResponse({
-    type: SubmissionDTO,
-    isArray: true,
-    description: 'Get some submissions from query',
-  })
-  @ApiBadRequestResponse({
-    description: 'Validation failed (numeric string is expected)',
-  })
-  @ApiNotFoundResponse({
-    description: 'User not found',
-  })
-  @ApiForbiddenResponse({
-    description: 'User id must be the same as userId',
-  })
-  getAllSubmissionByUserId(
+  getSubmissionsByUserId(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.getSubmissionsByUserId,
+      async ({ params: { userId }, query: { limit, offset } }) => {
+        const id = z.coerce.number().parse(userId);
+        if (user.role === 'admin') {
+          const submissions = await this.submissionService.findAllByUserId(
+            id,
+            offset,
+            limit,
+          );
+          return { status: 200, body: submissions };
+        }
+        if (user.id === id) {
+          const submissions =
+            await this.submissionService.findAllByUserIdWithOutContest(
+              id,
+              offset,
+              limit,
+            );
+          return { status: 200, body: submissions };
+        }
+        return { status: 400, body: { message: 'Bad request' } };
+      },
+    );
+  }
+
+  @TsRestHandler(c.getSubmission)
+  @OfflineAccess(AccessState.Authenticated)
+  @Get('/:submissionId')
+  getSubmissionById() {
+    return tsRestHandler(
+      c.getSubmission,
+      async ({ params: { submissionId } }) => {
+        const id = z.coerce.number().parse(submissionId);
+        const submission = await this.submissionService.findOneByResultId(id);
+        if (!submission) {
+          return { status: 404, body: { message: 'Not Found' } };
+        }
+        return { status: 200, body: submission };
+      },
+    );
+  }
+
+  @TsRestHandler(c.getSubmissionWithSourceCode)
+  @OfflineAccess(AccessState.Authenticated)
+  @Get('/:submissionId/code')
+  getSubmissionWithSourceCode(
+    @Param('submissionId', ParseIntPipe) submissionId: number,
     @User() user: UserDTO,
-    @Param('userId', ParseIntPipe) userId: number,
-    @Query('offset', OptionalIntPipe) offset?: number,
-    @Query('limit', OptionalIntPipe) limit?: number,
   ) {
-    if (user.role === 'admin') {
-      return this.submissionService.findAllByUserId(userId, offset, limit);
-    }
-    if (user.id === userId) {
-      return this.submissionService.findAllByUserIdWithOutContest(
-        userId,
-        offset,
-        limit,
+    return tsRestHandler(c.getSubmissionWithSourceCode, async () => {
+      const submission = await this.submissionService.findOneByResultIdWithCode(
+        submissionId,
       );
-    }
-    throw new ForbiddenException();
+      if (!submission) {
+        return { status: 404, body: { message: 'Not Found' } };
+      }
+      if (
+        !(
+          submission.public ||
+          submission.user.id === user.id ||
+          user.role === Role.Admin
+        )
+      ) {
+        return { status: 403, body: { message: 'Forbidden' } };
+      }
+      return { status: 200, body: submission };
+    });
   }
 
-  @OfflineAccess(AccessState.Authenticated)
-  @Get('/:resultId')
-  @ApiOkResponse({
-    type: SubmissionDTO,
-    description: 'Get submission by id',
-  })
-  @ApiNotFoundResponse({ description: 'Submission not found' })
-  async getSubmissionById(@Param('resultId', ParseIntPipe) resultId: number) {
-    const submission = await this.submissionService.findOneByResultId(resultId);
-    if (!submission) {
-      throw new NotFoundException();
-    }
-    return submission;
-  }
-
-  @OfflineAccess(AccessState.Authenticated)
-  @Get('/:resultId/code')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: SubmissionWithSourceCodeDTO,
-    description: 'Get submission with source code by id',
-  })
-  @ApiNotFoundResponse({ description: 'Submission not found' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  async getSubmissionWithCodeById(
-    @Param('resultId', ParseIntPipe) resultId: number,
-    @User() user: UserDTO,
-  ) {
-    const submission = await this.submissionService.findOneByResultIdWithCode(
-      resultId,
-    );
-    if (!submission) {
-      throw new NotFoundException();
-    }
-    if (
-      !(
-        submission.public ||
-        submission.user.id === user.id ||
-        user.role === Role.Admin
-      )
-    ) {
-      throw new ForbiddenException();
-    }
-    return submission;
-  }
-
+  @TsRestHandler(c.shareSubmission)
   @Roles(Role.User, Role.Admin)
-  @Patch('/:resultId/share')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: SubmissionWithSourceCodeDTO,
-  })
-  @ApiBody({
-    type: PublicSubmissionDTO,
-  })
-  @ApiNotFoundResponse({ description: 'Submission not found' })
-  @ApiBadRequestResponse({
-    description: 'Validation failed (numeric string is expected)',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  async shareSubmission(
-    @User() user: UserDTO,
-    @Param('resultId', ParseIntPipe) resultId: number,
-    @Body('show', ParseBoolPipe) show: boolean,
-  ) {
-    const submission = await this.submissionService.findOneByResultIdWithCode(
-      resultId,
+  @Patch('/:submissionId/share')
+  shareSubmission(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.shareSubmission,
+      async ({ body: { show }, params: { submissionId } }) => {
+        const id = z.coerce.number().parse(submissionId);
+        const submission =
+          await this.submissionService.findOneByResultIdWithCode(id);
+        if (!submission) {
+          return { status: 404, body: { message: 'Not Found' } };
+        }
+        if (!(user.id === submission.user.id || user.role === Role.Admin)) {
+          return { status: 403, body: { message: 'Forbidden' } };
+        }
+        return {
+          status: 200,
+          body: await this.submissionService.updateSubmissionPublic(id, show),
+        };
+      },
     );
-    if (!submission) {
-      throw new NotFoundException();
-    }
-    if (!(user.id === submission.user.id || user.role === Role.Admin)) {
-      throw new ForbiddenException();
-    }
-    return await this.submissionService.updateSubmissionPublic(resultId, show);
   }
 
+  @TsRestHandler(c.rejudgeSubmission)
   @Roles(Role.Admin)
-  @Patch('/:resultId/rejudge')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: SubmissionWithSourceCodeDTO,
-    description: 'Rejudge a submission by setting status to waiting',
-  })
-  @ApiNotFoundResponse({ description: 'Submission not found' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  async rejudgeSubmission(@Param('resultId', ParseIntPipe) resultId: number) {
-    const submission = await this.submissionService.findOneByResultId(resultId);
-    if (!submission) {
-      throw new NotFoundException();
-    }
-    return await this.submissionService.setSubmissionStatusToWaiting(resultId);
+  @Patch('/:submissionId/rejudge')
+  rejudgeSubmission() {
+    return tsRestHandler(
+      c.rejudgeSubmission,
+      async ({ params: { submissionId } }) => {
+        const id = z.coerce.number().parse(submissionId);
+        const submission = await this.submissionService.findOneByResultId(id);
+        if (!submission) {
+          return { status: 404, body: { message: 'Not Found' } };
+        }
+        return {
+          status: 200,
+          body: await this.submissionService.setSubmissionStatusToWaiting(id),
+        };
+      },
+    );
   }
 
+  @TsRestHandler(c.rejudgeProblem)
   @Roles(Role.Admin)
-  @Patch('problem/:problemId/rejudge')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    description: 'Rejudge all latest submission of a problem',
-  })
-  @ApiNotFoundResponse({ description: 'ProblemId not found' })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  async rejudgeProblem(@Param('problemId', ParseIntPipe) problemId: number) {
-    await this.submissionService.setAllLatestSubmissionStatusToWaiting(
-      problemId,
+  @Patch('/problem/:problemId/rejudge')
+  rejudgeProblem() {
+    return tsRestHandler(
+      c.rejudgeProblem,
+      async ({ params: { problemId } }) => {
+        const id = z.coerce.number().parse(problemId);
+        await this.submissionService.setAllLatestSubmissionStatusToWaiting(id);
+        return { status: 200, body: undefined };
+      },
     );
   }
 }

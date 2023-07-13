@@ -4,6 +4,9 @@ import {
   AnnouncementCreateInputSchema,
   AnnouncementSchema,
   ChatSchema,
+  ProblemSchema,
+  SubmissionSchema,
+  UserSchema,
 } from './prisma/generated/zod';
 
 // TODO: https://github.com/colinhacks/zod/discussions/2171
@@ -79,6 +82,11 @@ export const announcementRouter = contract.router(
   { pathPrefix: '/announcement' },
 );
 
+const PaginationQuerySchema = z.object({
+  offset: z.coerce.number().optional(),
+  limit: z.coerce.number().optional(),
+});
+
 export const chatRouter = contract.router({
   getChats: {
     method: 'GET',
@@ -86,15 +94,165 @@ export const chatRouter = contract.router({
     responses: {
       200: z.array(ChatSchema),
     },
-    query: z.object({
-      offset: z.string().pipe(z.coerce.number()).optional(),
-      limit: z.string().pipe(z.coerce.number()).optional(),
-    }),
+    query: PaginationQuerySchema,
     summary: 'Get paginated chats',
   },
 });
 
+const UserWithourPasswordSchema = UserSchema.pick({
+  id: true,
+  username: true,
+  showName: true,
+  role: true,
+  rating: true,
+});
+
+const SubmissionWithoutSourceCodeSchema = SubmissionSchema.pick({
+  id: true,
+  result: true,
+  score: true,
+  timeUsed: true,
+  status: true,
+  errmsg: true,
+  contestId: true,
+  language: true,
+  creationDate: true,
+  public: true,
+})
+  .merge(
+    z.object({
+      problem: ProblemSchema.pick({
+        id: true,
+        name: true,
+      }).nullable(),
+    }),
+  )
+  .merge(
+    z.object({
+      user: UserWithourPasswordSchema.nullable(),
+    }),
+  );
+
+const SubmissionWithSourceCodeSchema = SubmissionWithoutSourceCodeSchema.merge(
+  SubmissionSchema.pick({ sourceCode: true }),
+);
+
+export const submissionRouter = contract.router(
+  {
+    getSubmissions: {
+      method: 'GET',
+      path: '',
+      responses: {
+        200: z.array(SubmissionWithoutSourceCodeSchema),
+      },
+      query: PaginationQuerySchema,
+      summary: 'Get paginated submissions',
+    },
+    getContestSubmissions: {
+      method: 'GET',
+      path: '/contest',
+      responses: {
+        200: z.array(SubmissionWithoutSourceCodeSchema),
+      },
+      query: PaginationQuerySchema,
+      summary: 'Get paginated contest submissions',
+    },
+    getLatestSubmissionByProblemId: {
+      method: 'GET',
+      path: '/problem/:problemId/latest',
+      responses: {
+        200: z.object({
+          latestSubmission: SubmissionWithSourceCodeSchema.nullable(),
+        }),
+      },
+      summary: 'Get latest submission for a problem',
+    },
+    uploadFile: {
+      method: 'POST',
+      path: '/problem/:problemId',
+      responses: {
+        200: SubmissionSchema,
+      },
+      body: SubmissionSchema.pick({
+        language: true,
+        contestId: true,
+      }),
+      summary: 'Submit code file',
+    },
+    getLatestSubmissionByUserId: {
+      method: 'GET',
+      path: '/latest',
+      responses: {
+        200: z.object({
+          latestSubmission: SubmissionWithSourceCodeSchema.nullable(),
+        }),
+      },
+      summary: 'Get latest submission for a user',
+    },
+    getSubmissionsByUserId: {
+      method: 'GET',
+      path: '/user/:userId',
+      responses: {
+        200: z.array(SubmissionWithoutSourceCodeSchema),
+        400: z.object({ message: z.string() }),
+      },
+      query: PaginationQuerySchema,
+      summary: 'Get submissions for a user',
+    },
+    getSubmission: {
+      method: 'GET',
+      path: '/:submissionId',
+      responses: {
+        200: SubmissionWithoutSourceCodeSchema,
+        404: z.object({ message: z.string() }),
+      },
+      summary: 'Get a submission without source code',
+    },
+    getSubmissionWithSourceCode: {
+      method: 'GET',
+      path: '/:submissionId/code',
+      responses: {
+        200: SubmissionWithSourceCodeSchema,
+        403: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+      summary: 'Get a submission with source code',
+    },
+    shareSubmission: {
+      method: 'PATCH',
+      path: '/:submissionId/share',
+      responses: {
+        200: SubmissionSchema.pick({ public: true }),
+        403: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+      body: z.object({ show: z.boolean() }),
+      summary: 'Toggle publicity of a submission',
+    },
+    rejudgeSubmission: {
+      method: 'PATCH',
+      path: '/:submissionId/rejudge',
+      responses: {
+        200: SubmissionWithoutSourceCodeSchema,
+        404: z.object({ message: z.string() }),
+      },
+      body: z.undefined(),
+    },
+    rejudgeProblem: {
+      method: 'PATCH',
+      path: '/problem/:problemId/rejudge',
+      responses: {
+        200: z.undefined(),
+        404: z.object({ message: z.string() }),
+      },
+      body: z.undefined(),
+    },
+  },
+  { pathPrefix: '/submission' },
+);
+
 export const router = contract.router({
   announcement: announcementRouter,
   chat: chatRouter,
+  submission: submissionRouter,
 });
