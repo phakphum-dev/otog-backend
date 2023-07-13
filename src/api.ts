@@ -555,10 +555,43 @@ export const problemRouter = contract.router(
   { pathPrefix: '/problem' },
 );
 
+export const authRouter = contract.router(
+  {
+    register: {
+      method: 'POST',
+      path: '/register',
+      responses: {
+        201: z.object({ message: z.string() }),
+      },
+      body: UserSchema.pick({ username: true, showName: true, password: true }),
+      summary: 'Register a user',
+    },
+    login: {
+      method: 'POST',
+      path: '/login',
+      responses: {
+        200: z.object({ message: z.string() }),
+      },
+      body: UserSchema.pick({ username: true, password: true }),
+      summary: 'Login and get tokens',
+    },
+    refreshToken: {
+      method: 'GET',
+      path: '/refresh/token',
+      responses: {
+        200: z.object({ message: z.string() }),
+      },
+      summary: 'Refresh access token',
+    },
+  },
+  { pathPrefix: '/auth' },
+);
+
 export const router = contract.router({
   announcement: announcementRouter,
   chat: chatRouter,
   submission: submissionRouter,
   user: userRouter,
   problem: problemRouter,
+  auth: authRouter,
 });
