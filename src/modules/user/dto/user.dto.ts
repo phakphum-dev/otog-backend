@@ -1,6 +1,5 @@
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
-import { SubmissionForScoreboardDTO } from 'src/modules/submission/dto/submission.dto';
 
 export class UserDTO {
   @ApiProperty()
@@ -22,33 +21,4 @@ export class UserDTO {
     this.role = user?.role;
     this.rating = user?.rating;
   }
-}
-
-export class UserForScoreboardDTO extends UserDTO {
-  submissions?: SubmissionForScoreboardDTO[];
-}
-
-export class UserProfileDTO extends UserDTO {
-  attendedContest?: AttendedContestDTO[];
-}
-
-export class AttendedContestDTO {
-  id?: number;
-  name?: string;
-  timeEnd?: Date;
-  detail?: {
-    rank: number;
-    ratingAfterUpdate: number;
-  };
-}
-
-export class PatchShowNameDTO extends PickType(UserDTO, [
-  'showName' as const,
-]) {}
-
-export class UpdateUserDTO extends OmitType(UserDTO, [
-  'id',
-  'rating',
-] as const) {
-  password?: string;
 }

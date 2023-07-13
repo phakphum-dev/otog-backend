@@ -6,7 +6,6 @@ import {
 import { sha256 } from 'js-sha256';
 import { Role } from 'src/core/constants';
 import { userList } from 'src/utils';
-import { UpdateUserDTO } from './dto/user.dto';
 import { PrismaService } from 'src/core/database/prisma.service';
 import { ContestMode, Prisma } from '@prisma/client';
 
@@ -84,7 +83,7 @@ export class UserService {
     return this.prisma.user.update({
       where: { id },
       data: { showName },
-      select: WITHOUT_PASSWORD,
+      select: { showName: true },
     });
   }
 
@@ -95,7 +94,13 @@ export class UserService {
         ...WITHOUT_PASSWORD,
         userContest: {
           select: {
-            contest: true,
+            contest: {
+              select: {
+                id: true,
+                name: true,
+                timeStart: true,
+              },
+            },
             rank: true,
             ratingAfterUpdate: true,
           },
@@ -115,8 +120,8 @@ export class UserService {
     });
   }
 
-  async updateUser(userId: number, userData: UpdateUserDTO) {
-    if (userData.password) {
+  async updateUser(userId: number, userData: Prisma.UserUpdateInput) {
+    if (typeof userData.password === 'string' && !!userData.password) {
       const hash = sha256.create();
       hash.update(userData.password);
       return this.prisma.user.update({
@@ -127,6 +132,7 @@ export class UserService {
     return this.prisma.user.update({
       where: { id: userId },
       data: userData,
+      select: WITHOUT_PASSWORD,
     });
   }
 }

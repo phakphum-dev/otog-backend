@@ -4,9 +4,15 @@ import {
   AnnouncementCreateInputSchema,
   AnnouncementSchema,
   ChatSchema,
+  ContestCreateInputSchema,
+  ContestProblemSchema,
+  ContestSchema,
+  ContestUpdateInputSchema,
   ProblemSchema,
   SubmissionSchema,
+  UserContestSchema,
   UserSchema,
+  UserUpdateInputSchema,
 } from './prisma/generated/zod';
 
 // TODO: https://github.com/colinhacks/zod/discussions/2171
@@ -119,19 +125,15 @@ const SubmissionWithoutSourceCodeSchema = SubmissionSchema.pick({
   creationDate: true,
   public: true,
 })
-  .merge(
-    z.object({
-      problem: ProblemSchema.pick({
-        id: true,
-        name: true,
-      }).nullable(),
-    }),
-  )
-  .merge(
-    z.object({
-      user: UserWithourPasswordSchema.nullable(),
-    }),
-  );
+  .extend({
+    problem: ProblemSchema.pick({
+      id: true,
+      name: true,
+    }).nullable(),
+  })
+  .extend({
+    user: UserWithourPasswordSchema.nullable(),
+  });
 
 const SubmissionWithSourceCodeSchema = SubmissionWithoutSourceCodeSchema.merge(
   SubmissionSchema.pick({ sourceCode: true }),
@@ -236,7 +238,8 @@ export const submissionRouter = contract.router(
         200: SubmissionWithoutSourceCodeSchema,
         404: z.object({ message: z.string() }),
       },
-      body: z.undefined(),
+      body: null,
+      summary: 'Rejudge a submission',
     },
     rejudgeProblem: {
       method: 'PATCH',
@@ -245,14 +248,205 @@ export const submissionRouter = contract.router(
         200: z.undefined(),
         404: z.object({ message: z.string() }),
       },
-      body: z.undefined(),
+      body: null,
+      summary: 'Rejudge all submissions of a problem',
     },
   },
   { pathPrefix: '/submission' },
+);
+
+export const userRouter = contract.router(
+  {
+    getUsers: {
+      method: 'GET',
+      path: '',
+      responses: {
+        200: z.array(UserWithourPasswordSchema),
+      },
+      summary: 'Get all users',
+    },
+    getOnlineUsers: {
+      method: 'GET',
+      path: '',
+      responses: {
+        200: z.array(UserWithourPasswordSchema),
+      },
+      summary: 'Get online users',
+    },
+    getUserProfile: {
+      method: 'GET',
+      path: '/:userId/profile',
+      responses: {
+        200: UserWithourPasswordSchema.extend({
+          userContest: z.array(
+            UserContestSchema.pick({
+              ratingAfterUpdate: true,
+              rank: true,
+            }).extend({
+              contest: ContestSchema.pick({
+                id: true,
+                name: true,
+                timeStart: true,
+              }),
+            }),
+          ),
+        }).nullable(),
+        404: z.object({ message: z.string() }),
+      },
+      summary: 'Get a user by id',
+    },
+    updateUser: {
+      method: 'PUT',
+      path: '/:userId',
+      responses: {
+        200: UserWithourPasswordSchema,
+      },
+      body: UserUpdateInputSchema,
+      summary: 'Update user data',
+    },
+    updateShowName: {
+      method: 'PATCH',
+      path: '/:userId/name',
+      responses: {
+        200: UserSchema.pick({ showName: true }),
+        403: z.object({ message: z.string() }),
+      },
+      body: UserSchema.pick({ showName: true }),
+    },
+  },
+  { pathPrefix: '/user' },
+);
+
+const PrizeSchema = z.object({
+  id: z.number(),
+  problem: ProblemSchema.pick({ id: true }).nullable(),
+  user: UserSchema.pick({ id: true, showName: true }).nullable(),
+});
+
+export const contestRouter = contract.router(
+  {
+    getContests: {
+      method: 'GET',
+      path: '',
+      responses: {
+        200: z.array(ContestSchema),
+      },
+      summary: 'Get all contests',
+    },
+    getCurrentContest: {
+      method: 'GET',
+      path: '/now',
+      responses: {
+        200: z.object({
+          currentContest: ContestSchema.nullable(),
+        }),
+      },
+      summary: 'Get the current contest',
+    },
+    getContest: {
+      method: 'GET',
+      path: '/:contestId',
+      responses: {
+        200: ContestSchema.nullable(),
+      },
+      summary: 'Get a contest',
+    },
+    getContestScoreboard: {
+      method: 'GET',
+      path: '/:contestId/scoreboard',
+      responses: {
+        200: z.object({
+          contest: ContestSchema.extend({
+            userContest: z.array(UserContestSchema),
+            contestProblem: z.array(
+              ContestProblemSchema.extend({ problem: ProblemSchema }),
+            ),
+          }),
+          userContest: z.array(
+            UserContestSchema.extend({
+              submissions: z
+                .array(
+                  SubmissionSchema.pick({
+                    id: true,
+                    problemId: true,
+                    score: true,
+                    timeUsed: true,
+                    status: true,
+                    userId: true,
+                  }),
+                )
+                .optional(),
+            }),
+          ),
+        }),
+        403: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+      summary: 'Get a contest',
+    },
+    getContestPrize: {
+      method: 'GET',
+      path: '/:contestId/prize',
+      responses: {
+        200: z.object({
+          firstBlood: z.array(PrizeSchema),
+          fasterThanLight: z.array(PrizeSchema),
+          passedInOne: z.array(PrizeSchema),
+          oneManSolve: z.array(PrizeSchema),
+        }),
+      },
+      summary: 'Get a contest prize',
+    },
+    createContest: {
+      method: 'POST',
+      path: '',
+      responses: {
+        200: ContestSchema,
+      },
+      body: ContestCreateInputSchema,
+      summary: 'Create a contest',
+    },
+    toggleProblemToContest: {
+      method: 'PATCH',
+      path: '/:contestId',
+      responses: { 200: z.object({ show: z.boolean() }) },
+      body: z.object({ show: z.boolean(), problemId: z.coerce.number() }),
+      summary: 'Toggle problem to a contest',
+    },
+    updateContest: {
+      method: 'PUT',
+      path: '/:contestId',
+      responses: {
+        200: ContestSchema,
+      },
+      body: ContestUpdateInputSchema,
+      summary: 'Update a contest',
+    },
+    deleteContest: {
+      method: 'DELETE',
+      path: '/:contestId',
+      body: null,
+      responses: {
+        200: ContestSchema,
+      },
+      summary: 'Delete a contest',
+    },
+    contestSignUp: {
+      method: 'POST',
+      path: '/:contestId/signup',
+      body: z.object({ userId: z.coerce.number() }),
+      responses: {
+        200: UserContestSchema,
+      },
+      summary: 'Sign up for a contest',
+    },
+  },
+  { pathPrefix: '/contest' },
 );
 
 export const router = contract.router({
   announcement: announcementRouter,
   chat: chatRouter,
   submission: submissionRouter,
+  user: userRouter,
 });

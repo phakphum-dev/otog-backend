@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { Role } from 'src/core/constants';
 import { PrismaService } from 'src/core/database/prisma.service';
@@ -51,7 +47,7 @@ export class ContestService {
       },
     });
     if (!contest) {
-      throw new NotFoundException();
+      return null;
     }
     const lastSubmissions = await this.prisma.submission.groupBy({
       _max: {
@@ -228,33 +224,29 @@ export class ContestService {
     });
   }
 
-  async addProblemToContest(
+  async toggleProblemToContest(
     contestId: number,
     problemId: number,
     show: boolean,
   ) {
-    try {
-      if (show) {
-        const contestProblem = await this.prisma.contestProblem.create({
-          data: {
+    if (show) {
+      await this.prisma.contestProblem.create({
+        data: {
+          problemId,
+          contestId,
+        },
+      });
+      return { show };
+    } else {
+      await this.prisma.contestProblem.delete({
+        where: {
+          contestId_problemId: {
             problemId,
             contestId,
           },
-        });
-        return { ...contestProblem, show };
-      } else {
-        const contestProblem = await this.prisma.contestProblem.delete({
-          where: {
-            contestId_problemId: {
-              problemId,
-              contestId,
-            },
-          },
-        });
-        return { ...contestProblem, show };
-      }
-    } catch {
-      throw new BadRequestException();
+        },
+      });
+      return { show };
     }
   }
 
