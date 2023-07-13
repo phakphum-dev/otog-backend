@@ -1,25 +1,32 @@
-import { Controller, Get } from '@nestjs/common';
-import { ApiOkResponse } from '@nestjs/swagger';
+import { Controller } from '@nestjs/common';
 import { AppService } from './app.service';
 import { AccessState } from './core/constants';
 import { OfflineAccess } from './core/decorators/offline-mode.decorator';
+import {
+  TsRestHandler,
+  nestControllerContract,
+  tsRestHandler,
+} from '@ts-rest/nest';
+import { appRouter } from './api';
+
+const c = nestControllerContract(appRouter);
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @TsRestHandler(c.time)
   @OfflineAccess(AccessState.Public)
-  @Get('/time')
-  @ApiOkResponse({
-    description: 'Get server time',
-    type: String,
-  })
   serverTime() {
-    return new Date();
+    return tsRestHandler(c.time, async () => {
+      return { status: 200, body: new Date() };
+    });
   }
 
-  @Get('/ping')
+  @TsRestHandler(c.ping)
   pingServer() {
-    return 'pong';
+    return tsRestHandler(c.ping, async () => {
+      return { status: 200, body: 'pong' };
+    });
   }
 }

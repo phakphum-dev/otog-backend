@@ -587,11 +587,31 @@ export const authRouter = contract.router(
   { pathPrefix: '/auth' },
 );
 
+export const appRouter = contract.router({
+  time: {
+    method: 'GET',
+    path: '/time',
+    responses: {
+      200: z.date(),
+    },
+    summary: 'Get server time',
+  },
+  ping: {
+    method: 'GET',
+    path: '/ping',
+    responses: {
+      200: z.string(),
+    },
+    summary: 'Ping server',
+  },
+});
+
 export const router = contract.router({
-  announcement: announcementRouter,
-  chat: chatRouter,
-  submission: submissionRouter,
-  user: userRouter,
-  problem: problemRouter,
+  app: appRouter,
   auth: authRouter,
+  problem: problemRouter,
+  user: userRouter,
+  submission: submissionRouter,
+  chat: chatRouter,
+  announcement: announcementRouter,
 });
