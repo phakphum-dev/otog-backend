@@ -175,6 +175,7 @@ export const submissionRouter = contract.router(
     uploadFile: {
       method: 'POST',
       path: '/problem/:problemId',
+      contentType: 'multipart/form-data',
       responses: {
         200: SubmissionSchema,
       },
@@ -518,6 +519,7 @@ export const problemRouter = contract.router(
     createProblem: {
       method: 'POST',
       path: '',
+      contentType: 'multipart/form-data',
       responses: {
         201: ProblemWithoutExampleSchema,
       },

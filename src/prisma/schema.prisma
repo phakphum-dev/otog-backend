@@ -3,8 +3,7 @@ generator client {
 }
 
 generator zod {
-  provider       = "zod-prisma-types"
-  // createInputTypes = false
+  provider = "zod-prisma-types"
 }
 
 datasource db {
@@ -13,34 +12,37 @@ datasource db {
 }
 
 model Announcement {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   value     Json?
-  show      Boolean  @default(false)
+  show      Boolean @default(false)
   contestId Int?
-	@@map("announcement")
+
+  @@map("announcement")
 }
 
 model Chat {
-  id           Int      @id @default(autoincrement())
-  message      String   @db.VarChar(255)
+  id           Int       @id @default(autoincrement())
+  message      String    @db.VarChar(255)
   userId       Int
-  creationDate DateTime? @db.Timestamptz(6) @default(now()) 
-  updateDate   DateTime? @db.Timestamptz(6) @default(now()) 
-  user         User     @relation(fields: [userId], references: [id], onDelete: NoAction)
-	@@map("chat")
+  creationDate DateTime? @default(now()) @db.Timestamptz(6)
+  updateDate   DateTime? @default(now()) @db.Timestamptz(6)
+  user         User      @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  @@map("chat")
 }
 
 model Contest {
-  id             Int                      @id @default(autoincrement())
-  name           String?                  @db.VarChar(255)
+  id             Int                @id @default(autoincrement())
+  name           String?            @db.VarChar(255)
   mode           ContestMode
   gradingMode    ContestGradingMode
-  timeStart      DateTime                 @db.Timestamptz(6)
-  timeEnd        DateTime                 @db.Timestamptz(6)
-  announce       String?                  @db.VarChar(255)
+  timeStart      DateTime           @db.Timestamptz(6)
+  timeEnd        DateTime           @db.Timestamptz(6)
+  announce       String?            @db.VarChar(255)
   contestProblem ContestProblem[]
   userContest    UserContest[]
-	@@map("contest")
+
+  @@map("contest")
 }
 
 model ContestProblem {
@@ -50,7 +52,7 @@ model ContestProblem {
   problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
 
   @@id([contestId, problemId])
-	@@map("contestProblem")
+  @@map("contestProblem")
 }
 
 model Problem {
@@ -67,7 +69,8 @@ model Problem {
   examples       Json?
   contestProblem ContestProblem[]
   submission     Submission[]
-	@@map("problem")
+
+  @@map("problem")
 }
 
 model RefreshToken {
@@ -76,45 +79,48 @@ model RefreshToken {
   jwtId        String?   @db.VarChar(255)
   used         Boolean?  @default(false)
   expiryDate   DateTime? @db.Timestamptz(6)
-  creationDate DateTime?  @default(now()) @db.Timestamptz(6)
-  updateDate   DateTime?  @default(now()) @db.Timestamptz(6)
-	@@map("refreshToken")
+  creationDate DateTime? @default(now()) @db.Timestamptz(6)
+  updateDate   DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@map("refreshToken")
 }
 
 model Submission {
-  id           Int                    @id @default(autoincrement())
+  id           Int              @id @default(autoincrement())
   userId       Int
   problemId    Int?
-  result       String?                @default("WAITING") @db.VarChar(255)
+  result       String?          @default("WAITING") @db.VarChar(255)
   score        Int?
   timeUsed     Int?
   status       SubmissionStatus
   errmsg       String?
   contestId    Int?
   sourceCode   String?
-  language     String?                @db.VarChar(255)
-  creationDate DateTime?              @default(now()) @db.Timestamptz(6)
-  updateDate   DateTime?              @default(now()) @db.Timestamptz(6)
-  public       Boolean?               @default(false)
-  problem      Problem?               @relation(fields: [problemId], references: [id], onDelete: Cascade)
-  user         User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-	@@map("submission")
+  language     String?          @db.VarChar(255)
+  creationDate DateTime?        @default(now()) @db.Timestamptz(6)
+  updateDate   DateTime?        @default(now()) @db.Timestamptz(6)
+  public       Boolean?         @default(false)
+  problem      Problem?         @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("submission")
 }
 
 model User {
-  id           Int            @id @default(autoincrement())
-  username     String         @unique @db.VarChar(255)
-  showName     String         @unique @db.VarChar(255)
-  email        String?        @unique @db.VarChar(255)
-  password     String         @db.VarChar(255)
+  id           Int           @id @default(autoincrement())
+  username     String        @unique @db.VarChar(255)
+  showName     String        @unique @db.VarChar(255)
+  email        String?       @unique @db.VarChar(255)
+  password     String        @db.VarChar(255)
   role         UserRole
   rating       Int?
-  creationDate DateTime?      @default(now()) @db.Timestamptz(6)
-  updateDate   DateTime?      @default(now()) @db.Timestamptz(6)
+  creationDate DateTime?     @default(now()) @db.Timestamptz(6)
+  updateDate   DateTime?     @default(now()) @db.Timestamptz(6)
   chat         Chat[]
   submission   Submission[]
   userContest  UserContest[]
-	@@map("user")
+
+  @@map("user")
 }
 
 model UserContest {
@@ -126,19 +132,21 @@ model UserContest {
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([userId, contestId])
-	@@map("userContest")
+  @@map("userContest")
 }
 
 enum ContestGradingMode {
   acm
   classic
-	@@map("enum_contest_gradingMode")
+
+  @@map("enum_contest_gradingMode")
 }
 
 enum ContestMode {
   rated
   unrated
-	@@map("enum_contest_mode")
+
+  @@map("enum_contest_mode")
 }
 
 enum SubmissionStatus {
@@ -146,11 +154,13 @@ enum SubmissionStatus {
   grading
   accept
   reject
-	@@map("enum_submission_status")
+
+  @@map("enum_submission_status")
 }
 
 enum UserRole {
   user
   admin
-	@@map("enum_user_role")
+
+  @@map("enum_user_role")
 }
