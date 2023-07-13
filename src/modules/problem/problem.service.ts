@@ -56,6 +56,7 @@ export class ProblemService {
           case: problemData.case,
           show: false,
         },
+        select: WITHOUT_EXAMPLE,
       });
       if (files.pdf) {
         await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
@@ -85,6 +86,7 @@ export class ProblemService {
           case: problemData.case,
         },
         where: { id: problemId },
+        select: WITHOUT_EXAMPLE,
       });
       if (files.pdf) {
         await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
@@ -164,6 +166,7 @@ export class ProblemService {
     return this.prisma.problem.update({
       where: { id: problemId },
       data: { show, recentShowTime: new Date() },
+      select: WITHOUT_EXAMPLE,
     });
   }
 
@@ -182,6 +185,7 @@ export class ProblemService {
     try {
       const problem = await this.prisma.problem.delete({
         where: { id: problemId },
+        select: WITHOUT_EXAMPLE,
       });
       await removeProblemSource(`${problemId}`);
       return problem;
@@ -193,9 +197,10 @@ export class ProblemService {
 
   async updateProblemExamples(problemId: number, examples: object) {
     try {
-      this.prisma.problem.update({
+      return this.prisma.problem.update({
         data: { examples },
         where: { id: problemId },
+        select: { examples: true },
       });
     } catch (e) {
       console.log(e);

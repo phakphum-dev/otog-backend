@@ -8,8 +8,11 @@ import {
   ContestProblemSchema,
   ContestSchema,
   ContestUpdateInputSchema,
+  ProblemCreateInputSchema,
   ProblemSchema,
+  ProblemUpdateInputSchema,
   SubmissionSchema,
+  SubmissionStatusSchema,
   UserContestSchema,
   UserSchema,
   UserUpdateInputSchema,
@@ -312,6 +315,7 @@ export const userRouter = contract.router(
         403: z.object({ message: z.string() }),
       },
       body: UserSchema.pick({ showName: true }),
+      summary: 'Update user show name',
     },
   },
   { pathPrefix: '/user' },
@@ -444,9 +448,117 @@ export const contestRouter = contract.router(
   { pathPrefix: '/contest' },
 );
 
+const ProblemWithoutExampleSchema = ProblemSchema.omit({ examples: true });
+const LatestSubmissionSchema = z.object({
+  latestSubmissionId: z.number().nullable(),
+  status: SubmissionStatusSchema.nullable(),
+});
+const PassedCountSchema = z.object({
+  passedCount: z.number(),
+});
+const ProblemWithDetailSchema = ProblemWithoutExampleSchema.merge(
+  LatestSubmissionSchema,
+).merge(PassedCountSchema);
+const PassedUserSchema = UserSchema.pick({
+  id: true,
+  role: true,
+  username: true,
+  showName: true,
+  rating: true,
+});
+
+export const problemRouter = contract.router(
+  {
+    getProblems: {
+      method: 'GET',
+      path: '',
+      responses: {
+        200: z.array(
+          z.union([
+            ProblemWithDetailSchema,
+            ProblemWithoutExampleSchema.merge(PassedCountSchema),
+          ]),
+        ),
+      },
+      summary: 'Get problems',
+    },
+    getProblem: {
+      method: 'GET',
+      path: '/:problemId',
+      responses: {
+        200: ProblemWithoutExampleSchema,
+        403: z.object({ message: z.string() }),
+        404: z.object({ message: z.string() }),
+      },
+      summary: 'Get a problem',
+    },
+    getPassedUsers: {
+      method: 'GET',
+      path: '/:problemId/user',
+      responses: {
+        200: z.array(PassedUserSchema),
+      },
+      summary: 'Get passed users',
+    },
+    getPdf: {
+      method: 'GET',
+      path: '/doc/:problemId',
+      responses: { 200: z.string() },
+      summary: 'Get a pdf document for a problem',
+    },
+    toggleShowProblem: {
+      method: 'PATCH',
+      path: '/:problemId',
+      responses: {
+        200: ProblemWithoutExampleSchema,
+      },
+      body: ProblemSchema.pick({ show: true }),
+      summary: 'Toggle problem show state',
+    },
+    createProblem: {
+      method: 'POST',
+      path: '',
+      responses: {
+        201: ProblemWithoutExampleSchema,
+      },
+      body: ProblemCreateInputSchema,
+      summary: 'Create a problem',
+    },
+    updateProblem: {
+      method: 'PUT',
+      path: '/:problemId',
+      responses: {
+        200: ProblemWithoutExampleSchema,
+      },
+      body: ProblemUpdateInputSchema,
+      summary: 'Update a problem',
+    },
+    deleteProblem: {
+      method: 'DELETE',
+      path: '/:problemId',
+      responses: {
+        200: ProblemWithoutExampleSchema,
+      },
+      body: null,
+      summary: 'Delete a problem',
+    },
+    updateProblemExamples: {
+      method: 'PUT',
+      path: '/:problemId/examples',
+      responses: {
+        200: ProblemSchema.pick({ examples: true }),
+      },
+      body: z.any(),
+      summary: 'Update problem example testcases',
+    },
+  },
+  { pathPrefix: '/problem' },
+);
+
 export const router = contract.router({
   announcement: announcementRouter,
   chat: chatRouter,
   submission: submissionRouter,
   user: userRouter,
+  problem: problemRouter,
 });
