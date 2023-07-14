@@ -5,13 +5,22 @@ import {
 } from '@nestjs/common';
 import { UploadedFilesObject } from './dto/problem.dto';
 import {
-  getProblemDocDir,
+  getProblemDocStream,
   removeProblemSource,
   updateProblemDoc,
   updateProblemTestCase,
 } from 'src/utils/file.util';
 import { Prisma, Problem, SubmissionStatus, User } from '@prisma/client';
 import { PrismaService } from 'src/core/database/prisma.service';
+
+import { InjectS3, S3 } from 'nestjs-s3';
+import {
+  FileFileManager,
+  FileManager,
+  S3FileManager,
+} from 'src/core/fileManager';
+import { ConfigService } from '@nestjs/config';
+import { Configuration } from 'src/core/config/configuration';
 
 type ProblemNoExample = Omit<Problem, 'example'>;
 type PassedCount = { passedCount: number };
@@ -40,7 +49,17 @@ export const WITHOUT_EXAMPLE = {
 
 @Injectable()
 export class ProblemService {
-  constructor(private readonly prisma: PrismaService) {}
+  private fileManager: FileManager;
+
+  constructor(
+    @InjectS3() private readonly s3: S3,
+    private readonly prisma: PrismaService,
+    private configService: ConfigService<Configuration>,
+  ) {
+    this.fileManager = this.configService.get('useS3')
+      ? new S3FileManager(this.s3, 'otog-bucket')
+      : new FileFileManager();
+  }
 
   async create(
     problemData: Prisma.ProblemCreateInput,
@@ -59,10 +78,18 @@ export class ProblemService {
         select: WITHOUT_EXAMPLE,
       });
       if (files.pdf) {
-        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
+        await updateProblemDoc(
+          `${problem.id}`,
+          files.pdf[0].path,
+          this.fileManager,
+        );
       }
       if (files.zip) {
-        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
+        await updateProblemTestCase(
+          `${problem.id}`,
+          files.zip[0].path,
+          this.fileManager,
+        );
       }
       return problem;
     } catch (err) {
@@ -89,10 +116,18 @@ export class ProblemService {
         select: WITHOUT_EXAMPLE,
       });
       if (files.pdf) {
-        await updateProblemDoc(`${problem.id}`, files.pdf[0].path);
+        await updateProblemDoc(
+          `${problem.id}`,
+          files.pdf[0].path,
+          this.fileManager,
+        );
       }
       if (files.zip) {
-        await updateProblemTestCase(`${problem.id}`, files.zip[0].path);
+        await updateProblemTestCase(
+          `${problem.id}`,
+          files.zip[0].path,
+          this.fileManager,
+        );
       }
       return problem;
     } catch (err) {
@@ -156,10 +191,14 @@ export class ProblemService {
     return this.prisma.problem.findUnique({ where: { id } });
   }
 
-  async getProblemDocDir(problemId: number) {
-    const docDir = getProblemDocDir(`${problemId}`);
-    if (!docDir) throw new NotFoundException();
-    return docDir;
+  async getProblemDocStream(problemId: number) {
+    const docStream = await getProblemDocStream(
+      `${problemId}`,
+      this.fileManager,
+    );
+
+    if (!docStream) throw new NotFoundException();
+    return docStream;
   }
 
   async changeProblemShowById(problemId: number, show: boolean) {
@@ -187,7 +226,7 @@ export class ProblemService {
         where: { id: problemId },
         select: WITHOUT_EXAMPLE,
       });
-      await removeProblemSource(`${problemId}`);
+      await removeProblemSource(`${problem.id}`, this.fileManager);
       return problem;
     } catch (e) {
       console.log(e);

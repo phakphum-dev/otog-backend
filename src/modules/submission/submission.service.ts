@@ -196,10 +196,10 @@ export class SubmissionService {
     });
   }
 
-  setSubmissionStatusToWaiting(submissionId: number) {
+  async setSubmissionStatusToWaiting(submissionId: number) {
     return this.prisma.submission.update({
       where: { id: submissionId },
-      data: { status: SubmissionStatus.waiting },
+      data: { status: SubmissionStatus.waiting, result: 'Rejudging' },
       select: WITHOUT_SOURCECODE,
     });
   }
@@ -209,7 +209,7 @@ export class SubmissionService {
     const ids = submissionIds.filter((id): id is number => id !== null);
     return this.prisma.submission.updateMany({
       where: { id: { in: ids } },
-      data: { status: SubmissionStatus.waiting },
+      data: { status: SubmissionStatus.waiting, result: 'Rejudging' },
     });
   }
 }
