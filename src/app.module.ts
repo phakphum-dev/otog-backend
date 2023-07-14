@@ -29,7 +29,6 @@ import { S3Module } from 'nestjs-s3';
         };
       },
     }),
-    UserModule,
     AuthModule,
     UserModule,
     SubmissionModule,
