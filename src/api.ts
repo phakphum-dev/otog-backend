@@ -20,7 +20,7 @@ import {
 
 // TODO: https://github.com/colinhacks/zod/discussions/2171
 
-const contract = initContract();
+export const contract: ReturnType<typeof initContract> = initContract();
 
 export const announcementRouter = contract.router(
   {
