@@ -1,32 +1,38 @@
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { sha256 } from 'js-sha256';
-import { REFRESHTOKEN_REPOSITORY } from 'src/core/constants';
-import { RefreshToken } from 'src/entities/refreshToken.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { UserDTO } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
-import { CreateUserDTO } from './dto/auth.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { RefreshToken, User } from '@prisma/client';
+
 @Injectable()
 export class AuthService {
   constructor(
-    @Inject(REFRESHTOKEN_REPOSITORY)
-    private refreshTokenRepository: typeof RefreshToken,
     private userService: UserService,
     private jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
-  async signup(data: CreateUserDTO) {
+  async signup(data: Pick<User, 'username' | 'password' | 'showName'>) {
     return await this.userService.create(data);
   }
 
-  async validateUser(username: string, pass: string): Promise<UserDTO> {
-    const user = await this.userService.findOneByUsername(username);
+  async validateUser(username: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { username } });
+    if (!user) {
+      throw new NotFoundException();
+    }
     const hash = sha256.create();
-    hash.update(pass);
-    if (user?.password === hash.hex()) {
-      const userDTO = new UserDTO(user);
-      return userDTO;
+    hash.update(password);
+    if (user.password === hash.hex()) {
+      (user.password as string | undefined) = undefined;
+      return user;
     }
     return null;
   }
@@ -37,7 +43,7 @@ export class AuthService {
   }
 
   async findOneByRID(rid: string) {
-    return await this.refreshTokenRepository.findOne({
+    return this.prisma.refreshToken.findUnique({
       where: { id: rid },
     });
   }
@@ -67,17 +73,17 @@ export class AuthService {
   async generateRefreshToken(user: UserDTO, jwtId: string) {
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 2);
-    const refreshToken = new RefreshToken();
-    refreshToken.id = uuidv4();
-    refreshToken.userId = user.id;
-    refreshToken.jwtId = jwtId;
-    refreshToken.expiryDate = expiryDate;
-    await refreshToken.save();
+    const refreshToken = await this.prisma.refreshToken.create({
+      data: { userId: user.id, jwtId, expiryDate, id: uuidv4() },
+    });
     return { id: refreshToken.id, expiryDate: refreshToken.expiryDate };
   }
 
   async validateToken(refreshTokenId: string, jwtId: string) {
     const refreshToken = await this.findOneByRID(refreshTokenId);
+    if (!refreshToken) {
+      throw new NotFoundException();
+    }
     if (!this.isRefreshTokenLinkedToToken(refreshToken, jwtId)) {
       throw new ForbiddenException('Access token and refresh token mismatch.');
     }
@@ -87,8 +93,10 @@ export class AuthService {
     if (!this.isRefreshTokenUsed(refreshToken)) {
       throw new ForbiddenException('refresh token used.');
     }
-    refreshToken.used = true;
-    await refreshToken.save();
+    await this.prisma.refreshToken.update({
+      where: { id: refreshTokenId },
+      data: { used: true },
+    });
   }
 
   isRefreshTokenLinkedToToken(refreshToken: RefreshToken, jwtId: string) {
@@ -99,7 +107,7 @@ export class AuthService {
 
   isRefreshTokenExpired(refreshToken: RefreshToken) {
     const now = new Date();
-    if (!refreshToken) return false;
+    if (!refreshToken?.expiryDate) return false;
     if (refreshToken.expiryDate < now) return false;
     return true;
   }

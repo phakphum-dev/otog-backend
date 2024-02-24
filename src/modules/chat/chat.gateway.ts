@@ -23,7 +23,7 @@ export class ChatGateway
     private chatService: ChatService,
     private jwtService: JwtService,
   ) {}
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server!: Server;
 
   private logger: Logger = new Logger('MessageGateway');
 

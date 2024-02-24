@@ -1,23 +1,27 @@
 import {
   BadRequestException,
   ConflictException,
-  Inject,
   Injectable,
 } from '@nestjs/common';
 import { sha256 } from 'js-sha256';
-import { Op } from 'sequelize';
-import { ContestMode, Role, USER_REPOSITORY } from 'src/core/constants';
-import { Contest } from 'src/entities/contest.entity';
+import { Role } from 'src/core/constants';
 import { userList } from 'src/utils';
-import { User } from '../../entities/user.entity';
-import { CreateUserDTO } from '../auth/dto/auth.dto';
-import { UpdateUserDTO, UserDTO } from './dto/user.dto';
+import { PrismaService } from 'src/core/database/prisma.service';
+import { ContestMode, Prisma, User } from '@prisma/client';
+
+export const WITHOUT_PASSWORD = {
+  id: true,
+  username: true,
+  showName: true,
+  role: true,
+  rating: true,
+} as const;
 
 @Injectable()
 export class UserService {
-  constructor(@Inject(USER_REPOSITORY) private userRepository: typeof User) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateUserDTO) {
+  async create(data: Pick<User, 'username' | 'password' | 'showName'>) {
     const userNameExists = await this.findOneByUsername(data.username);
     if (userNameExists) {
       throw new ConflictException('username was taken.');
@@ -29,41 +33,45 @@ export class UserService {
     const hash = sha256.create();
     hash.update(data.password);
     try {
-      const user = new User();
-      user.username = data.username;
-      user.password = hash.hex();
-      user.showName = data.showName;
-      user.role = Role.User;
-      await user.save();
+      await this.prisma.user.create({
+        data: {
+          username: data.username,
+          password: hash.hex(),
+          showName: data.showName,
+          role: Role.User,
+        },
+      });
     } catch {
       throw new BadRequestException();
     }
     return { message: 'Create user complete.', status: true };
   }
 
-  async findAll(): Promise<UserDTO[]> {
-    const result = await this.userRepository.findAll({
-      order: [['id', 'DESC']],
+  async findAll() {
+    return this.prisma.user.findMany({
+      orderBy: { id: 'desc' },
+      select: WITHOUT_PASSWORD,
     });
-    const userDTO = result.map((item) => new UserDTO(item));
-    return userDTO;
   }
 
-  async findOneByUsername(username: string): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneByUsername(username: string) {
+    return this.prisma.user.findUnique({
       where: { username },
+      select: WITHOUT_PASSWORD,
     });
   }
 
-  async findOneById(id: number): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneById(id: number) {
+    return this.prisma.user.findUnique({
       where: { id },
+      select: WITHOUT_PASSWORD,
     });
   }
 
-  async findOneByShowName(showName: string): Promise<User> {
-    return await this.userRepository.findOne({
+  async findOneByShowName(showName: string) {
+    return this.prisma.user.findUnique({
       where: { showName },
+      select: WITHOUT_PASSWORD,
     });
   }
 
@@ -72,36 +80,33 @@ export class UserService {
     if (showNameExists) {
       throw new ConflictException('showName was taken.');
     }
-    const user = await this.findOneById(id);
-    user.showName = showName;
-    await user.save();
-    return new UserDTO(user);
+    return this.prisma.user.update({
+      where: { id },
+      data: { showName },
+      select: { showName: true },
+    });
   }
 
-  async getUserProfileById(id: number): Promise<User> {
-    return await this.userRepository.scope('noPass').findOne({
-      where: {
-        id,
-      },
-      include: [
-        {
-          model: Contest,
-          where: {
-            mode: ContestMode.Rated,
-          },
-          through: {
-            attributes: ['rank', 'ratingAfterUpdate'],
-            as: 'detail',
-            where: {
-              rank: {
-                [Op.not]: null,
+  async getUserProfileById(id: number) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: {
+        ...WITHOUT_PASSWORD,
+        userContest: {
+          select: {
+            contest: {
+              select: {
+                id: true,
+                name: true,
+                timeStart: true,
               },
             },
+            rank: true,
+            ratingAfterUpdate: true,
           },
-          attributes: ['id', 'name', 'timeEnd'],
-          required: false,
+          where: { rank: { not: null }, contest: { mode: ContestMode.rated } },
         },
-      ],
+      },
     });
   }
 
@@ -115,13 +120,19 @@ export class UserService {
     });
   }
 
-  async updateUser(userId: number, userData: UpdateUserDTO) {
-    const user = await this.findOneById(userId);
-    if (userData.password) {
+  async updateUser(userId: number, userData: Prisma.UserUpdateInput) {
+    if (typeof userData.password === 'string' && !!userData.password) {
       const hash = sha256.create();
       hash.update(userData.password);
-      return user.update({ ...userData, password: hash.hex() });
+      return this.prisma.user.update({
+        where: { id: userId },
+        data: { password: hash.hex() },
+      });
     }
-    return user.update({ ...userData, password: undefined });
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: userData,
+      select: WITHOUT_PASSWORD,
+    });
   }
 }

@@ -1,22 +1,22 @@
-FROM node:14-alpine As build
-
+FROM node:16-alpine As base
+RUN npm i -g pnpm
 WORKDIR /usr/src/app
 
-COPY ["package.json", "yarn.lock", "./"]
+COPY ["package.json", "pnpm-lock.yaml", "./"]
+RUN pnpm install --frozen-lockfile
 
-RUN yarn install --frozen-lockfile
-
+FROM base as build
 ENV NODE_ENV production
 
 COPY . .
-
-RUN yarn build
+RUN pnpm generate
+RUN pnpm build
 
 FROM build as prod-deps
 # Prune unused dependencies
-RUN npm prune --production
+RUN pnpm prune --prod
 
-FROM node:14-alpine
+FROM base AS production
 
 USER node
 

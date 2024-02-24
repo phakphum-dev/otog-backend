@@ -1,288 +1,274 @@
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { Op, literal } from 'sequelize';
-import {
-  CONTESTPROBLEM_REPOSITORY,
-  CONTEST_REPOSITORY,
-  Role,
-  SUBMISSION_REPOSITORY,
-  USERCONTEST_REPOSITORY,
-} from 'src/core/constants';
-import { ContestProblem } from 'src/entities/contestProblem.entity';
-import { Problem } from 'src/entities/problem.entity';
-import { Submission } from 'src/entities/submission.entity';
-import { User } from 'src/entities/user.entity';
-import { UserContest } from 'src/entities/userContest.entity';
-import { Contest } from '../../entities/contest.entity';
-import { CreateContestDTO, UpdateContestDTO } from './dto/contest.dto';
+import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+import { Role } from 'src/core/constants';
+import { PrismaService } from 'src/core/database/prisma.service';
 
 @Injectable()
 export class ContestService {
-  constructor(
-    @Inject(CONTEST_REPOSITORY) private contestRepository: typeof Contest,
-    @Inject(CONTESTPROBLEM_REPOSITORY)
-    private contestProblemRepository: typeof ContestProblem,
-    @Inject(USERCONTEST_REPOSITORY)
-    private userContestRepository: typeof UserContest,
-    @Inject(SUBMISSION_REPOSITORY)
-    private submissionRepository: typeof Submission,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(createContest: CreateContestDTO) {
-    try {
-      const contest = new Contest();
-      contest.name = createContest.name;
-      contest.mode = createContest.mode;
-      contest.gradingMode = createContest.gradingMode;
-      contest.timeStart = createContest.timeStart;
-      contest.timeEnd = createContest.timeEnd;
-      return await contest.save();
-    } catch {
-      throw new BadRequestException();
-    }
-  }
-
-  findAll(): Promise<Contest[]> {
-    return this.contestRepository.findAll({
-      order: [['id', 'DESC']],
+  async create(createContest: Prisma.ContestCreateInput) {
+    return this.prisma.contest.create({
+      data: {
+        name: createContest.name,
+        mode: createContest.mode,
+        gradingMode: createContest.gradingMode,
+        timeStart: createContest.timeStart,
+        timeEnd: createContest.timeEnd,
+      },
     });
   }
 
-  findOneById(contestId: number): Promise<Contest> {
-    return this.contestRepository
-      .scope('full')
-      .findOne({ where: { id: contestId } });
+  findAll() {
+    return this.prisma.contest.findMany({
+      orderBy: {
+        id: 'desc',
+      },
+    });
+  }
+
+  findOneById(contestId: number) {
+    return this.prisma.contest.findUnique({
+      where: { id: contestId },
+      include: { contestProblem: true },
+    });
   }
 
   async scoreboardByContestId(contestId: number) {
-    return this.contestRepository.scope('full').findOne({
-      include: [
-        {
-          model: User.scope('noPass'),
-          through: {
-            attributes: [],
-          },
-          where: { role: Role.User },
-          include: [
-            {
-              model: Submission,
-              attributes: ['id', 'problemId', 'score', 'timeUsed', 'status'],
-              where: {
-                id: {
-                  [Op.in]: [
-                    literal(
-                      `SELECT MAX(id) FROM submission WHERE "contestId" = ${contestId} GROUP BY "submission"."problemId","submission"."userId"`,
-                    ),
-                  ],
-                },
-              },
-            },
-          ],
-        },
-      ],
+    const contest = await this.prisma.contest.findUnique({
       where: { id: contestId },
-      rejectOnEmpty: true,
+      include: {
+        contestProblem: {
+          include: {
+            problem: true,
+          },
+        },
+        userContest: true,
+      },
     });
+    if (!contest) {
+      return null;
+    }
+    const lastSubmissions = await this.prisma.submission.groupBy({
+      _max: {
+        id: true,
+      },
+      by: ['userId', 'problemId'],
+      where: {
+        user: { role: Role.User },
+        contestId,
+      },
+    });
+    const submissionIds = lastSubmissions
+      .map((submission) => submission._max.id)
+      .filter((id): id is number => id !== null);
+    const submissions = await this.prisma.submission.findMany({
+      where: { id: { in: submissionIds } },
+      select: {
+        id: true,
+        problemId: true,
+        score: true,
+        timeUsed: true,
+        status: true,
+        userId: true,
+      },
+    });
+
+    const userIdToSubmissions = new Map<number, typeof submissions>();
+    submissions.forEach((submission) => {
+      if (userIdToSubmissions.has(submission.userId)) {
+        userIdToSubmissions.get(submission.userId)!.push(submission);
+      } else {
+        userIdToSubmissions.set(submission.userId, [submission]);
+      }
+    });
+
+    const userContestResult = contest.userContest.map((user) => ({
+      ...user,
+      submissions: userIdToSubmissions.get(user.userId),
+    }));
+    return { contest, userContest: userContestResult };
   }
 
+  // TODO: RAW
   async scoreboardPrizeByContestId(contestId: number) {
-    await this.contestRepository.findOne({
+    await this.prisma.contest.findUnique({
       where: { id: contestId },
-      rejectOnEmpty: true,
     });
+
+    const select = {
+      id: true,
+      problem: { select: { id: true } },
+      user: { select: { id: true, showName: true } },
+    };
+
     // * 1. First Blood: The first user that passed the task.
-    const firstBlood = await this.submissionRepository.findAll({
-      attributes: ['id'],
-      where: {
-        id: {
-          [Op.in]: [
-            literal(
-              `SELECT MIN(submission.id) AS id
-              FROM submission
-              INNER JOIN "user"
-              ON "user".id = submission."userId" AND "user"."role"='user'
-              WHERE "contestId" = ${contestId} AND status = 'accept'
-              GROUP BY "submission"."problemId"`,
-            ),
-          ],
-        },
-      },
-      include: [
-        { model: Problem, attributes: ['id'] },
-        { model: User, attributes: ['id', 'showName'] },
-      ],
+    const firstBloodResult = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT MIN(submission.id) AS id
+      FROM submission
+      INNER JOIN "user"
+      ON "user".id = submission."userId" AND "user"."role"='user'
+      WHERE "contestId" = ${contestId} AND status = 'accept'
+      GROUP BY "submission"."problemId"`;
+    const firstBloodIds = firstBloodResult.map((result) => result.id);
+    const firstBlood = await this.prisma.submission.findMany({
+      select,
+      where: { id: { in: firstBloodIds } },
     });
 
     // * 2. Faster Than Light: The user that solved the task with fastest algorithm.
-    const fasterThanLight = await this.submissionRepository.findAll({
-      attributes: ['id', 'timeUsed'],
+    const fasterThanLightResult = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT s.id AS id
+        FROM (
+          SELECT "problemId", MIN("timeUsed") AS "minTimeUsed"
+          FROM submission
+          INNER JOIN "user"
+          ON "user".id = submission."userId" AND "user"."role"='user'
+          WHERE "contestId" = ${contestId} AND status = 'accept' GROUP BY "submission"."problemId"
+        ) t
+        INNER JOIN (
+          SELECT submission.*
+          FROM submission
+          INNER JOIN "user"
+          ON "user".id = submission."userId" AND "user"."role"='user'
+          WHERE "contestId" = ${contestId} AND status = 'accept'
+        ) s
+        ON s."problemId" = t."problemId" AND s."timeUsed" = t."minTimeUsed"`;
+    const fasterThanLightIds = fasterThanLightResult.map((result) => result.id);
+    const fasterThanLight = await this.prisma.submission.findMany({
+      select,
       where: {
         contestId,
         id: {
-          [Op.in]: [
-            literal(
-              `SELECT s.id AS id
-              FROM (
-                SELECT "problemId", MIN("timeUsed") AS "minTimeUsed"
-                FROM submission
-                INNER JOIN "user"
-                ON "user".id = submission."userId" AND "user"."role"='user'
-                WHERE "contestId" = ${contestId} AND status = 'accept' GROUP BY "submission"."problemId"
-              ) t
-              INNER JOIN (
-                SELECT submission.*
-                FROM submission
-                INNER JOIN "user"
-                ON "user".id = submission."userId" AND "user"."role"='user'
-                WHERE "contestId" = ${contestId} AND status = 'accept'
-              ) s
-              ON s."problemId" = t."problemId" AND s."timeUsed" = t."minTimeUsed"`,
-            ),
-          ],
+          in: fasterThanLightIds,
         },
       },
-      include: [
-        { model: Problem, attributes: ['id'] },
-        { model: User, attributes: ['id', 'showName'] },
-      ],
     });
 
     // * 3. Passed In One: The user that passed the task in one submission.
-    const passedInOne = await this.submissionRepository.findAll({
-      attributes: ['id'],
-      where: {
-        contestId,
-        id: {
-          [Op.in]: [
-            literal(
-              `SELECT s.id AS id
-              FROM (
-                SELECT "problemId", "userId", MIN(submission.id) as id
-                  FROM submission
-                  INNER JOIN "user"
-                  ON "user".id = submission."userId" AND "user"."role"='user'
-                  WHERE "contestId" = ${contestId}
-                  GROUP BY "problemId", "userId"
-              ) t
-              INNER JOIN submission s
-              ON s.id = t.id AND s.status = 'accept'`,
-            ),
-          ],
-        },
-      },
-      include: [
-        { model: Problem, attributes: ['id'] },
-        { model: User, attributes: ['id', 'showName'] },
-      ],
+    const passedInOneResult = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT s.id AS id
+        FROM (
+          SELECT "problemId", "userId", MIN(submission.id) as id
+            FROM submission
+            INNER JOIN "user"
+            ON "user".id = submission."userId" AND "user"."role"='user'
+            WHERE "contestId" = ${contestId}
+            GROUP BY "problemId", "userId"
+        ) t
+        INNER JOIN submission s
+        ON s.id = t.id AND s.status = 'accept'`;
+    const passedInOneIds = passedInOneResult.map((result) => result.id);
+    const passedInOne = await this.prisma.submission.findMany({
+      select,
+      where: { id: { in: passedInOneIds } },
     });
 
     // * 4. One Man Solve: The only one user that passed the task.
-    const oneManSolve = await this.submissionRepository.findAll({
-      attributes: ['id'],
+    const oneManSolveResult = await this.prisma.$queryRaw<{ id: number }[]>`
+      SELECT DISTINCT ON (s."problemId")
+        s.id AS id
+      FROM (
+        SELECT "problemId", COUNT(DISTINCT "userId") AS "passedCount"
+        FROM submission
+        INNER JOIN "user"
+        ON "user".id = submission."userId" AND "user"."role"='user'
+        WHERE "contestId" = ${contestId} AND submission.status = 'accept'
+        GROUP BY "problemId"
+      ) t
+      INNER JOIN (
+        SELECT submission.*
+        FROM submission
+        INNER JOIN "user"
+        ON "user".id = submission."userId" AND "user"."role"='user'
+        WHERE "contestId" = ${contestId} AND status = 'accept'
+      ) s
+      ON t."passedCount" = 1 AND s."problemId" = t."problemId"`;
+    const oneManSolveIds = oneManSolveResult.map((result) => result.id);
+    const oneManSolve = await this.prisma.submission.findMany({
+      select,
       where: {
         contestId,
-        id: {
-          [Op.in]: [
-            literal(
-              `SELECT DISTINCT ON (s."problemId")
-                s.id AS id
-              FROM (
-                SELECT "problemId", COUNT(DISTINCT "userId") AS "passedCount"
-                FROM submission
-                INNER JOIN "user"
-                ON "user".id = submission."userId" AND "user"."role"='user'
-                WHERE "contestId" = ${contestId} AND submission.status = 'accept'
-                GROUP BY "problemId"
-              ) t
-              INNER JOIN (
-                SELECT submission.*
-                FROM submission
-                INNER JOIN "user"
-                ON "user".id = submission."userId" AND "user"."role"='user'
-                WHERE "contestId" = ${contestId} AND status = 'accept'
-              ) s
-              ON t."passedCount" = 1 AND s."problemId" = t."problemId"`,
-            ),
-          ],
-        },
+        id: { in: oneManSolveIds },
       },
-      include: [
-        { model: Problem, attributes: ['id'] },
-        { model: User, attributes: ['id', 'showName'] },
-      ],
     });
+
     return { firstBlood, fasterThanLight, passedInOne, oneManSolve };
   }
 
-  currentContest(): Promise<Contest> {
-    return this.contestRepository.scope('full').findOne({
+  currentContest() {
+    return this.prisma.contest.findFirst({
       where: {
         timeEnd: {
-          [Op.gte]: Date.now() - 60 * 60 * 1000,
+          gte: new Date(Date.now() - 60 * 60 * 1000),
         },
       },
-      order: [['id', 'DESC']],
+      orderBy: { id: 'desc' },
     });
   }
 
-  getStartedAndUnFinishedContest(): Promise<Contest> {
-    return this.contestRepository.scope('full').findOne({
+  getStartedAndUnFinishedContest() {
+    return this.prisma.contest.findFirst({
       where: {
         timeStart: {
-          [Op.lte]: Date.now(),
+          lte: new Date(),
         },
         timeEnd: {
-          [Op.gte]: Date.now(),
+          gte: new Date(),
         },
       },
-      order: [['id', 'DESC']],
+      include: {
+        contestProblem: true,
+      },
+      orderBy: { id: 'desc' },
     });
   }
 
-  async addProblemToContest(
+  async toggleProblemToContest(
     contestId: number,
     problemId: number,
     show: boolean,
   ) {
-    try {
-      if (show) {
-        const contestProblem = new ContestProblem();
-        contestProblem.problemId = problemId;
-        contestProblem.contestId = contestId;
-        await contestProblem.save();
-        return { problemId, contestId, show };
-      } else {
-        const contestProblem = await this.contestProblemRepository.findOne({
-          where: {
-            contestId,
+    if (show) {
+      await this.prisma.contestProblem.create({
+        data: {
+          problemId,
+          contestId,
+        },
+      });
+      return { show };
+    } else {
+      await this.prisma.contestProblem.delete({
+        where: {
+          contestId_problemId: {
             problemId,
+            contestId,
           },
-        });
-        await contestProblem.destroy();
-        return { problemId, contestId, show };
-      }
-    } catch {
-      throw new BadRequestException();
+        },
+      });
+      return { show };
     }
   }
 
   async addUserToContest(contestId: number, userId: number) {
-    return await this.userContestRepository.findOrCreate({
-      where: { userId, contestId },
-      defaults: {
-        userId,
-        contestId,
-      },
+    return this.prisma.userContest.upsert({
+      where: { userId_contestId: { userId, contestId } },
+      create: { userId, contestId },
+      update: {},
     });
   }
 
-  async updateContest(contestId: number, contestData: UpdateContestDTO) {
-    const contest = await this.findOneById(contestId);
-    return contest.update(contestData);
+  async updateContest(
+    contestId: number,
+    contestData: Prisma.ContestUpdateInput,
+  ) {
+    return this.prisma.contest.update({
+      where: { id: contestId },
+      data: contestData,
+    });
   }
 
   async deleteContest(contestId: number) {
-    const contest = await this.findOneById(contestId);
-    await contest.destroy();
-    return contest;
+    return this.prisma.contest.delete({ where: { id: contestId } });
   }
 }

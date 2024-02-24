@@ -1,62 +1,26 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { Role } from 'src/core/constants';
 import { UserDTO } from 'src/modules/user/dto/user.dto';
 
-export class CreateUserDTO {
-  @ApiProperty()
-  readonly username: string;
-
-  readonly password: string;
-
-  readonly showName: string;
-}
-
-export class LoginReqDTO {
-  @ApiProperty()
-  readonly username: string;
-
-  readonly password: string;
-}
-
 export class AuthResDTO {
-  user: UserDTO;
+  user?: UserDTO;
 
-  accessToken: string;
+  accessToken?: string;
 }
 
 export class JwtPayloadDTO {
-  id: number;
+  id?: number;
 
-  username: string;
+  username?: string;
 
-  showName: string;
+  showName?: string;
 
-  role: Role;
+  role?: Role;
 
-  rating: number | null;
+  rating?: number | null;
 
-  iat: number;
+  iat?: number;
 
-  exp: number;
+  exp?: number;
 
-  jti: string;
-}
-
-// export class UserAuthDTO {
-//   @ApiProperty()
-//   id: number;
-
-//   username: string;
-
-//   showName: string;
-
-//   role: string;
-
-//   rating: number;
-// }
-
-export class SignupResDTO {
-  message: string;
-
-  status: boolean;
+  jti?: string;
 }

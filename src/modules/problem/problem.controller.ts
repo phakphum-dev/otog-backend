@@ -1,16 +1,10 @@
 import {
-  Body,
   Controller,
-  Delete,
   ForbiddenException,
   Get,
   NotFoundException,
   Param,
-  ParseBoolPipe,
   ParseIntPipe,
-  Patch,
-  Post,
-  Put,
   Req,
   Res,
   UploadedFiles,
@@ -18,16 +12,6 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConsumes,
-  ApiCreatedResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
 import { Request, Response } from 'express';
 import * as path from 'path';
 import { AccessState, Role, UPLOAD_DIR } from 'src/core/constants';
@@ -39,17 +23,19 @@ import { AuthService } from '../auth/auth.service';
 import { ContestService } from '../contest/contest.service';
 import { UserDTO } from '../user/dto/user.dto';
 import { UserService } from '../user/user.service';
-import {
-  CreateProblemDTO,
-  EditProblemDTO,
-  ProblemDTO,
-  ToggleProblemDTO,
-  UploadedFilesObject,
-} from './dto/problem.dto';
+import { UploadedFilesObject } from './dto/problem.dto';
 import { ProblemService } from './problem.service';
+import {
+  TsRestHandler,
+  nestControllerContract,
+  tsRestHandler,
+} from '@ts-rest/nest';
+import { problemRouter } from 'src/api';
+import { z } from 'zod';
 
-@ApiTags('problem')
-@Controller('problem')
+const c = nestControllerContract(problemRouter);
+
+@Controller()
 @UseGuards(RolesGuard)
 export class ProblemController {
   constructor(
@@ -59,59 +45,57 @@ export class ProblemController {
     private userService: UserService,
   ) {}
 
-  @Get()
-  @ApiOkResponse({
-    type: ProblemDTO,
-    isArray: true,
-    description: 'Get problems depends on user permission',
-  })
-  async getAllProblems(@User() user: UserDTO) {
-    return user
-      ? user.role == Role.Admin
-        ? await this.problemService.findAllWithSubmissionByUserId_ADMIN(user.id)
-        : await this.problemService.findAllWithSubmissionByUserId(user.id)
-      : await this.problemService.findAllNotShow();
+  @TsRestHandler(c.getProblems)
+  getProblems(@User() user: UserDTO) {
+    return tsRestHandler(c.getProblems, async () => {
+      if (user.role === Role.Admin) {
+        const problems = await this.problemService.findAllWithSubmission(
+          user.id,
+        );
+        return { status: 200, body: problems };
+      }
+      if (user) {
+        const problems = await this.problemService.findOnlyShownWithSubmission(
+          user.id,
+        );
+        return { status: 200, body: problems };
+      }
+
+      const problems = await this.problemService.findOnlyShown();
+      return { status: 200, body: problems };
+    });
   }
 
-  @Get('/:problemId')
-  @ApiOkResponse({
-    type: ProblemDTO,
-    description: 'Get problem by id',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
-  async getProblemById(
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @User() user: UserDTO,
-  ) {
-    const problem = await this.problemService.findOneByIdWithExamples(
-      problemId,
+  @TsRestHandler(c.getProblem)
+  getProblem(@User() user: UserDTO) {
+    return tsRestHandler(c.getProblem, async ({ params: { problemId } }) => {
+      const id = z.coerce.number().parse(problemId);
+      const problem = await this.problemService.findOneByIdWithExamples(id);
+      if (!problem) {
+        return { status: 404, body: { message: 'Not Found' } };
+      }
+      if (problem.show === false && user.role !== Role.Admin) {
+        return { status: 403, body: { message: 'Forbidden' } };
+      }
+      return { status: 200, body: problem };
+    });
+  }
+
+  @TsRestHandler(c.getPassedUsers)
+  getPassedUsers() {
+    return tsRestHandler(
+      c.getPassedUsers,
+      async ({ params: { problemId } }) => {
+        const id = z.coerce.number().parse(problemId);
+        const users = await this.problemService.findPassedUser(id);
+        return { status: 200, body: users };
+      },
     );
-    if (!problem) {
-      throw new NotFoundException();
-    }
-    if (problem.show === false && user.role !== Role.Admin) {
-      throw new ForbiddenException();
-    }
-    return problem;
-  }
-
-  @Get('/:problemId/user')
-  @ApiOkResponse({
-    type: UserDTO,
-    isArray: true,
-    description: 'Get passed users',
-  })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
-  async getUserAccept(@Param('problemId', ParseIntPipe) problemId: number) {
-    return this.problemService.findAllUserAcceptByProblemId(problemId);
   }
 
   @OfflineAccess(AccessState.Public)
   @Get('doc/:problemId')
-  @ApiOkResponse({ description: 'Get problem document (pdf)' })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
-  async getDocById(
+  async getPdf(
     @Param('problemId', ParseIntPipe) problemId: number,
     @Req() req: Request,
     @Res() res: Response,
@@ -120,47 +104,53 @@ export class ProblemController {
     const rid = await req.cookies['RID'];
     if (rid) {
       const refreshToken = await this.authService.findOneByRID(rid);
-      user = await this.userService.findOneById(refreshToken?.userId);
+      if (!refreshToken?.userId) {
+        throw new NotFoundException();
+      }
+      user = await this.userService.findOneById(refreshToken.userId);
     }
 
     const problem = await this.problemService.findOneById(problemId);
-    if (!problem) throw new NotFoundException();
-    if (problem?.show == false && user?.role != Role.Admin) {
+    if (!problem) {
+      throw new NotFoundException();
+    }
+    if (problem.show === false && user?.role !== Role.Admin) {
       // TODO validate user if contest is private
       const contest =
         await this.contestService.getStartedAndUnFinishedContest();
-      if (!contest || !contest.problems.some((e) => e.id === problem.id))
+      if (
+        !contest ||
+        !contest.contestProblem.some((p) => p.problemId === problem.id)
+      )
         throw new ForbiddenException();
     }
 
-    const readStream = await this.problemService.getProblemDocStream(problem);
+    const readStream = await this.problemService.getProblemDocStream(
+      problem.id,
+    );
 
     return readStream.pipe(res.type('application/pdf'));
   }
 
   //Admin route
+  @TsRestHandler(c.toggleShowProblem)
   @Roles(Role.Admin)
-  @Patch('/:problemId')
-  @ApiBearerAuth()
-  @ApiBody({ type: ToggleProblemDTO })
-  @ApiOkResponse({ type: ProblemDTO, description: 'Toggle problem show state' })
-  @ApiNotFoundResponse({ description: 'Problem not found' })
-  changeProblemShowById(
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @Body('show', ParseBoolPipe) show: boolean,
-  ) {
-    return this.problemService.changeProblemShowById(problemId, show);
+  toggleShowProblem() {
+    return tsRestHandler(
+      c.toggleShowProblem,
+      async ({ params: { problemId }, body: { show } }) => {
+        const id = z.coerce.number().parse(problemId);
+        const problem = await this.problemService.changeProblemShowById(
+          id,
+          show,
+        );
+        return { status: 200, body: problem };
+      },
+    );
   }
 
+  @TsRestHandler(c.createProblem)
   @Roles(Role.Admin)
-  @Post()
-  @ApiBearerAuth()
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: CreateProblemDTO })
-  @ApiCreatedResponse({
-    type: ProblemDTO,
-    description: 'Create new problem',
-  })
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -172,22 +162,15 @@ export class ProblemController {
       },
     ),
   )
-  createProblem(
-    @Body() createProblem: CreateProblemDTO,
-    @UploadedFiles() files: UploadedFilesObject,
-  ) {
-    return this.problemService.create(createProblem, files);
+  createProblem(@UploadedFiles() files: UploadedFilesObject) {
+    return tsRestHandler(c.createProblem, async ({ body }) => {
+      const problem = await this.problemService.create(body, files);
+      return { status: 201, body: problem };
+    });
   }
 
+  @TsRestHandler(c.updateProblem)
   @Roles(Role.Admin)
-  @Put('/:problemId')
-  @ApiBearerAuth()
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: EditProblemDTO })
-  @ApiOkResponse({
-    type: ProblemDTO,
-    description: 'New problem detail',
-  })
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -199,36 +182,44 @@ export class ProblemController {
       },
     ),
   )
-  replaceProblem(
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @Body() newProblem: EditProblemDTO,
-    @UploadedFiles() files: UploadedFilesObject,
-  ) {
-    return this.problemService.ReplaceByProblemId(problemId, newProblem, files);
+  updateProblem(@UploadedFiles() files: UploadedFilesObject) {
+    return tsRestHandler(
+      c.updateProblem,
+      async ({ body, params: { problemId } }) => {
+        const id = z.coerce.number().parse(problemId);
+        const problem = await this.problemService.replaceByProblemId(
+          id,
+          body,
+          files,
+        );
+        return { status: 200, body: problem };
+      },
+    );
   }
 
+  @TsRestHandler(c.deleteProblem)
   @Roles(Role.Admin)
-  @Delete('/:problemId')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: ProblemDTO,
-    description: 'problem deleted detail',
-  })
-  deleteProblem(@Param('problemId', ParseIntPipe) problemId: number) {
-    return this.problemService.delete(problemId);
+  deleteProblem() {
+    return tsRestHandler(c.deleteProblem, async ({ params: { problemId } }) => {
+      const id = z.coerce.number().parse(problemId);
+      const problem = await this.problemService.delete(id);
+      return { status: 200, body: problem };
+    });
   }
 
+  @TsRestHandler(c.updateProblemExamples)
   @Roles(Role.Admin)
-  @Put('/:problemId/examples')
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    // type: ProblemDTO,
-    description: 'Update problem example testcases',
-  })
-  updateProblemTestcase(
-    @Param('problemId', ParseIntPipe) problemId: number,
-    @Body() examples: object,
-  ) {
-    return this.problemService.updateProblemExamples(problemId, examples);
+  updateProblemExamples() {
+    return tsRestHandler(
+      c.updateProblemExamples,
+      async ({ params: { problemId }, body }) => {
+        const id = z.coerce.number().parse(problemId);
+        const problem = await this.problemService.updateProblemExamples(
+          id,
+          body,
+        );
+        return { status: 200, body: problem };
+      },
+    );
   }
 }

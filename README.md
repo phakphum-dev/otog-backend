@@ -48,10 +48,10 @@ First, run the database using docker
 docker compose -f docker-compose.dev.yml up -d
 ```
 
-Then, run yarn to install dependencies
+Then, run pnpm to install dependencies
 
 ```bash
-yarn
+pnpm i
 ```
 
 Use `.env.template` to setup your local environment
@@ -61,7 +61,7 @@ Copy and rename it to `.env.dev`
 After that, run the dev server
 
 ```bash
-yarn start:dev
+pnpm dev
 ```
 
 ## Bug Report

@@ -1,120 +1,80 @@
-import {
-  Body,
-  Controller,
-  ForbiddenException,
-  Get,
-  NotFoundException,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiConflictResponse,
-  ApiForbiddenResponse,
-  ApiNotFoundResponse,
-  ApiOkResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, UseGuards } from '@nestjs/common';
 import { Role } from 'src/core/constants';
 import { Roles } from 'src/core/decorators/roles.decorator';
 import { User } from 'src/core/decorators/user.decorator';
 import { RolesGuard } from 'src/core/guards/roles.guard';
-import {
-  PatchShowNameDTO,
-  UpdateUserDTO,
-  UserDTO,
-  UserProfileDTO,
-} from './dto/user.dto';
 import { UserService } from './user.service';
+import {
+  TsRestHandler,
+  nestControllerContract,
+  tsRestHandler,
+} from '@ts-rest/nest';
+import { userRouter } from 'src/api';
+import { z } from 'zod';
+import { UserDTO } from './dto/user.dto';
 
-@ApiTags('user')
-@Controller('user')
+const c = nestControllerContract(userRouter);
+
+@Controller()
 @UseGuards(RolesGuard)
 export class UserController {
   constructor(private userService: UserService) {}
 
+  @TsRestHandler(c.getUsers)
   @Roles(Role.Admin)
-  @Get()
-  @ApiBearerAuth()
-  @ApiOkResponse({
-    type: UserDTO,
-    isArray: true,
-    description: 'Get all registered users',
-  })
-  getAllUsers(): Promise<UserDTO[]> {
-    return this.userService.findAll();
+  getUsers() {
+    return tsRestHandler(c.getUsers, async () => {
+      const users = await this.userService.findAll();
+      return { status: 200, body: users };
+    });
   }
 
-  @Get('/online')
-  @ApiOkResponse({
-    type: UserDTO,
-    isArray: true,
-    description: 'Get online users',
-  })
-  getOnlineUser() {
-    return this.userService.onlineUser();
+  @TsRestHandler(c.getUsers)
+  getOnlineUsers() {
+    return tsRestHandler(c.getUsers, async () => {
+      const users = await this.userService.onlineUser();
+      return { status: 200, body: users };
+    });
   }
 
-  // @Get('/:userId')
-  // @ApiResponse({
-  //   status: 200,
-  //   type: UserDTO,
-  // })
-  // getUserById(@Param('userId') userId: number): Promise<UserDTO> {
-  //   return this.userService.getUserProfileById(userId);
-  // }
+  @TsRestHandler(c.getUserProfile)
+  getUserProfile() {
+    return tsRestHandler(c.getUserProfile, async ({ params: { userId } }) => {
+      const id = z.coerce.number().parse(userId);
+      const user = await this.userService.getUserProfileById(id);
+      if (!user) {
+        return { status: 404, body: { message: 'Not Found' } };
+      }
+      return { status: 200, body: user };
+    });
+  }
 
+  @TsRestHandler(c.updateUser)
   @Roles(Role.Admin)
-  @Put('/:userId')
-  @ApiBearerAuth()
-  @ApiBody({ type: UpdateUserDTO })
-  @ApiOkResponse({
-    type: UserDTO,
-    description: 'user update successfully',
-  })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  async updateUser(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Body() userData: UpdateUserDTO,
-  ) {
-    try {
-      return await this.userService.updateUser(userId, userData);
-    } catch (e: unknown) {
-      throw new NotFoundException('user not found');
-    }
+  updateUser() {
+    return tsRestHandler(c.updateUser, async ({ params: { userId }, body }) => {
+      const id = z.coerce.number().parse(userId);
+      const user = await this.userService.updateUser(id, body);
+      return { status: 200, body: user };
+    });
   }
 
+  @TsRestHandler(c.updateShowName)
   @Roles(Role.Admin, Role.User)
-  @Patch('/:userId/name')
-  @ApiBody({ type: PatchShowNameDTO })
-  @ApiOkResponse({
-    type: UserDTO,
-    description: 'showName changed successfully',
-  })
-  @ApiForbiddenResponse({ description: 'Forbidden' })
-  @ApiConflictResponse({ description: 'showName already exists' })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  updateShowName(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Body('showName') showName: string,
-    @User() user: UserDTO,
-  ) {
-    if (user.role !== Role.Admin && user.id !== userId) {
-      throw new ForbiddenException();
-    }
-    return this.userService.updateShowNameById(showName, userId);
-  }
-
-  @Get('/:userId/profile')
-  @ApiOkResponse({ type: UserProfileDTO })
-  @ApiNotFoundResponse({ description: 'User not found' })
-  async getUserProfileById(@Param('userId', ParseIntPipe) userId: number) {
-    const userProfile = await this.userService.getUserProfileById(userId);
-    if (!userProfile) throw new NotFoundException();
-    return userProfile;
+  updateShowName(@User() user: UserDTO) {
+    return tsRestHandler(
+      c.updateShowName,
+      async ({ params: { userId }, body }) => {
+        const id = z.coerce.number().parse(userId);
+        if (user.role !== Role.Admin && user.id !== id) {
+          return { status: 403, body: { message: 'Forbidden' } };
+        }
+        const showName = await this.userService.updateShowNameById(
+          body.showName,
+          id,
+        );
+        return { status: 200, body: showName };
+      },
+    );
   }
 }
