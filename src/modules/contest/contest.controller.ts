@@ -135,7 +135,7 @@ export class ContestController {
   }
 
   @Roles(Role.Admin)
-  @Patch('/:contestId')
+  @Post('/:contestId')
   @ApiBearerAuth()
   @ApiBody({ type: PatchContestDTO })
   @ApiResponse({

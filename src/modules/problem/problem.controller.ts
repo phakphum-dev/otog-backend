@@ -140,7 +140,7 @@ export class ProblemController {
 
   //Admin route
   @Roles(Role.Admin)
-  @Patch('/:problemId')
+  @Post('/:problemId')
   @ApiBearerAuth()
   @ApiBody({ type: ToggleProblemDTO })
   @ApiOkResponse({ type: ProblemDTO, description: 'Toggle problem show state' })
