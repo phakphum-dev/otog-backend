@@ -267,7 +267,7 @@ export class SubmissionController {
   }
 
   @Roles(Role.Admin)
-  @Patch('/:resultId/rejudge')
+  @Post('/:resultId/rejudge')
   @ApiBearerAuth()
   @ApiOkResponse({
     type: SubmissionWithSourceCodeDTO,
@@ -286,7 +286,7 @@ export class SubmissionController {
   }
 
   @Roles(Role.Admin)
-  @Patch('problem/:problemId/rejudge')
+  @Post('problem/:problemId/rejudge')
   @ApiBearerAuth()
   @ApiOkResponse({
     description: 'Rejudge all latest submission of a problem',
